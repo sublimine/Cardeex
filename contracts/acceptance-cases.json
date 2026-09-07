@@ -1,0 +1,2080 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Normative acceptance obligations plus bounded executable design models. Passing model checks does not verify unbuilt production code.",
+  "traceability_semantics": "cases.invariants records cross-cutting FND links. Specialized DOM/INV/OPS mappings live only in the canonical architecture traceability tables to avoid duplicate mappings. An existing link proves traceability, not execution or completeness of the test oracle. Model types refer to named finite reference functions in tools/verify_foundation.py; presence, temporal and canonical_key_vector take their full fixtures from this catalogue; capacity loads capacity-model.json.",
+  "cases": [
+    {
+      "id": "A001",
+      "title": "Particular no es dealer",
+      "invariants": [
+        "FND-001"
+      ],
+      "given": "Una cuenta particular publica un coche en una plataforma.",
+      "when": "Resolver publicador y vendedor.",
+      "then": "Mantener la plataforma como fuente y vendedor particular; no crear dealer/POS.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A002",
+      "title": "Grupo y sucursales",
+      "invariants": [
+        "FND-001",
+        "FND-009"
+      ],
+      "given": "Un profesional opera tres POS y publica una cuenta de grupo.",
+      "when": "Proyectar inventario por dealer y POS.",
+      "then": "Stock del dealer sin multiplicación; POS sin evidencia queda sin asignar.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A003",
+      "title": "Identificador externo reutilizado",
+      "invariants": [
+        "FND-001",
+        "FND-006",
+        "FND-008"
+      ],
+      "given": "La fuente reutiliza el ID externo para un vehículo incompatible.",
+      "when": "Ingerir la nueva oferta.",
+      "then": "Crear nueva incarnation; no sobrescribir observaciones anteriores.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A004",
+      "title": "Cambian precio y kilometraje",
+      "invariants": [
+        "FND-006"
+      ],
+      "given": "Un anuncio del mismo namespace/incarnation cambia atributos comerciales.",
+      "when": "Normalizar nueva observación.",
+      "then": "Mantener listing y vehicle IDs; registrar cambios de atributos por oferta.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A005",
+      "title": "Precios divergentes por canal",
+      "invariants": [
+        "FND-002",
+        "FND-006"
+      ],
+      "given": "Mismo vehículo y dealer: web 20000 EUR, portal 21000 EUR.",
+      "when": "Resolver identidad y servir ofertas.",
+      "then": "Conservar ambos precios y contextos; no crear precio global del vehículo.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A006",
+      "title": "Coches de flota idénticos",
+      "invariants": [
+        "FND-006",
+        "FND-007"
+      ],
+      "given": "Dos coches comparten modelo, color, año y fotos de catálogo.",
+      "when": "Generar candidatos de identidad.",
+      "then": "No fusionar por semejanza; conservar ambigüedad y evidencia negativa.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A007",
+      "title": "VIN contradictorio",
+      "invariants": [
+        "FND-002",
+        "FND-007"
+      ],
+      "given": "El mismo VIN publicado acompaña dos configuraciones físicamente incompatibles.",
+      "when": "Resolver identidad.",
+      "then": "Detectar conflicto/clon/error; no tratar VIN como PK infalible.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A008",
+      "title": "VIN histórico no estándar",
+      "invariants": [
+        "FND-002",
+        "FND-015"
+      ],
+      "given": "Vehículo antiguo tiene identificador de chasis no estándar.",
+      "when": "Validar identificador.",
+      "then": "Conservar original y estado de validación; no descartar vehículo ni inventar VIN.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A009",
+      "title": "Merge y split",
+      "invariants": [
+        "FND-007",
+        "FND-015"
+      ],
+      "given": "Dos identidades se fusionan y luego llega evidencia que exige separarlas.",
+      "when": "Revertir la decisión.",
+      "then": "Restaurar asociaciones explicables, historial intacto y eventos de corrección.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A010",
+      "title": "Triángulo de coincidencias",
+      "invariants": [
+        "FND-007"
+      ],
+      "given": "A coincide débilmente con B; B con C; A y C tienen restricción negativa.",
+      "when": "Aplicar clustering.",
+      "then": "No fusionar componente por cierre transitivo ciego.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A011",
+      "title": "Taller y desguace",
+      "invariants": [
+        "FND-001",
+        "FND-015"
+      ],
+      "given": "Profesional ofrece vehículo completo y piezas en la misma web.",
+      "when": "Clasificar vendedor y activos.",
+      "then": "Admitir profesional/unidades completas en scope; excluir piezas del inventario.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A012",
+      "title": "Motos capturadas desde el comienzo",
+      "invariants": [
+        "FND-005",
+        "FND-015"
+      ],
+      "given": "Feed mixto tiene car/lcv/motorcycle/motorhome.",
+      "when": "Capturar y distribuir observaciones.",
+      "then": "Captura compartida si compatible; clases conservadas y certificación separada.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A013",
+      "title": "Clase no soportada",
+      "invariants": [
+        "FND-005",
+        "FND-015"
+      ],
+      "given": "Respuesta contiene caravan, maquinaria o categoría desconocida.",
+      "when": "Normalizar/publicar.",
+      "then": "No convertir a car; excluir o cuarentena según política, conservando evidencia admisible.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A014",
+      "title": "Clase corregida",
+      "invariants": [
+        "FND-005",
+        "FND-015"
+      ],
+      "given": "Un vehículo se reclasifica de car a lcv por evidencia nueva.",
+      "when": "Reproyectar identidad/inventario.",
+      "then": "Conservar identidad, corregir pertenencia y contadores; no simular venta y nueva adquisición.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A015",
+      "title": "Importe financiero",
+      "invariants": [
+        "FND-002",
+        "FND-006"
+      ],
+      "given": "Texto indica 199 EUR/mes y precio al contado 22000 EUR.",
+      "when": "Extraer y comparar precios.",
+      "then": "Preservar tipo importe, moneda y condiciones; no clasificar la cuota como precio de venta.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A016",
+      "title": "Unidades y precisión",
+      "invariants": [
+        "FND-002",
+        "FND-008"
+      ],
+      "given": "Hay millas/km, PS/kW, fecha solo año y precio neto/bruto.",
+      "when": "Normalizar.",
+      "then": "Conservar unidades/precisión/base fiscal y versión de conversión; no fabricar exactitud.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A017",
+      "title": "Unknown frente a null",
+      "invariants": [
+        "FND-002",
+        "FND-008"
+      ],
+      "given": "Nuevo parser no encuentra un campo que antes existía.",
+      "when": "Proyectar observación parcial.",
+      "then": "Ausente/unknown no es borrado; explicit_null exige semántica y evidencia.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A018",
+      "title": "HTML hostil",
+      "invariants": [
+        "FND-011",
+        "FND-016"
+      ],
+      "given": "Descripción contiene instrucciones para agentes, scripts o URLs internas.",
+      "when": "Extraer y asistir revisión.",
+      "then": "Tratar contenido como datos; no ejecutar instrucciones ni saltar permisos.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A019",
+      "title": "Raw truncado",
+      "invariants": [
+        "FND-002",
+        "FND-003"
+      ],
+      "given": "Fetch recibe 200 con cuerpo truncado o hash inconsistente.",
+      "when": "Confirmar manifiesto.",
+      "then": "No aceptar evidencia íntegra ni cerrar completitud; cuarentena con causa.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A020",
+      "title": "304 sin cuerpo previo",
+      "invariants": [
+        "FND-002",
+        "FND-008"
+      ],
+      "given": "Fuente devuelve 304 pero el raw previo ya expiró.",
+      "when": "Procesar comprobación.",
+      "then": "Presence con límites visibles; no inventar snapshot ni fingir replay disponible.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A021",
+      "title": "Replay sin red",
+      "invariants": [
+        "FND-002",
+        "FND-008",
+        "FND-015"
+      ],
+      "given": "Extractor cambia y existe raw retenido con checksum.",
+      "when": "Reprocesar con egress deshabilitado.",
+      "then": "Reproducir transformación; nueva derivación no modifica tiempo de captura.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A022",
+      "title": "Idempotencia durable",
+      "invariants": [
+        "FND-003"
+      ],
+      "given": "Mensaje se entrega otra vez tras fallo antes del ACK.",
+      "when": "Aplicar el mismo evento.",
+      "then": "Una sola mutación lógica y secuencia; evidencia de reintento conservada.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A023",
+      "title": "Worker con lease vencido",
+      "invariants": [
+        "FND-003"
+      ],
+      "given": "Dos workers creen poseer la misma partición; uno tiene fence antiguo.",
+      "when": "Intentar publicar ambos.",
+      "then": "Solo fence vigente cambia estado; no doble publicación.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A024",
+      "title": "Pérdida entre blob y manifiesto",
+      "invariants": [
+        "FND-002",
+        "FND-003"
+      ],
+      "given": "Blob durable pero transacción de metadatos falla.",
+      "when": "Recuperar trabajo.",
+      "then": "Reutilizar/verificar blob o gestionar huérfano; no emitir captura inexistente.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A025",
+      "title": "Outbox duplicado",
+      "invariants": [
+        "FND-003",
+        "FND-010"
+      ],
+      "given": "Commit local completado y publicación al log se reintenta.",
+      "when": "Consumir mensajes repetidos.",
+      "then": "Convergencia idempotente sin salto lógico ni stock duplicado.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A026",
+      "title": "Censo de coches y motos",
+      "invariants": [
+        "FND-004",
+        "FND-005"
+      ],
+      "given": "Motos activas existen y solo se completa stream car.",
+      "when": "Calcular ausencias.",
+      "then": "El censo de car no afecta motos.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A027",
+      "title": "Paginación truncada",
+      "invariants": [
+        "FND-004",
+        "FND-005"
+      ],
+      "given": "Fuente anuncia 2500 resultados pero solo pagina 2000.",
+      "when": "Consumir última página visible.",
+      "then": "No certificar completitud; dividir o bloquear reconciliación negativa.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A028",
+      "title": "Censo live mutable",
+      "invariants": [
+        "FND-004",
+        "FND-005",
+        "FND-008"
+      ],
+      "given": "Orden por precio cambia durante offset pagination.",
+      "when": "Llegar al final de páginas.",
+      "then": "No afirmar snapshot por agotamiento; exigir evidencia comparable o declarar parcial.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A029",
+      "title": "Movimiento entre particiones",
+      "invariants": [
+        "FND-004",
+        "FND-005"
+      ],
+      "given": "Anuncio cambia de banda de precio durante recorrido.",
+      "when": "Reconciliar particiones.",
+      "then": "Usar unión del scope comparable y evidencia positiva; no retirar por ausencia local.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A030",
+      "title": "Revisión de alcance",
+      "invariants": [
+        "FND-005",
+        "FND-015"
+      ],
+      "given": "Plan anterior incluía filtros distintos del nuevo.",
+      "when": "Comparar censos.",
+      "then": "No mezclar negativos; reiniciar baseline compatible conservando historia.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A031",
+      "title": "429 en la última página",
+      "invariants": [
+        "FND-004",
+        "FND-009"
+      ],
+      "given": "Casi todo el inventario se obtuvo y última partición falla.",
+      "when": "Cerrar ejecución.",
+      "then": "Estado parcial; mantener inventario conocido y frescura degradada.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A032",
+      "title": "Silencio prolongado",
+      "invariants": [
+        "FND-004",
+        "FND-009"
+      ],
+      "given": "Fuente cae durante días y vence objetivo de frescura.",
+      "when": "Consultar API.",
+      "then": "Estado obsoleto/degradado, no inventario cero ni ventas masivas.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A033",
+      "title": "Positivo tardío",
+      "invariants": [
+        "FND-004",
+        "FND-008"
+      ],
+      "given": "Llega evidencia causalmente anterior a una retirada posterior verificada.",
+      "when": "Aplicar fuera de orden.",
+      "then": "Añadir historia; no resucitar stock solo por tiempo de recepción.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A034",
+      "title": "Retirada en un canal",
+      "invariants": [
+        "FND-004",
+        "FND-006"
+      ],
+      "given": "Anuncio web se retira pero portal sigue ofreciendo mismo vehículo.",
+      "when": "Actualizar inventario.",
+      "then": "Retirada por anuncio; conservar otra oferta, sin venta global.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A035",
+      "title": "Asignación POS corregida",
+      "invariants": [
+        "FND-001",
+        "FND-007",
+        "FND-010"
+      ],
+      "given": "Vehículo se asignó a sucursal equivocada.",
+      "when": "Corregir relación temporal.",
+      "then": "Mover membresía con correcciones correlacionadas y mantener historia de decisión.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A036",
+      "title": "Snapshot bajo escrituras",
+      "invariants": [
+        "FND-009",
+        "FND-010"
+      ],
+      "given": "Se actualiza inventario entre página 1 y página 2.",
+      "when": "Continuar con cursor del snapshot.",
+      "then": "Mismo corte y orden estable; ningún duplicado/omisión por escrituras nuevas.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A037",
+      "title": "Límite snapshot-eventos",
+      "invariants": [
+        "FND-003",
+        "FND-010"
+      ],
+      "given": "Cambio ocurre justo al abrir snapshot y obtener cursor de eventos.",
+      "when": "Reconstruir cliente.",
+      "then": "Cada cambio está en snapshot o en continuación; no hueco.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A038",
+      "title": "Cursor caducado",
+      "invariants": [
+        "FND-009",
+        "FND-010"
+      ],
+      "given": "Cliente reanuda después de ventana de retención.",
+      "when": "Pedir siguiente página/evento.",
+      "then": "Error de expiración explícito y reinicio desde snapshot, no continuidad fingida.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A039",
+      "title": "Cursor cruzado entre clientes",
+      "invariants": [
+        "FND-011"
+      ],
+      "given": "Tenant B obtiene un cursor emitido a A.",
+      "when": "Reutilizar cursor con credenciales B.",
+      "then": "Rechazar sin revelar existencia, filtros ni datos.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A040",
+      "title": "Revocación durante paginado",
+      "invariants": [
+        "FND-011",
+        "FND-012"
+      ],
+      "given": "Cliente pierde derecho a una fuente tras leer página 1.",
+      "when": "Pedir página 2 y eventos.",
+      "then": "Aplicar autorización vigente e invalidar continuidad si es necesario.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A041",
+      "title": "Webhook duplicado y reordenado",
+      "invariants": [
+        "FND-003",
+        "FND-010"
+      ],
+      "given": "Entrega E2 precede E1 y ambos se repiten.",
+      "when": "Aplicar/reconciliar cliente.",
+      "then": "Usar identidad y secuencia; no perder cambio ni retroceder estado.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A042",
+      "title": "Dealer extremo",
+      "invariants": [
+        "FND-009",
+        "FND-013"
+      ],
+      "given": "Un dealer contiene millones de ofertas y muchos POS.",
+      "when": "Leer/paginar/actualizar mientras hay carga normal.",
+      "then": "Límites por consulta y sharding mantienen contratos; no bloqueo global.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A043",
+      "title": "Enum nuevo de proveedor",
+      "invariants": [
+        "FND-015"
+      ],
+      "given": "Proveedor añade valor desconocido en un campo.",
+      "when": "Ingerir y servir versión actual.",
+      "then": "Preservar raw/unknown controlado; no fallar toda la fuente ni cambiar tipo silenciosamente.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A044",
+      "title": "Deriva de extractor",
+      "invariants": [
+        "FND-002",
+        "FND-015",
+        "FND-016"
+      ],
+      "given": "Nueva plantilla hace desaparecer el 80% de precios extraídos.",
+      "when": "Comparar canary con baseline.",
+      "then": "Alerta/cuarentena del componente; no publicar supuesta caída de precios.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A045",
+      "title": "Admisión vencida",
+      "invariants": [
+        "FND-011",
+        "FND-012",
+        "FND-016"
+      ],
+      "given": "Permiso expira entre planificación y ejecución.",
+      "when": "Worker va a acceder a superficie.",
+      "then": "Revalidar y bloquear nuevo acceso; registrar deuda de frescura.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A046",
+      "title": "Cambio de DNS y SSRF",
+      "invariants": [
+        "FND-011",
+        "FND-016"
+      ],
+      "given": "URL admitida redirige o resuelve a dirección interna.",
+      "when": "Seguir redirect o abrir conexión.",
+      "then": "Volver a validar destino/egress; bloquear red privada y secreto de metadatos.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A047",
+      "title": "Medio con derechos restringidos",
+      "invariants": [
+        "FND-011",
+        "FND-012"
+      ],
+      "given": "Se permite leer atributos pero no redistribuir fotos.",
+      "when": "Preparar respuesta y almacenamiento media.",
+      "then": "No publicar/retener fuera de permiso; registrar referencia admisible y limitación.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A048",
+      "title": "Borrado y caché",
+      "invariants": [
+        "FND-012"
+      ],
+      "given": "Supresión afecta raw, observaciones y derivados.",
+      "when": "Ejecutar borrado y consultar URLs antiguas.",
+      "then": "Denegar contenido revocado y propagar invalidación; conservar solo recibo admisible.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A049",
+      "title": "Backup anterior a supresión",
+      "invariants": [
+        "FND-012"
+      ],
+      "given": "Backup contiene un registro borrado después.",
+      "when": "Restaurar y reemitir outbox.",
+      "then": "Aplicar ledger de supresión antes de servir; no resurrección por replay.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A050",
+      "title": "Fallo de región",
+      "invariants": [
+        "FND-003",
+        "FND-010",
+        "FND-012",
+        "FND-013"
+      ],
+      "given": "Región primaria deja de estar disponible.",
+      "when": "Conmutar y recuperar.",
+      "then": "Fencing y RPO/RTO medidos por clase; sin escritores dobles ni pérdida silenciosa.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A051",
+      "title": "Backpressure",
+      "invariants": [
+        "FND-002",
+        "FND-003",
+        "FND-013"
+      ],
+      "given": "Downstream escribe más lento que la captura.",
+      "when": "Mantener carga entrante.",
+      "then": "Frenar nuevas tareas dentro de presupuesto; no ACK sin durabilidad.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A052",
+      "title": "Recuperación sin margen",
+      "invariants": [
+        "FND-009",
+        "FND-013"
+      ],
+      "given": "Demanda normal consume toda la capacidad disponible.",
+      "when": "Intentar drenar backlog.",
+      "then": "Modelo declara imposibilidad/plazo infinito; no prometer recuperación finita.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A053",
+      "title": "Coste de medios",
+      "invariants": [
+        "FND-013"
+      ],
+      "given": "Media pesa mucho más que snapshots textuales.",
+      "when": "Dimensionar inventario.",
+      "then": "Contabilizar media, retención, réplicas y egress aparte; no usar solo bytes JSON.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A054",
+      "title": "Métrica de alta cardinalidad",
+      "invariants": [
+        "FND-009",
+        "FND-013"
+      ],
+      "given": "Hay millones de dealers y miles de millones de listings.",
+      "when": "Instrumentar métricas y diagnóstico.",
+      "then": "Series agregadas acotadas; detalle por ID en almacenamiento consultable.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A055",
+      "title": "Denominador desconocido",
+      "invariants": [
+        "FND-014"
+      ],
+      "given": "Solo se conoce el registro descubierto, no todas las fuentes existentes.",
+      "when": "Publicar cobertura.",
+      "then": "Ratio sobre universo abierto es null/estimado, no 100%.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A056",
+      "title": "Fuentes bloqueadas",
+      "invariants": [
+        "FND-009",
+        "FND-014"
+      ],
+      "given": "Fuentes conocidas no tienen acceso o fallan.",
+      "when": "Calcular porcentaje en plazo.",
+      "then": "Conservar bloqueadas y deuda en denominadores declarados; no ocultarlas.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A057",
+      "title": "Cero verificado",
+      "invariants": [
+        "FND-004",
+        "FND-009",
+        "FND-014"
+      ],
+      "given": "Superficie comparable acredita inventario realmente vacío.",
+      "when": "Publicar snapshot certificado vacío.",
+      "then": "Cero con evidencia/alcance/fecha; distinto de error o desconocido.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A058",
+      "title": "Taxonomía ampliada",
+      "invariants": [
+        "FND-005",
+        "FND-014",
+        "FND-015"
+      ],
+      "given": "Se habilita otra clase o país.",
+      "when": "Cambiar cobertura y contratos.",
+      "then": "Nueva versión de scope/denominador y puertas; métricas antiguas siguen interpretables.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A059",
+      "title": "Experimento de identidad sesgado",
+      "invariants": [
+        "FND-007",
+        "FND-014",
+        "FND-016"
+      ],
+      "given": "Evaluación usa duplicados de la misma fuente/grupo en train y test.",
+      "when": "Calibrar umbral de autofusión.",
+      "then": "Rechazar evaluación con fuga; corpus independiente y por estratos.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A060",
+      "title": "Autorreparación no certificada",
+      "invariants": [
+        "FND-015",
+        "FND-016"
+      ],
+      "given": "Agente propone receta que aumenta extracción pero inventa campos.",
+      "when": "Intentar promoción.",
+      "then": "Exigir corpus/replay/revisión/canary y rollback; ninguna promoción por confianza verbal.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A061",
+      "title": "Resharding con eventos",
+      "invariants": [
+        "FND-003",
+        "FND-010",
+        "FND-013"
+      ],
+      "given": "Inventario cambia de shard con eventos pendientes.",
+      "when": "Mover ruta y reanudar writers/consumidores.",
+      "then": "Epoch/fence, orden local y continuidad de secuencia; sin doble autoridad.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A062",
+      "title": "Permisos difieren entre superficies",
+      "invariants": [
+        "FND-011",
+        "FND-012",
+        "FND-015"
+      ],
+      "given": "API y HTML de una marca tienen alcances distintos.",
+      "when": "Reutilizar conector y raw.",
+      "then": "Aplicar admisión por superficie; no propagar derechos de marca globalmente.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A063",
+      "title": "Múltiples relojes",
+      "invariants": [
+        "FND-002",
+        "FND-008"
+      ],
+      "given": "Timestamp de fuente está en futuro o solo tiene precisión de día.",
+      "when": "Ordenar observaciones.",
+      "then": "Conservar precisión e incertidumbre; timestamp no prueba causalidad.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A064",
+      "title": "Índices derivados obsoletos",
+      "invariants": [
+        "FND-002",
+        "FND-009",
+        "FND-012"
+      ],
+      "given": "Índice de búsqueda va detrás de serving y derechos actuales.",
+      "when": "Buscar y abrir inventario.",
+      "then": "Informar watermark/lag, revalidar permisos y estado; no usar índice como autoridad.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A066",
+      "title": "Intervalos temporales inválidos",
+      "invariants": [
+        "FND-002",
+        "FND-008"
+      ],
+      "given": "Assertions con valid_to anterior o igual a valid_from; otra tiene extremo abierto.",
+      "when": "Validar semánticamente antes de publicar, sin alterar evidencia original.",
+      "then": "Rechazar los intervalos vacíos/invertidos; admitir extremo abierto; recorded_at no sustituye valid time.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A067",
+      "title": "Original multilingüe y traducción",
+      "invariants": [
+        "FND-002",
+        "FND-015"
+      ],
+      "given": "Descripción alemana con umlaut, alias de modelo, original francés y traducción española derivada.",
+      "when": "Normalizar Unicode/unidades y traducir.",
+      "then": "Conservar original, idioma, texto normalizado y derivado por separado con lineage/versiones; no atribuir traducción al vendedor.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A068",
+      "title": "Motos sin evidencia de matriculación",
+      "invariants": [
+        "FND-002",
+        "FND-015"
+      ],
+      "given": "Moto con matrícula omitida, moto explícitamente sin matricular y otra explícitamente no apta para vía pública.",
+      "when": "Determinar elegibilidad según alcance vigente.",
+      "then": "Omisión no prueba falta de matrícula: mantener candidata/incertidumbre; exclusión explícita queda fuera de proyección elegible hasta cambio versionado de alcance, sin perder clasificación/evidencia autorizada.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A069",
+      "title": "Precisión geográfica y dirección histórica",
+      "invariants": [
+        "FND-001",
+        "FND-002",
+        "FND-008"
+      ],
+      "given": "Localización solo a nivel municipio, dirección de un POS que cambia y vehículo situado en otra sede.",
+      "when": "Geocodificar y consultar antes/después del cambio.",
+      "then": "No inventar precisión de calle; guardar método/incertidumbre y tiempos válidos/conocidos; seller, POS y ubicación física del vehículo permanecen distintos.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A070",
+      "title": "Agotamiento y precisión uint64",
+      "invariants": [
+        "FND-003",
+        "FND-010",
+        "FND-015"
+      ],
+      "given": "Secuencia 18446744073709551615 y cliente JavaScript; siguiente publicación exigiría MAX+1.",
+      "when": "Serializar y reservar la secuencia siguiente.",
+      "then": "Transmitir decimal string exacta; no wrap/reutilización/truncamiento; bloquear publicación y migrar a nuevo scope/epoch con resnapshot contratado.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A071",
+      "title": "Importación autorizada sin HTTP",
+      "invariants": [
+        "FND-002",
+        "FND-012"
+      ],
+      "given": "Archivo autorizado importado con hash, transporte file_import y no petición HTTP.",
+      "when": "Crear RawCapture y observaciones.",
+      "then": "No fabricar status 200 ni headers HTTP; conservar importador, admisión, derechos, bytes, hash y recibo correspondientes.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A072",
+      "title": "Redacción de secretos y locators",
+      "invariants": [
+        "FND-002",
+        "FND-011",
+        "FND-012"
+      ],
+      "given": "Fixtures con Authorization, Cookie, Set-Cookie, credenciales URL, query firmada y secretos repetidos en redirección.",
+      "when": "Persistir receipt, logs, trazas, mensajes de error y vistas API.",
+      "then": "Ningún secreto aparece fuera del almacén autorizado; locator publicable está reducido y no permite reconstruir token; escáner de fixtures verifica cada destino.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A073",
+      "title": "Votos sindicados correlacionados",
+      "invariants": [
+        "FND-002",
+        "FND-007",
+        "FND-016"
+      ],
+      "given": "Tres portales reproducen el mismo proveedor y dependency_group_id, más una fuente genuinamente independiente.",
+      "when": "Calcular confianza de un match y resolver campo divergente.",
+      "then": "Tres copias son una familia de evidencia, no tres votos independientes; dependencia desconocida no se declara independencia; decisión conserva contribuciones y política.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A074",
+      "title": "Deduplicación raw y derechos separados",
+      "invariants": [
+        "FND-011",
+        "FND-012"
+      ],
+      "given": "Mismos bytes SHA-256 bajo licencias, retenciones o dominios criptográficos diferentes.",
+      "when": "Deduplicar, consultar por hash y suprimir uno de los ámbitos.",
+      "then": "Ningún hash concede acceso cruzado; ausencia y no autorizado no filtran existencia; supresión afecta exactamente su ámbito y no destruye evidencia legítima independiente.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A075",
+      "title": "Continuación filtrada con páginas vacías",
+      "invariants": [
+        "FND-010",
+        "FND-011"
+      ],
+      "given": "Snapshot de coches <=20000; un coche sube a21000, una moto cambia, otro coche baja de25000 a19000.",
+      "when": "Consumir eventos paginados del mismo filtro, incluyendo página sin eventos visibles y entregas repetidas.",
+      "then": "Emitir remove y upsert completos según antes/después; avanzar scanned_through_seq aun vacío; cursor ligado a filtro/tenant/epoch; resultado final coincide con snapshot del mismo prefijo.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A076",
+      "title": "Transferencia entre dealers y fallo intermedio",
+      "invariants": [
+        "FND-001",
+        "FND-003",
+        "FND-010"
+      ],
+      "given": "Listing asignado a D1 pasa a D2 con generaciones en shards distintos.",
+      "when": "Inyectar caída tras preparar cada generación y antes/después del ownership_epoch gate.",
+      "then": "Solo la época comprometida sirve la asignación efectiva; fence también comprueba owner/listing, no solo epoch; no doble autoridad actual; reintentos convergen y ambas vistas emiten compensaciones. Snapshots históricos conservan as_of explícito.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A077",
+      "title": "Materialización de inventario extremo",
+      "invariants": [
+        "FND-009",
+        "FND-010",
+        "FND-013"
+      ],
+      "given": "Inventario excede presupuesto de materialización síncrona o paginado antes del TTL solicitado.",
+      "when": "Crear snapshot asíncrono, consultar estado y empezar consumo.",
+      "then": "No exponer snapshot incompleto como ready; cut fijo y retención de eventos suficientes; timeout/cancelación/expiración explícitos; ninguna transacción MVCC queda abierta durante el consumo. Bulk vacío tiene total_items=0 y parts=[]; renovar URLs no altera núcleo inmutable ni digest, y checksum excluye su propio campo y metadatos de entrega efímeros.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A078",
+      "title": "Consulta de listing sin dealer resuelto",
+      "invariants": [
+        "FND-001",
+        "FND-009",
+        "FND-011"
+      ],
+      "given": "Listing de particular y otro de profesional aún no resuelto, ambos admitidos en un stream.",
+      "when": "Consultar detalle/historia y construir snapshot/continuación del inventario del stream.",
+      "then": "Ambos siguen accesibles con derechos adecuados; no crear dealer/POS ficticio ni contarlos como stock profesional resuelto; asociación posterior es corrección trazable.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A079",
+      "title": "Cruce Iceberg y outbox sin transacción global",
+      "invariants": [
+        "FND-002",
+        "FND-003",
+        "FND-012"
+      ],
+      "given": "Intent durable precede a commit de historia y outbox se confirma en otro almacén.",
+      "when": "Caer en cada frontera, repetir lotes y ejecutar reconciliador.",
+      "then": "Commit correlacionado por ID estable; publicación recuperable e idempotente; no ACK definitivo sin intent durable; no expirar snapshot referenciado por intent pendiente; supresiones vigentes en replay.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A080",
+      "title": "Relojes de delta, campo y censo",
+      "invariants": [
+        "FND-004",
+        "FND-008",
+        "FND-009"
+      ],
+      "given": "304 reciente, precio visto hace3d, delta verificado hace5m y censo completo de hace2d.",
+      "when": "Proyectar frescura y evaluar SLO de stream.",
+      "then": "Actualizar solo los relojes demostrados; 304 no rejuvenece atributos; delta no inventa censo; salud o vencimiento no retira stock por TTL.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A081",
+      "title": "Restauración sin reutilizar secuencias ni supresiones",
+      "invariants": [
+        "FND-003",
+        "FND-010",
+        "FND-012"
+      ],
+      "given": "Backup antiguo, publicaciones ya observadas por clientes y supresión confirmada posteriormente.",
+      "when": "Perder región y restaurar con registro independiente de supresiones y highwater de secuencias.",
+      "then": "No servir hasta verificar watermark de supresiones y highwater; nunca reutilizar secuencias; declarar loss_window para datos con RPO no cero y exigir resnapshot cuando corresponda.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A082",
+      "title": "Supresión selectiva dentro de bundle compartido",
+      "invariants": [
+        "FND-011",
+        "FND-012"
+      ],
+      "given": "Dos registros con derechos distintos comparten bundle y aparecen en snapshots, delete files y backup antiguo.",
+      "when": "Suprimir uno y ensayar consulta, compactación, replay y restauración.",
+      "then": "Registro suprimido irrecuperable por vías servibles conforme a política; claves y direccionabilidad son selectivas; otros registros legítimos conservan integridad; inventario de copias y watermark demuestran cierre.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A083",
+      "title": "Perfil de carga combinado y recuperación",
+      "invariants": [
+        "FND-009",
+        "FND-013"
+      ],
+      "given": "Mezcla T0/T1/T2, dealer caliente, adquisición normal, backfill inicial de medios y backlog de24h.",
+      "when": "Medir operación y recuperación con capacidad4x de referencia durante8h, cuotas de fuente y redundancia activas.",
+      "then": "Certificar solo perfil medido que supera SLO y presupuesto; separar steady/peak/fetch/media/metadata; si no cumple reducir admisión o cadencia, sin declarar cobertura plena.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A084",
+      "title": "Tormenta de errores y cardinalidad hostil",
+      "invariants": [
+        "FND-009",
+        "FND-013",
+        "FND-016"
+      ],
+      "given": "Fuente hostil produce errores continuos, IDs infinitos, respuestas enormes y DLQ creciente.",
+      "when": "Ejecutar con límites de spool, métricas, traces, bytes y presupuesto.",
+      "then": "Aplicar circuit breaker/backpressure, cuotas y retención acotadas; preservar contadores de pérdida y muestra/evidencia prioritaria; no bloquear control seguro ni vaciar stock por salud.",
+      "stage": "implementation"
+    },
+    {
+      "id": "A085",
+      "title": "PUT terminado tras revocación o fence vencido",
+      "invariants": [
+        "FND-002",
+        "FND-003",
+        "FND-012"
+      ],
+      "given": "RawBatchIntent durable inicia PUT; lease/admisión cambia antes del ACK.",
+      "when": "Worker viejo reaparece y reconciliador inspecciona objeto durable.",
+      "then": "No avanzar cursor ni publicar como adquisición vigente; reconciliar receipt con política actual, disposición/cuarentena y propietario fenced; descartar bytes solo según política, sin perder rastro de operación autorizable.",
+      "stage": "implementation"
+    },
+    {
+      "id": "M026",
+      "title": "Intervalos válidos sin convertir recorded_at en valid time",
+      "invariants": [
+        "FND-002",
+        "FND-008"
+      ],
+      "given": "Instancias sintéticas de TimeInterval: intervalo positivo, extremo abierto, vacío, invertido y el primero con otro recorded_at.",
+      "when": "Aplicar validación temporal del modelo.",
+      "then": "Aceptar positivo y abierto; rechazar vacíos/invertidos semánticamente aunque su forma JSON sea válida; recorded_at no altera la validez del intervalo. No prueba reconstrucción as-of del producto.",
+      "stage": "model",
+      "model": {
+        "type": "temporal",
+        "intervals": [
+          {
+            "interval": {
+              "valid_from": "2026-09-07T10:00:00Z",
+              "valid_to": "2026-09-07T11:00:00Z"
+            },
+            "recorded_at": "2026-09-07T12:00:00Z",
+            "expected": true
+          },
+          {
+            "interval": {
+              "valid_from": "2026-09-07T10:00:00Z"
+            },
+            "recorded_at": "2026-09-07T12:00:00Z",
+            "expected": true
+          },
+          {
+            "interval": {
+              "valid_from": "2026-09-07T10:00:00Z",
+              "valid_to": "2026-09-07T10:00:00Z"
+            },
+            "recorded_at": "2026-09-07T12:00:00Z",
+            "expected": false
+          },
+          {
+            "interval": {
+              "valid_from": "2026-09-07T11:00:00Z",
+              "valid_to": "2026-09-07T10:00:00Z"
+            },
+            "recorded_at": "2026-09-07T12:00:00Z",
+            "expected": false
+          },
+          {
+            "interval": {
+              "valid_from": "2026-09-07T10:00:00Z",
+              "valid_to": "2026-09-07T11:00:00Z"
+            },
+            "recorded_at": "2026-09-07T09:00:00Z",
+            "expected": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "M027",
+      "title": "Proyección filtrada converge desde cualquier prefijo",
+      "invariants": [
+        "FND-003",
+        "FND-010",
+        "FND-011"
+      ],
+      "given": "Log finito con altas/bajas/cambios de precio y clase, filtros de clase y precio.",
+      "when": "Reanudar desde cada corte posible y consumir páginas que incluyen cambios invisibles.",
+      "then": "Snapshot filtrado más transformaciones after-image/remove reproduce exactamente el estado filtrado final; scans vacíos también avanzan.",
+      "stage": "model",
+      "model": {
+        "type": "filtered_projection"
+      }
+    },
+    {
+      "id": "M028",
+      "title": "Transferencia preparada con barrera de propiedad",
+      "invariants": [
+        "FND-001",
+        "FND-003",
+        "FND-010"
+      ],
+      "given": "Dos shards y dos generaciones, con ownership_epoch1 apuntando a D1.",
+      "when": "Permutar preparación de D1/D2, simular reinicio por recarga de estado durable y probar receipts ajenos, CAS obsoleto y writer con fence vencido.",
+      "then": "No comprometer época2 sin receipts del mismo transfer/generaciones y expected_epoch vigente; antes del gate solo D1 sirve, después solo D2; writer viejo rechazado. No modela consenso ni durabilidad física.",
+      "stage": "model",
+      "model": {
+        "type": "ownership"
+      }
+    },
+    {
+      "id": "A086",
+      "title": "Claves canónicas y revisión de plan",
+      "invariants": [
+        "FND-003",
+        "FND-005",
+        "FND-015"
+      ],
+      "given": "Mismo RunKeyV1/PartitionKeyV1/PlanArtifactV1 serializado por distintos lenguajes, con orden de propiedades distinto y digest/firma en el envelope.",
+      "when": "Aplicar cardeex-jcs-sha256-v1, reintentar y cambiar una ventana, predicado o revisión.",
+      "then": "Bytes y digest idénticos para mismo payload canónico; campos semánticos distintos cambian clave; envelope/digest/firma no entran en hash de plan; rechazar floats ambiguos, claves extra o perfil desconocido; registrar IDs por lookup sin recrearlos en retry.",
+      "stage": "implementation"
+    },
+    {
+      "id": "M029",
+      "title": "Vector de RunKeyV1 byte a byte",
+      "invariants": [
+        "FND-003",
+        "FND-015"
+      ],
+      "given": "Vector ASCII y string-only de RunKeyV1, con bytes canónicos y digest independientes publicados en OPS §2.2.",
+      "when": "Serializar el subconjunto restringido, invertir orden de claves y alterar ventana.",
+      "then": "Coincidir exactamente con los bytes/digest de referencia y no cambiar por orden de propiedades; cambiar ventana modifica digest. No es una implementación general de RFC8785 ni prueba PlanArtifact.",
+      "stage": "model",
+      "model": {
+        "type": "canonical_key_vector",
+        "input": {
+          "window_start": "2026-09-07T00:00:00Z",
+          "window_end": "2026-09-08T00:00:00Z",
+          "stream_id": "01992000-0000-7000-8000-000000000005",
+          "scope_revision": "1",
+          "run_kind": "reconciliation",
+          "plan_revision": "1",
+          "key_profile": "cardeex.run-key.v1"
+        },
+        "canonical_utf8": "{\"key_profile\":\"cardeex.run-key.v1\",\"plan_revision\":\"1\",\"run_kind\":\"reconciliation\",\"scope_revision\":\"1\",\"stream_id\":\"01992000-0000-7000-8000-000000000005\",\"window_end\":\"2026-09-08T00:00:00Z\",\"window_start\":\"2026-09-07T00:00:00Z\"}",
+        "expected_sha256": "ce52081c1fe64ea208080e1215989be095a63dfb64262b58c6cc666f102d2ecf"
+      }
+    },
+    {
+      "id": "M001",
+      "title": "Una ausencia solo sospecha",
+      "invariants": [
+        "FND-004"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"absence_suspected\",\"effects\":1}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "absence_suspected",
+          "effects": 1
+        }
+      }
+    },
+    {
+      "id": "M002",
+      "title": "Dos ausencias separadas",
+      "invariants": [
+        "FND-004"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"not_observed\",\"effects\":2}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "not_observed",
+          "effects": 2
+        }
+      }
+    },
+    {
+      "id": "M003",
+      "title": "Segundo censo demasiado próximo",
+      "invariants": [
+        "FND-004"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"absence_suspected\",\"effects\":1}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 15,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "absence_suspected",
+          "effects": 1
+        }
+      }
+    },
+    {
+      "id": "M004",
+      "title": "Positivo intermedio",
+      "invariants": [
+        "FND-004",
+        "FND-008"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"absence_suspected\",\"effects\":3}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "positive",
+            "id": "P1",
+            "at": 15,
+            "scope": "S1"
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "absence_suspected",
+          "effects": 3
+        }
+      }
+    },
+    {
+      "id": "M005",
+      "title": "Censo parcial nunca retira",
+      "invariants": [
+        "FND-004"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":0}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": false,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": false,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 0
+        }
+      }
+    },
+    {
+      "id": "M006",
+      "title": "Clase o scope ajeno",
+      "invariants": [
+        "FND-005"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":0}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "MOTO",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "MOTO",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 0
+        }
+      }
+    },
+    {
+      "id": "M007",
+      "title": "Censo duplicado",
+      "invariants": [
+        "FND-003",
+        "FND-004"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"absence_suspected\",\"effects\":1}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "absence_suspected",
+          "effects": 1
+        }
+      }
+    },
+    {
+      "id": "M008",
+      "title": "Positivo duplicado",
+      "invariants": [
+        "FND-003"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":0}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "positive",
+            "id": "P1",
+            "at": 10,
+            "scope": "S1"
+          },
+          {
+            "kind": "positive",
+            "id": "P1",
+            "at": 10,
+            "scope": "S1"
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 0
+        }
+      }
+    },
+    {
+      "id": "M009",
+      "title": "Agotamiento live no comparable",
+      "invariants": [
+        "FND-004",
+        "FND-005"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":0}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": false,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": true,
+            "comparable": false,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 0
+        }
+      }
+    },
+    {
+      "id": "M010",
+      "title": "Retirada explícita",
+      "invariants": [
+        "FND-004",
+        "FND-006"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"withdrawn\",\"effects\":1}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "withdraw",
+            "id": "W1",
+            "at": 10,
+            "scope": "S1",
+            "verified": true
+          }
+        ],
+        "expected": {
+          "state": "withdrawn",
+          "effects": 1
+        }
+      }
+    },
+    {
+      "id": "M011",
+      "title": "Retirada no verificada",
+      "invariants": [
+        "FND-002",
+        "FND-004"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":0}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "withdraw",
+            "id": "W1",
+            "at": 10,
+            "scope": "S1",
+            "verified": false
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 0
+        }
+      }
+    },
+    {
+      "id": "M012",
+      "title": "Positivo antiguo no resucita",
+      "invariants": [
+        "FND-008"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"withdrawn\",\"effects\":1}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "withdraw",
+            "id": "W1",
+            "at": 20,
+            "scope": "S1",
+            "verified": true
+          },
+          {
+            "kind": "positive",
+            "id": "P1",
+            "at": 10,
+            "scope": "S1"
+          }
+        ],
+        "expected": {
+          "state": "withdrawn",
+          "effects": 1
+        }
+      }
+    },
+    {
+      "id": "M013",
+      "title": "Positivo nuevo restaura presencia",
+      "invariants": [
+        "FND-008"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":2}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "withdraw",
+            "id": "W1",
+            "at": 10,
+            "scope": "S1",
+            "verified": true
+          },
+          {
+            "kind": "positive",
+            "id": "P1",
+            "at": 20,
+            "scope": "S1"
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 2
+        }
+      }
+    },
+    {
+      "id": "M014",
+      "title": "Censo viejo tras positivo nuevo",
+      "invariants": [
+        "FND-004",
+        "FND-008"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":3}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "positive",
+            "id": "P1",
+            "at": 30,
+            "scope": "S1"
+          },
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 3
+        }
+      }
+    },
+    {
+      "id": "M015",
+      "title": "Positivo en unión de particiones",
+      "invariants": [
+        "FND-004",
+        "FND-005"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":2}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": true
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 2
+        }
+      }
+    },
+    {
+      "id": "M016",
+      "title": "Fallo rompe cadena de negativos",
+      "invariants": [
+        "FND-004"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"absence_suspected\",\"effects\":1}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": false,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C3",
+            "at": 30,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "absence_suspected",
+          "effects": 1
+        }
+      }
+    },
+    {
+      "id": "M017",
+      "title": "Un positivo parcial sí informa presencia",
+      "invariants": [
+        "FND-004"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":2}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": false,
+            "comparable": true,
+            "present": true
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 2
+        }
+      }
+    },
+    {
+      "id": "M018",
+      "title": "Otra revisión no retira",
+      "invariants": [
+        "FND-005",
+        "FND-015"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"observed_present\",\"effects\":0}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1.v2",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1.v2",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "observed_present",
+          "effects": 0
+        }
+      }
+    },
+    {
+      "id": "M019",
+      "title": "Ausencias no significan vendido",
+      "invariants": [
+        "FND-004",
+        "FND-006"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"not_observed\",\"effects\":2}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C3",
+            "at": 30,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "not_observed",
+          "effects": 2
+        }
+      }
+    },
+    {
+      "id": "M020",
+      "title": "Negativo tardío no degrada retirada",
+      "invariants": [
+        "FND-004",
+        "FND-008"
+      ],
+      "given": "Modelo finito de un listing con scope S1, cadencia 10 y presencia inicial en t=0.",
+      "when": "Aplicar la secuencia explícita de eventos en orden de llegada.",
+      "then": "{\"state\":\"withdrawn\",\"effects\":3}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "withdraw",
+            "id": "W1",
+            "at": 30,
+            "scope": "S1",
+            "verified": true
+          },
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "withdrawn",
+          "effects": 3
+        }
+      }
+    },
+    {
+      "id": "M021",
+      "title": "Snapshot conserva paginado frente a cambios",
+      "invariants": [
+        "FND-009",
+        "FND-010"
+      ],
+      "given": "Inventario v1 contiene A/B/C y se abre snapshot en seq 3.",
+      "when": "Se añade D y retira B antes de página 2.",
+      "then": "Páginas del snapshot siguen A/B/C; continuación contiene alta D/baja B.",
+      "stage": "model",
+      "model": {
+        "type": "snapshot"
+      }
+    },
+    {
+      "id": "M022",
+      "title": "Merge y split conservan miembros",
+      "invariants": [
+        "FND-007"
+      ],
+      "given": "Clústeres {A,B} y {C}; merge con evidencia reversible.",
+      "when": "Revocar arista B-C y aplicar cannot-link A-C.",
+      "then": "La partición recupera {A,B}/{C}; ninguna observación desaparece.",
+      "stage": "model",
+      "model": {
+        "type": "identity"
+      }
+    },
+    {
+      "id": "M023",
+      "title": "Cadencia no justifica capacidad imaginaria",
+      "invariants": [
+        "FND-013"
+      ],
+      "given": "El modelo proporciona tasas y margen de recuperación.",
+      "when": "Recalcular todas las ecuaciones.",
+      "then": "Resultados coinciden con fórmulas y el caso sin margen no produce drenaje finito.",
+      "stage": "model",
+      "model": {
+        "type": "capacity"
+      }
+    },
+    {
+      "id": "M024",
+      "title": "Autorización en continuación",
+      "invariants": [
+        "FND-011",
+        "FND-012"
+      ],
+      "given": "Cursor liga tenant, scope y revisión de permisos.",
+      "when": "Cambiar tenant, filtros o revisión.",
+      "then": "Cada combinación incompatible se rechaza antes de lectura.",
+      "stage": "model",
+      "model": {
+        "type": "cursor"
+      }
+    },
+    {
+      "id": "A065",
+      "title": "Censo parcial tardío invalida pareja",
+      "invariants": [
+        "FND-004",
+        "FND-008",
+        "FND-010"
+      ],
+      "given": "C1 y C3 completos ausentes llevaron a not_observed; C2 parcial entre ambos llega tarde.",
+      "when": "Incorporar C2 al ledger de evidencia efectiva y reconstruir proyección.",
+      "then": "Invalidar pareja negativa y emitir compensación; no mantener retirada inferida inválida.",
+      "stage": "implementation"
+    },
+    {
+      "id": "M025",
+      "title": "Convergencia tras parcial tardío",
+      "invariants": [
+        "FND-004",
+        "FND-008"
+      ],
+      "given": "Orden de llegada C1, C3 y C2; orden de evidencia C1,C2,C3.",
+      "when": "Reconstruir ledger verificable por orden efectivo.",
+      "then": "{\"state\":\"absence_suspected\",\"effects\":1}",
+      "stage": "model",
+      "model": {
+        "type": "presence",
+        "scope": "S1",
+        "cadence": 10,
+        "events": [
+          {
+            "kind": "census",
+            "id": "C1",
+            "at": 10,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C3",
+            "at": 30,
+            "scope": "S1",
+            "complete": true,
+            "comparable": true,
+            "present": false
+          },
+          {
+            "kind": "census",
+            "id": "C2",
+            "at": 20,
+            "scope": "S1",
+            "complete": false,
+            "comparable": true,
+            "present": false
+          }
+        ],
+        "expected": {
+          "state": "absence_suspected",
+          "effects": 1
+        }
+      }
+    }
+  ],
+  "model_semantics": "Presence models rebuild the deduplicated ledger in verified effective order. Integer at is a synthetic ordering oracle, not a real source timestamp. effects counts canonical state transitions, not physical/publication writes. Delivery permutations and conflicting evidence IDs are checked separately."
+}

@@ -1,136 +1,449 @@
 {
   "nodes": [
     {
-      "id": "cardeex",
+      "id": "mission",
       "type": "text",
-      "text": "# Cardeex\nAPI viva, histórica y verificable del inventario digital observable",
+      "text": "# Cardeex\nInventario digital vivo por dealer y POS\nES · FR · DE · NL · BE · CH\nBase de diseño; capacidad real por demostrar",
       "x": 0,
-      "y": 0,
+      "y": -580,
+      "width": 480,
+      "height": 195,
+      "color": "4"
+    },
+    {
+      "id": "scope",
+      "type": "text",
+      "text": "# Adquirir amplio, certificar por clase\nCar · LCV · Motorcycle · Motorhome\nUna integración por fuente admitida\nPesados posteriores; caravanas/maquinaria fuera",
+      "x": 540,
+      "y": -580,
+      "width": 430,
+      "height": 195,
+      "color": "5"
+    },
+    {
+      "id": "truth",
+      "type": "text",
+      "text": "# Reglas de verdad\nAnuncio ≠ oferta ≠ vehículo\nDealer ≠ tenant ≠ POS\nEvidencia temporal, incertidumbre explícita",
+      "x": 1030,
+      "y": -580,
       "width": 420,
-      "height": 180,
+      "height": 195,
+      "color": "3"
+    },
+    {
+      "id": "registry",
+      "type": "text",
+      "text": "# Registro y admisión\nFuentes, superficies, namespaces\nPermisos, finalidad, retención y presupuesto\nSin admisión vigente no hay adquisición",
+      "x": 0,
+      "y": -230,
+      "width": 340,
+      "height": 175,
+      "color": "5"
+    },
+    {
+      "id": "streams",
+      "type": "text",
+      "text": "# Streams y alcance\nPaís/clase/filtros y revisiones\nPlan finito de particiones\nGobernador compartido por origen",
+      "x": 420,
+      "y": -230,
+      "width": 340,
+      "height": 175,
+      "color": "5"
+    },
+    {
+      "id": "capture",
+      "type": "text",
+      "text": "# Capturas duraderas\nRuns, fetches, manifiestos y hashes\nRaw retenido + evidencia de presencia\nReplay sin red y supresión propagada",
+      "x": 840,
+      "y": -230,
+      "width": 340,
+      "height": 175,
+      "color": "3"
+    },
+    {
+      "id": "observations",
+      "type": "text",
+      "text": "# Observaciones y afirmaciones\nPresencia separada de atributos\nOrigen y precisión de cada campo\nTiempo de fuente, observación y conocimiento",
+      "x": 1260,
+      "y": -230,
+      "width": 340,
+      "height": 175,
+      "color": "3"
+    },
+    {
+      "id": "resolution",
+      "type": "text",
+      "text": "# Identidad y divergencias\nCandidatos → decisión explicable\nMerge/split reversible; conflictos conservados\nPrecio en oferta, no en vehículo",
+      "x": 1680,
+      "y": -230,
+      "width": 340,
+      "height": 175,
+      "color": "3"
+    },
+    {
+      "id": "reconciliation",
+      "type": "text",
+      "text": "# Reconciliación\nCenso completo + alcance comparable\nParcial no produce bajas\nAusencia ≠ venta; correcciones compensatorias",
+      "x": 1260,
+      "y": 40,
+      "width": 340,
+      "height": 175,
+      "color": "2"
+    },
+    {
+      "id": "dealer",
+      "type": "text",
+      "text": "# Inventario de dealer\nMembresía efectiva por evidencia\nPOS asignado/ambiguo/sin asignar\nContadores por item, anuncio y vehículo",
+      "x": 2100,
+      "y": -230,
+      "width": 340,
+      "height": 175,
+      "color": "4"
+    },
+    {
+      "id": "api",
+      "type": "text",
+      "text": "# API y consumidores\nSnapshots con corte y paginación\nEventos reintentables y continuación\nAislamiento por cliente y permisos vigentes",
+      "x": 2520,
+      "y": -230,
+      "width": 380,
+      "height": 175,
+      "color": "4"
+    },
+    {
+      "id": "quality",
+      "type": "text",
+      "text": "# Calidad y cobertura\nPaís × clase × tipo de fuente\nDenominador conocido/estimado/desconocido\nFrescura y completitud visibles",
+      "x": 2100,
+      "y": 40,
+      "width": 340,
+      "height": 175,
+      "color": "2"
+    },
+    {
+      "id": "runtime",
+      "type": "text",
+      "text": "# Ejecución y recuperación\nColas, leases/fences, outbox y backpressure\nReintentos acotados y circuit breakers\nRestauración sin resucitar datos suprimidos",
+      "x": 420,
+      "y": 340,
+      "width": 520,
+      "height": 205,
+      "color": "2"
+    },
+    {
+      "id": "capacity",
+      "type": "text",
+      "text": "# Capacidad medida\nActivos ≠ observaciones históricas\nCarga, medios, índices, retención y recuperación\nPerfiles y coste con supuestos explícitos",
+      "x": 1030,
+      "y": 340,
+      "width": 490,
+      "height": 205,
+      "color": "2"
+    },
+    {
+      "id": "evolution",
+      "type": "text",
+      "text": "# Evolución controlada\nVersiones independientes y pruebas\nRebuild en sombra, canary y rollback\nSin cambios silenciosos de significado",
+      "x": 1620,
+      "y": 340,
+      "width": 460,
+      "height": 205,
+      "color": "6"
+    },
+    {
+      "id": "next_discovery",
+      "type": "text",
+      "text": "# Siguiente: descubrimiento\nDiseñar fuentes, dealers y POS a escala\nCandidatos con procedencia y fronteras finitas\nMedición independiente de cobertura",
+      "x": 0,
+      "y": 700,
+      "width": 480,
+      "height": 200,
+      "color": "6"
+    },
+    {
+      "id": "next_scraping",
+      "type": "text",
+      "text": "# Después: estrategias de scraping\nCapacidades y acceso por superficie\nÍndice → detalle → medios\nEnumeración, cambios y reconciliación",
+      "x": 560,
+      "y": 700,
+      "width": 480,
+      "height": 200,
+      "color": "6"
+    },
+    {
+      "id": "build",
+      "type": "text",
+      "text": "# Construcción por puertas\nContratos → pruebas → componentes\nPiloto admitido → servicio → escala probada\nCada entrega con responsable y aceptación",
+      "x": 1120,
+      "y": 700,
+      "width": 480,
+      "height": 200,
       "color": "4"
     },
     {
       "id": "isolation",
       "type": "text",
-      "text": "# Aislamiento absoluto\nCardeex ≠ Cardex ≠ Cardeep\nSin código, datos, recetas ni grafos compartidos",
-      "x": -620,
-      "y": -300,
-      "width": 400,
-      "height": 190,
+      "text": "# Conocimiento independiente\nSolo archivos del repositorio Cardeex\nLegados: referencias históricas de auditoría\nSin memorias ni checkpoints paralelos",
+      "x": 2220,
+      "y": 700,
+      "width": 480,
+      "height": 200,
       "color": "1"
-    },
-    {
-      "id": "countries",
-      "type": "text",
-      "text": "# Países objetivo\nEspaña · Francia · Alemania\nPaíses Bajos · Bélgica · Suiza",
-      "x": -620,
-      "y": 0,
-      "width": 400,
-      "height": 170,
-      "color": "5"
-    },
-    {
-      "id": "observable",
-      "type": "text",
-      "text": "# Universo\nSolo inventario publicado digitalmente y observable\nGrandes plataformas + fuentes propias pequeñas",
-      "x": -620,
-      "y": 280,
-      "width": 400,
-      "height": 190,
-      "color": "5"
-    },
-    {
-      "id": "ontology",
-      "type": "text",
-      "text": "# Cadena conceptual\nsource/platform → publisher account → seller → legal entity → point of sale → listing → canonical vehicle → observations/history",
-      "x": 560,
-      "y": -360,
-      "width": 530,
-      "height": 230,
-      "color": "3"
-    },
-    {
-      "id": "evidence",
-      "type": "text",
-      "text": "# Evidencia e identidad\nUn vehículo, varios anuncios\nDeduplicación explicable y reversible\nHistorial y procedencia conservados",
-      "x": 560,
-      "y": -40,
-      "width": 430,
-      "height": 210,
-      "color": "3"
-    },
-    {
-      "id": "coverage",
-      "type": "text",
-      "text": "# Cobertura honesta\n100% medido por:\npaís × clase de vehículo × tipo de fuente",
-      "x": 560,
-      "y": 260,
-      "width": 430,
-      "height": 180,
-      "color": "2"
-    },
-    {
-      "id": "core",
-      "type": "text",
-      "text": "# Núcleo\n1. Turismos\n2. LCV/furgonetas ≤3,5 t con métrica separada",
-      "x": -420,
-      "y": 650,
-      "width": 390,
-      "height": 180,
-      "color": "4"
-    },
-    {
-      "id": "expansion",
-      "type": "text",
-      "text": "# Expansiones\n1. Motos y scooters\n2. Autocaravanas y campers\n3. Pesados como vertical B2B",
-      "x": 60,
-      "y": 650,
-      "width": 390,
-      "height": 200,
-      "color": "4"
-    },
-    {
-      "id": "later",
-      "type": "text",
-      "text": "# Después o fuera\nCaravanas/remolques separados\nBuses: baja prioridad\nAgrícola/construcción: otro producto",
-      "x": 540,
-      "y": 650,
-      "width": 400,
-      "height": 200,
-      "color": "6"
-    },
-    {
-      "id": "reliability",
-      "type": "text",
-      "text": "# Resultado operativo exigido\nDelta completo · recetas versionadas\nAlertas de origen exacto · autorreparación\nAislamiento de fallos · API siempre viva",
-      "x": 1100,
-      "y": 90,
-      "width": 430,
-      "height": 220,
-      "color": "2"
     },
     {
       "id": "foundation_file",
       "type": "file",
       "file": "docs/CARDEEX_FOUNDATION.md",
-      "x": 1100,
-      "y": -300,
-      "width": 430,
-      "height": 240
+      "x": 0,
+      "y": -960,
+      "width": 370,
+      "height": 210
+    },
+    {
+      "id": "domain_file",
+      "type": "file",
+      "file": "docs/architecture/01-domain-and-evidence.md",
+      "x": 840,
+      "y": -960,
+      "width": 370,
+      "height": 210
+    },
+    {
+      "id": "inventory_file",
+      "type": "file",
+      "file": "docs/architecture/02-inventory-and-api.md",
+      "x": 2100,
+      "y": -960,
+      "width": 370,
+      "height": 210
+    },
+    {
+      "id": "ops_file",
+      "type": "file",
+      "file": "docs/architecture/03-runtime-and-operations.md",
+      "x": 540,
+      "y": 1040,
+      "width": 370,
+      "height": 210
+    },
+    {
+      "id": "verification_file",
+      "type": "file",
+      "file": "docs/architecture/04-verification-and-build-order.md",
+      "x": 1120,
+      "y": 1040,
+      "width": 370,
+      "height": 210
     }
   ],
   "edges": [
-    {"id": "e1", "fromNode": "isolation", "toNode": "cardeex", "fromSide": "right", "toSide": "left", "label": "protege identidad"},
-    {"id": "e2", "fromNode": "countries", "toNode": "cardeex", "fromSide": "right", "toSide": "left", "label": "delimita geografía"},
-    {"id": "e3", "fromNode": "observable", "toNode": "cardeex", "fromSide": "right", "toSide": "left", "label": "delimita universo"},
-    {"id": "e4", "fromNode": "cardeex", "toNode": "ontology", "fromSide": "right", "toSide": "left", "label": "se modela como"},
-    {"id": "e5", "fromNode": "ontology", "toNode": "evidence", "fromSide": "bottom", "toSide": "top", "label": "preserva"},
-    {"id": "e6", "fromNode": "evidence", "toNode": "coverage", "fromSide": "bottom", "toSide": "top", "label": "permite certificar"},
-    {"id": "e7", "fromNode": "coverage", "toNode": "core", "fromSide": "bottom", "toSide": "top", "label": "empieza por"},
-    {"id": "e8", "fromNode": "core", "toNode": "expansion", "fromSide": "right", "toSide": "left", "label": "después"},
-    {"id": "e9", "fromNode": "expansion", "toNode": "later", "fromSide": "right", "toSide": "left", "label": "más adelante"},
-    {"id": "e10", "fromNode": "cardeex", "toNode": "reliability", "fromSide": "right", "toSide": "left", "label": "debe operar con"},
-    {"id": "e11", "fromNode": "foundation_file", "toNode": "ontology", "fromSide": "left", "toSide": "right", "label": "fuente canónica"}
+    {
+      "id": "e1",
+      "fromNode": "registry",
+      "toNode": "streams",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "admite alcance"
+    },
+    {
+      "id": "e2",
+      "fromNode": "streams",
+      "toNode": "capture",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "planifica"
+    },
+    {
+      "id": "e3",
+      "fromNode": "capture",
+      "toNode": "observations",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "sustenta"
+    },
+    {
+      "id": "e4",
+      "fromNode": "observations",
+      "toNode": "resolution",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "aporta señales"
+    },
+    {
+      "id": "e5",
+      "fromNode": "resolution",
+      "toNode": "dealer",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "resuelve membresía"
+    },
+    {
+      "id": "e6",
+      "fromNode": "dealer",
+      "toNode": "api",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "publica vista"
+    },
+    {
+      "id": "e7",
+      "fromNode": "next_discovery",
+      "toNode": "next_scraping",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "entrega entidades y superficies"
+    },
+    {
+      "id": "e8",
+      "fromNode": "next_scraping",
+      "toNode": "build",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "entrega estrategia verificable"
+    },
+    {
+      "id": "e9",
+      "fromNode": "observations",
+      "toNode": "reconciliation",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "presencia y cierre"
+    },
+    {
+      "id": "e10",
+      "fromNode": "reconciliation",
+      "toNode": "dealer",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "label": "transiciones justificadas"
+    },
+    {
+      "id": "e11",
+      "fromNode": "dealer",
+      "toNode": "quality",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "mide estado"
+    },
+    {
+      "id": "e12",
+      "fromNode": "quality",
+      "toNode": "api",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "label": "expone límites"
+    },
+    {
+      "id": "e13",
+      "fromNode": "mission",
+      "toNode": "registry",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "define objetivo"
+    },
+    {
+      "id": "e14",
+      "fromNode": "scope",
+      "toNode": "streams",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "delimita"
+    },
+    {
+      "id": "e15",
+      "fromNode": "truth",
+      "toNode": "observations",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "fija semántica"
+    },
+    {
+      "id": "e16",
+      "fromNode": "runtime",
+      "toNode": "streams",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "label": "gobierna trabajo"
+    },
+    {
+      "id": "e17",
+      "fromNode": "runtime",
+      "toNode": "capture",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "label": "garantiza durabilidad"
+    },
+    {
+      "id": "e18",
+      "fromNode": "capacity",
+      "toNode": "runtime",
+      "fromSide": "left",
+      "toSide": "right",
+      "label": "limita admisión"
+    },
+    {
+      "id": "e19",
+      "fromNode": "evolution",
+      "toNode": "resolution",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "label": "versiona y corrige"
+    },
+    {
+      "id": "e20",
+      "fromNode": "evolution",
+      "toNode": "dealer",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "label": "reconstruye"
+    },
+    {
+      "id": "e21",
+      "fromNode": "foundation_file",
+      "toNode": "mission",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "fuente canónica"
+    },
+    {
+      "id": "e22",
+      "fromNode": "domain_file",
+      "toNode": "capture",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "contrato P1"
+    },
+    {
+      "id": "e23",
+      "fromNode": "inventory_file",
+      "toNode": "dealer",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "contrato P2"
+    },
+    {
+      "id": "e24",
+      "fromNode": "ops_file",
+      "toNode": "runtime",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "label": "contrato P3"
+    },
+    {
+      "id": "e25",
+      "fromNode": "verification_file",
+      "toNode": "build",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "label": "plan y aceptación P4"
+    },
+    {
+      "id": "e26",
+      "fromNode": "registry",
+      "toNode": "next_discovery",
+      "fromSide": "left",
+      "toSide": "left",
+      "label": "contrato de entrada"
+    }
   ]
 }

@@ -5,3 +5,8 @@
 
 # Artefactos regenerables de Graphify
 graphify-out/
+
+# Entorno local de comprobación de contratos
+.venv-verify/
+__pycache__/
+*.pyc

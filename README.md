@@ -6,15 +6,36 @@ Cardeex es un proyecto nuevo e independiente para construir una API viva, histó
 
 ## Estado actual
 
-Fase de fundamentos y diseño. A 7 de septiembre de 2026 no se ha autorizado ni iniciado la implementación del producto. Sí están aprobados la misión, el modelo conceptual inicial y el orden estratégico de cobertura por clases de vehículo.
+Base de arquitectura y contratos desarrollada por encargo de Elias el 7 de septiembre de 2026. Incluye inventario por dealer/POS, evidencia temporal, identidad reversible, reconciliación, API, operación, capacidad y puertas de construcción. Los verificadores comprueban esta especificación; todavía no existe producto desplegado ni inventario real.
+
+El próximo proyecto es la estrategia de descubrimiento de fuentes, dealers y puntos de venta. Después viene la estrategia de adquisición/scraping, y la construcción se ejecuta por componentes con sus pruebas. El mandato y los límites actuales están en los fundamentos.
 
 ## Punto de entrada
 
-- [Fundamentos canónicos](docs/CARDEEX_FOUNDATION.md): misión, límites, ontología, cobertura, fiabilidad y decisiones aprobadas.
+- [Fundamentos canónicos](docs/CARDEEX_FOUNDATION.md): misión, mapa maestro, decisiones, admisión y contratos para descubrimiento/scraping.
+- [Dominio y evidencia](docs/architecture/01-domain-and-evidence.md): entidades, atributos, historia, deduplicación y divergencias.
+- [Inventario y API](docs/architecture/02-inventory-and-api.md): vistas por dealer/POS, deltas, snapshots y eventos; [OpenAPI](contracts/openapi.yaml).
+- [Ejecución y operaciones](docs/architecture/03-runtime-and-operations.md): persistencia, recuperación, SLO, seguridad y capacidad.
+- [Verificación y construcción](docs/architecture/04-verification-and-build-order.md): tareas, casos adversariales, aceptación y siguiente paso.
 - [Evaluación del alcance de vehículos](docs/research/vehicle-scope-2026-09-07.md): cifras, fuentes, cautelas metodológicas y razonamiento de prioridad.
 - [Inicio del vault](docs/knowledge/00-Cardeex-Home.md): navegación para Obsidian.
 - [Mapa visual](docs/knowledge/Cardeex-Foundation.canvas): canvas independiente de Cardeex.
 
 ## Dictamen de producto aprobado
 
-**Diseñar amplio, ejecutar estrecho.** Cardeex nace sobre una entidad genérica `vehicle`; opera primero turismos y vehículos comerciales ligeros; incorpora después motos y scooters, autocaravanas y, finalmente, vehículos pesados como vertical B2B separada.
+**Diseñar amplio, ejecutar estrecho.** Una integración por fuente, con captura de turismos, LCV, motos y autocaravanas en las superficies compartidas admitidas. Normalización y certificación por vertical: primero turismos/LCV, después motos y autocaravanas. Pesados quedan para una expansión posterior; remolques/caravanas y maquinaria están fuera del alcance activo.
+
+## Verificar la base
+
+Las dependencias se instalan en un entorno local aislado; el verificador posterior funciona sin red:
+
+```powershell
+python -m venv .venv-verify
+.\.venv-verify\Scripts\python.exe -m pip install -r tools/requirements-verify.txt
+.\.venv-verify\Scripts\python.exe tools/verify_foundation.py
+git diff --check
+```
+
+Los resultados validan contratos, ejemplos, modelos finitos y aritmética de planificación. La capacidad a escala, las fuentes reales y los SLO necesitan las pruebas de implementación descritas en el plan.
+
+La misma comprobación está preparada en [Verify foundation](.github/workflows/verify-foundation.yml) para pushes a `main` y pull requests, con permisos de solo lectura y acciones fijadas a commit. El historial de Git/CI conserva las ejecuciones; no se crean checkpoints ni informes de estado duplicados.

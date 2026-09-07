@@ -6,7 +6,7 @@ Usa `CLAUDE.md` en este mismo directorio como guía operativa de alta prioridad,
 
 Cardeex es totalmente independiente de Cardex y Cardeep. Desde el 7 de septiembre de 2026, Elias autoriza consultar ambos proyectos en modo de solo lectura como fuentes históricas comparativas durante investigación y auditoría.
 
-Esa consulta no crea herencia: cada hallazgo debe conservar su procedencia, contrastarse de nuevo y aprobarse expresamente antes de convertirse en una decisión de Cardeex. Sigue prohibido copiar o adaptar código, datos, recetas, memorias o grafos, modificar los proyectos legado, o inferir que una decisión tomada allí aplica aquí.
+Esa consulta no crea herencia: cada hallazgo debe conservar su procedencia, contrastarse de nuevo y convertirse en una decisión nueva de Cardeex bajo la autoridad de diseño delegada por Elias para esta base. Una decisión histórica por sí sola no es aprobación. Sigue prohibido copiar o adaptar código, datos, recetas, memorias o grafos, modificar los proyectos legado, o inferir que una decisión tomada allí aplica aquí.
 
 La coincidencia de nombres, dominio o propósito no constituye autorización para mezclar proyectos.
 

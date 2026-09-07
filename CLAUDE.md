@@ -19,7 +19,11 @@ No conviertas una nota de sesión, un artefacto generado por Graphify o una infe
 
 ## Estado de autorización
 
-A fecha de 2026-09-07 Cardeex está en fase de debate, procedimientos y diseño. No hay implementación de producto autorizada todavía. Sí están aprobados la misión, las distinciones ontológicas y la jerarquía de alcance descritas en los fundamentos.
+A fecha de 2026-09-07 Elias encargó desarrollar autónomamente la base completa de arquitectura, contratos, organización y verificación. El mapa maestro anterior fue aceptado y el encargo autoriza concretar las decisiones de diseño y revisar sus contradicciones sin pedir aprobación por cada subapartado.
+
+La entrega incluye documentación canónica, esquemas, OpenAPI, modelos de capacidad y verificadores de especificaciones. Eso no equivale a implementar o desplegar el producto. El siguiente proyecto es diseñar descubrimiento a gran escala de fuentes/dealers/POS; después, estrategias de adquisición/scraping. No se infiere permiso de acceso a terceros, gasto, compra de datos ni despliegue.
+
+Recupera el estado desde el apartado 10 de los fundamentos y el plan canónico `docs/architecture/04-verification-and-build-order.md`. Las pruebas de contrato o modelos finitos no se describen como certificación de capacidad, exactitud, disponibilidad o cobertura reales.
 
 ## Estándares de razonamiento
 

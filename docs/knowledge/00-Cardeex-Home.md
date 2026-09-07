@@ -12,7 +12,7 @@ tags:
 
 Este es el punto de entrada del vault **independiente** de Cardeex.
 
-> No contiene ni enlaza contenido de Cardex o Cardeep. La raíz del vault es `C:\Users\elias\Cardeex` y su verdad canónica está versionada en el repositorio privado `sublimine/Cardeex`.
+> La raíz del vault es `C:\Users\elias\Cardeex`; sus archivos y grafos son independientes. La verdad canónica está versionada en `sublimine/Cardeex`. Las menciones históricas a otros proyectos son procedencia de auditoría, no archivos incorporados al vault.
 
 ## Leer primero
 
@@ -20,17 +20,25 @@ Este es el punto de entrada del vault **independiente** de Cardeex.
 2. [[docs/research/vehicle-scope-2026-09-07|Evaluación del alcance por clase de vehículo]]
 3. [[docs/knowledge/Cardeex-Foundation.canvas|Mapa visual de fundamentos]]
 
+## Contratos de la fábrica
+
+- [[docs/architecture/01-domain-and-evidence|P1 · Dominio, evidencia e identidad]]
+- [[docs/architecture/02-inventory-and-api|P2 · Inventario por dealer/POS y API]]
+- [[docs/architecture/03-runtime-and-operations|P3 · Ejecución, operación y escala]]
+- [[docs/architecture/04-verification-and-build-order|P4 · Verificación y construcción]]
+
 ## Decisión central
 
-**Diseñar amplio, ejecutar estrecho.** El modelo parte de `vehicle`; la ejecución empieza por turismos y LCV, sigue con motos y scooters, después autocaravanas y, más adelante, pesados como vertical independiente.
+**Diseñar amplio, ejecutar estrecho.** Captura de turismos, LCV, motos y autocaravanas en fuentes compartidas admitidas desde la primera integración; certificación por vertical, empezando por turismos/LCV. El modelo parte de `vehicle`; pesados quedan para expansión posterior.
 
 ## Estado
 
 - Misión: aprobada.
-- Ontología conceptual inicial: aprobada.
-- Jerarquía de clases de vehículo: aprobada.
-- Implementación: no iniciada ni autorizada todavía.
-- Siguiente conversación: flujo de trabajo, procedimientos, estándares, medición y arquitectura.
+- Base de arquitectura: desarrollada por encargo de Elias, con contratos verificables.
+- Clases de adquisición y jerarquía de certificación: definidas por separado.
+- Implementación de producto: no iniciada; los scripts verifican especificaciones.
+- Siguiente proyecto: estrategia de descubrimiento de fuentes, dealers y POS; después, estrategias de scraping.
+- Estado operativo real: no hay inventario, despliegue ni capacidad certificada todavía.
 
 ## Conceptos raíz
 
@@ -39,4 +47,6 @@ Este es el punto de entrada del vault **independiente** de Cardeex.
 - [[docs/CARDEEX_FOUNDATION#4. Identidad, evidencia e historial|Vehículo canónico, anuncios y evidencia]]
 - [[docs/CARDEEX_FOUNDATION#6. Medición honesta del 100%|Cobertura segmentada y certificable]]
 - [[docs/CARDEEX_FOUNDATION#7. Alcance aprobado por fases|Orden de verticales]]
-- [[docs/CARDEEX_FOUNDATION#10. Estado al pausar la conversación|Punto exacto de reanudación]]
+- [[docs/CARDEEX_FOUNDATION#10. Estado y punto de continuación|Punto exacto de reanudación]]
+- [[docs/CARDEEX_FOUNDATION#12. Constitución de la fábrica|Mapa maestro e invariantes]]
+- [[docs/CARDEEX_FOUNDATION#14. Contrato para el próximo proyecto descubrimiento|Entrada del proyecto de descubrimiento]]

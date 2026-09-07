@@ -1,0 +1,4261 @@
+openapi: 3.1.2
+jsonSchemaDialect: https://spec.openapis.org/oas/3.1/dialect/base
+info:
+  title: Cardeex Inventory API
+  version: 1.0.0-design
+  summary: Contrato estático del inventario vivo, histórico y verificable de Cardeex.
+  description: |
+    Diseño contractual; no representa un servicio desplegado ni prestaciones medidas.
+    Dealer es la proyección API de un Seller profesional; tenant es exclusivamente
+    el cliente autorizado de la API. Todos los tiempos son UTC RFC 3339 y toda
+    secuencia uint64 se serializa como cadena decimal.
+  contact:
+    name: Cardeex architecture
+    url: https://example.com/cardeex
+externalDocs:
+  description: Contrato narrativo de inventario y API
+  url: ../docs/architecture/02-inventory-and-api.md
+servers:
+  - url: https://api.cardeex.example
+    description: Host ilustrativo reservado; no desplegado.
+tags:
+  - name: Dealers
+  - name: Points of sale
+  - name: Inventory
+  - name: History
+  - name: Coverage
+  - name: Health
+  - name: Events
+  - name: Reconciliation
+security:
+  - OAuth2ClientCredentials: []
+paths:
+  /v1/dealers:
+    get:
+      tags: [Dealers]
+      operationId: listDealers
+      summary: Lista sellers profesionales visibles como dealers.
+      description: La autorización se aplica antes de filtrar, contar y paginar.
+      security:
+        - OAuth2ClientCredentials: [dealers:read]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/MarketCountry'
+        - $ref: '#/components/parameters/VehicleClass'
+      responses:
+        '200':
+          description: Página autorizada de dealers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerPage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/dealers/{dealer_id}:
+    get:
+      tags: [Dealers]
+      operationId: getDealer
+      summary: Obtiene un dealer profesional.
+      description: Un ID inexistente y uno no autorizado producen el mismo 404.
+      security:
+        - OAuth2ClientCredentials: [dealers:read]
+      parameters:
+        - $ref: '#/components/parameters/DealerId'
+      responses:
+        '200':
+          description: Dealer autorizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/points-of-sale:
+    get:
+      tags: [Points of sale]
+      operationId: listPointsOfSale
+      summary: Lista POS con identidad respaldada por evidencia.
+      description: Una dirección observada sin identidad resuelta no aparece como POS inventado.
+      security:
+        - OAuth2ClientCredentials: [dealers:read]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/DealerIdQuery'
+        - $ref: '#/components/parameters/MarketCountry'
+      responses:
+        '200':
+          description: Página autorizada de puntos de venta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PointOfSalePage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/points-of-sale/{point_of_sale_id}:
+    get:
+      tags: [Points of sale]
+      operationId: getPointOfSale
+      summary: Obtiene un POS evidenciado.
+      security:
+        - OAuth2ClientCredentials: [dealers:read]
+      parameters:
+        - $ref: '#/components/parameters/PointOfSaleId'
+      responses:
+        '200':
+          description: Punto de venta autorizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PointOfSaleResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/dealer-inventories:
+    get:
+      tags: [Inventory]
+      operationId: listDealerInventories
+      summary: Lista inventarios profesionales autorizados.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/DealerIdQuery'
+      responses:
+        '200':
+          description: Página de inventarios.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerInventoryPage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/dealer-inventories/{inventory_id}:
+    get:
+      tags: [Inventory]
+      operationId: getDealerInventory
+      summary: Obtiene la cabecera viva de un inventario.
+      description: Los contadores nulos con quality unknown/unavailable nunca significan cero.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/InventoryId'
+      responses:
+        '200':
+          description: Inventario autorizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerInventoryResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/dealer-inventories/{inventory_id}/snapshots:
+    post:
+      tags: [Inventory]
+      operationId: createInventorySnapshot
+      summary: Fija una vista MVCC y su frontera de continuación de eventos.
+      description: |
+        El snapshot pertenece al principal, autorización, filtros, orden y consistencia
+        efectivos. Es un prefijo exacto del log publicado; una generación positiva
+        puede cambiar after-images o filtros, pero nunca aplica bajas por ausencia de
+        runs incompletos.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/InventoryId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInventorySnapshotRequest'
+      responses:
+        '201':
+          description: Snapshot fijado.
+          headers:
+            Location:
+              description: URL del recurso snapshot.
+              schema: {type: string, format: uri-reference}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventorySnapshotResponse'
+        '202':
+          description: Corte fijado y materialización asíncrona en curso.
+          headers:
+            Location:
+              description: URL para consultar el estado del snapshot.
+              schema: {type: string, format: uri-reference}
+            Retry-After: {$ref: '#/components/headers/RetryAfter'}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventorySnapshotStatusResponse'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/inventory-snapshots/{snapshot_id}:
+    get:
+      tags: [Inventory]
+      operationId: getInventorySnapshotStatus
+      summary: Consulta una materialización de snapshot.
+      description: El corte MVCC queda fijado al aceptar el POST, aunque el estado sea building.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/SnapshotId'
+      responses:
+        '200':
+          description: Estado ready, building, failed o expired autorizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventorySnapshotStatusResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/inventory-snapshots/{snapshot_id}/items:
+    get:
+      tags: [Inventory]
+      operationId: listSnapshotItems
+      summary: Pagina items sobre un snapshot MVCC fijo.
+      description: |
+        No se permite cambiar filtros u orden. Un cursor caducado devuelve 410; para
+        evitar huecos se crea otro snapshot y se reinicia desde su primera página.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/SnapshotId'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Página perteneciente al snapshot indicado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItemPage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/inventory-snapshots/{snapshot_id}/bulk-manifest:
+    get:
+      tags: [Inventory]
+      operationId: getInventorySnapshotBulkManifest
+      summary: Obtiene o renueva el manifiesto de partes de un snapshot bulk ready.
+      description: |
+        Las partes son NDJSON gzip del mismo snapshot_seq. URLs firmadas duran como
+        máximo 15 minutos y solo apuntan al gateway Cardeex. Cada GET o Range vuelve
+        a validar OAuth, entitlement y nonce revocable; no existe acceso directo al
+        object store. Solo se renuevan mientras snapshot y autorización sigan vigentes.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/SnapshotId'
+      responses:
+        '200':
+          description: Manifiesto inmutable; solo las URLs de descarga pueden renovarse.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkManifestResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/inventory-items/{inventory_item_id}:
+    get:
+      tags: [Inventory]
+      operationId: getInventoryItem
+      summary: Obtiene un item deduplicado.
+      description: Si se envía snapshot_id, la representación pertenece exactamente a esa vista.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/InventoryItemId'
+        - $ref: '#/components/parameters/SnapshotIdQuery'
+      responses:
+        '200':
+          description: Item autorizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItemResponse'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/listings/{listing_id}:
+    get:
+      tags: [Inventory]
+      operationId: getListing
+      summary: Obtiene un listing aunque no tenga dealer o POS resuelto.
+      description: Nunca crea un dealer unknown para alojar particulares o sellers no resueltos.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/ListingId'
+      responses:
+        '200':
+          description: Listing actual autorizado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/stream-inventories/{stream_id}/snapshots:
+    post:
+      tags: [Inventory]
+      operationId: createStreamListingSnapshot
+      summary: Fija un inventario source-scoped de todos los listings autorizados del stream.
+      description: Incluye profesionales, particulares y seller desconocido sin asignarlos a dealers ficticios.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/StreamId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CreateListingSnapshotRequest'}
+      responses:
+        '201':
+          description: Snapshot de listings listo.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingSnapshotResponse'}
+        '202':
+          description: Corte fijado y materialización paged/bulk en curso.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+            Retry-After: {$ref: '#/components/headers/RetryAfter'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingSnapshotStatusResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/listing-snapshots/{snapshot_id}:
+    get:
+      tags: [Inventory]
+      operationId: getStreamListingSnapshotStatus
+      summary: Consulta la materialización de un snapshot source-scoped.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/SnapshotId'
+      responses:
+        '200':
+          description: Estado autorizado del snapshot.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingSnapshotStatusResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/listing-snapshots/{snapshot_id}/listings:
+    get:
+      tags: [Inventory]
+      operationId: listStreamSnapshotListings
+      summary: Pagina listings profesionales, particulares o no resueltos sobre un corte fijo.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/SnapshotId'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Página del mismo snapshot y subset autorizado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingSnapshotPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/listing-snapshots/{snapshot_id}/bulk-manifest:
+    get:
+      tags: [Inventory]
+      operationId: getStreamListingBulkManifest
+      summary: Obtiene o renueva partes NDJSON gzip del snapshot de listings.
+      security:
+        - OAuth2ClientCredentials: [inventory:read]
+      parameters:
+        - $ref: '#/components/parameters/SnapshotId'
+      responses:
+        '200':
+          description: Manifiesto del mismo stream_inventory_id y snapshot_seq.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingBulkManifestResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/stream-inventories/{stream_id}/events:
+    get:
+      tags: [Events]
+      operationId: listStreamListingEvents
+      summary: Continúa la vista source-scoped desde el cursor emitido por su snapshot.
+      security:
+        - OAuth2ClientCredentials: [events:read]
+      parameters:
+        - $ref: '#/components/parameters/StreamId'
+        - $ref: '#/components/parameters/EventCursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Upserts/removals aplicables de listings, con avance aunque la página quede vacía.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingEventPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/listings/{listing_id}/history:
+    get:
+      tags: [History]
+      operationId: listListingHistory
+      summary: Lista historia reconstruible de un listing.
+      description: La ausencia fuera de la retención no demuestra que un hecho nunca existió.
+      security:
+        - OAuth2ClientCredentials: [history:read]
+      parameters:
+        - $ref: '#/components/parameters/ListingId'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Historia autorizada y ordenada por tiempo registrado e ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingHistoryPage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/coverage:
+    get:
+      tags: [Coverage]
+      operationId: listCoverageCells
+      summary: Lista celdas de cobertura con denominador e incertidumbre explícitos.
+      security:
+        - OAuth2ClientCredentials: [coverage:read]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/MarketCountry'
+        - $ref: '#/components/parameters/VehicleClass'
+        - $ref: '#/components/parameters/SourceType'
+      responses:
+        '200':
+          description: Página de celdas comparables, estimadas o desconocidas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoveragePage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/completeness-certificates/{certificate_id}:
+    get:
+      tags: [Coverage]
+      operationId: getCompletenessCertificate
+      summary: Obtiene el certificado inmutable de un run de censo.
+      description: Un certificado de origen no es un snapshot de serving y viceversa.
+      security:
+        - OAuth2ClientCredentials: [coverage:read]
+      parameters:
+        - $ref: '#/components/parameters/CertificateId'
+      responses:
+        '200':
+          description: Certificado autorizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletenessCertificateResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/source-health:
+    get:
+      tags: [Health]
+      operationId: listSourceHealth
+      summary: Lista salud de adquisición sin convertirla en presencia.
+      security:
+        - OAuth2ClientCredentials: [health:read]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/HealthStatus'
+        - $ref: '#/components/parameters/SloState'
+      responses:
+        '200':
+          description: Página de salud de fuentes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceHealthPage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/source-health/{source_id}:
+    get:
+      tags: [Health]
+      operationId: getSourceHealth
+      summary: Obtiene salud de una fuente autorizada.
+      security:
+        - OAuth2ClientCredentials: [health:read]
+      parameters:
+        - $ref: '#/components/parameters/SourceId'
+      responses:
+        '200':
+          description: Estado de salud actual.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceHealthResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/dealer-inventories/{inventory_id}/events:
+    get:
+      tags: [Events]
+      operationId: listInventoryEvents
+      summary: Continúa un inventario desde una secuencia local.
+      description: |
+        Entrega ordenada por seq. Repetir el event cursor puede repetir eventos; el consumidor
+        deduplica por event_id. Si el punto ya no está retenido devuelve 410 y obliga
+        a ejecutar snapshot_then_stream.
+      security:
+        - OAuth2ClientCredentials: [events:read]
+      parameters:
+        - $ref: '#/components/parameters/InventoryId'
+        - $ref: '#/components/parameters/EventCursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Cambios de vista posteriores al corte en orden ascendente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryEventPage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/reconciliation-cases:
+    get:
+      tags: [Reconciliation]
+      operationId: listReconciliationCases
+      summary: Lista casos de reconciliación autorizados.
+      security:
+        - OAuth2ClientCredentials: [reconciliation:read]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/ReconciliationState'
+        - $ref: '#/components/parameters/InventoryIdQuery'
+      responses:
+        '200':
+          description: Página de casos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationCasePage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '410': {$ref: '#/components/responses/Gone'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/reconciliation-cases/{case_id}:
+    get:
+      tags: [Reconciliation]
+      operationId: getReconciliationCase
+      summary: Obtiene un caso y su versión para control optimista.
+      security:
+        - OAuth2ClientCredentials: [reconciliation:read]
+      parameters:
+        - $ref: '#/components/parameters/CaseId'
+      responses:
+        '200':
+          description: Caso autorizado.
+          headers:
+            ETag:
+              description: Versión fuerte que debe enviarse al decidir.
+              schema: {type: string, example: '"case-v3"'}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationCaseResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+  /v1/reconciliation-cases/{case_id}/decisions:
+    post:
+      tags: [Reconciliation]
+      operationId: decideReconciliationCase
+      summary: Registra una decisión idempotente y compensatoria.
+      security:
+        - OAuth2ClientCredentials: [reconciliation:write]
+      parameters:
+        - $ref: '#/components/parameters/CaseId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReconciliationDecisionRequest'
+      responses:
+        '201':
+          description: Decisión registrada; los eventos emitidos son idempotentes.
+          headers:
+            Location:
+              description: URL del caso actualizado.
+              schema: {type: string, format: uri-reference}
+            ETag:
+              description: Nueva versión fuerte del caso.
+              schema: {type: string, example: '"case-v4"'}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationDecisionResponse'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+webhooks:
+  inventoryEvent:
+    post:
+      tags: [Events]
+      operationId: receiveInventoryEventWebhook
+      summary: Entrega saliente at-least-once de un evento autorizado.
+      description: |
+        El receptor deduplica por event_id y ordena por seq dentro de inventory_id.
+        Un replay conserva event_id y usa otro delivery_id. Cardeex puede reintentar
+        timeout o no-2xx; para 429/503 respeta Retry-After dentro de su política.
+      security:
+        - WebhookHmac: []
+      parameters:
+        - name: Cardeex-Delivery-Id
+          in: header
+          required: true
+          schema: {$ref: '#/components/schemas/UuidV7'}
+        - name: Cardeex-Timestamp
+          in: header
+          required: true
+          schema: {$ref: '#/components/schemas/UtcTimestamp'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEnvelope'
+      responses:
+        '204':
+          description: Entrega aceptada de forma idempotente.
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '503': {$ref: '#/components/responses/Unavailable'}
+components:
+  securitySchemes:
+    OAuth2ClientCredentials:
+      type: oauth2
+      description: Token de servicio ligado a tenant, principal y revisión de autorización.
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.cardeex.example/oauth2/token
+          scopes:
+            dealers:read: Leer dealers y POS autorizados.
+            inventory:read: Leer inventarios y snapshots.
+            history:read: Leer historia autorizada.
+            coverage:read: Leer cobertura y certificados.
+            health:read: Leer salud de fuentes.
+            events:read: Continuar eventos de inventario.
+            reconciliation:read: Leer casos de reconciliación.
+            reconciliation:write: Registrar decisiones de reconciliación.
+    WebhookHmac:
+      type: apiKey
+      in: header
+      name: Cardeex-Signature
+      description: Firma HMAC versionada sobre timestamp y cuerpo exacto; no es una API key reutilizable.
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Token opaco ligado a principal, autorización, scope, orden y expiración.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 4096
+        example: eyJraWQiOiJrMSIsInJlZiI6Im9wYXF1ZSJ9
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+        example: 100
+    MarketCountry:
+      name: market_country
+      in: query
+      required: false
+      schema: {$ref: '#/components/schemas/MarketCountry'}
+    VehicleClass:
+      name: vehicle_class
+      in: query
+      required: false
+      schema: {$ref: '#/components/schemas/VehicleClass'}
+    SourceType:
+      name: source_type
+      in: query
+      required: false
+      schema: {$ref: '#/components/schemas/SourceType'}
+    HealthStatus:
+      name: status
+      in: query
+      required: false
+      schema: {$ref: '#/components/schemas/HealthStatus'}
+    SloState:
+      name: slo_state
+      in: query
+      required: false
+      schema: {$ref: '#/components/schemas/SloState'}
+    ReconciliationState:
+      name: state
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [open, decided, superseded]
+    EventCursor:
+      name: cursor
+      in: query
+      required: true
+      description: Cursor opaco emitido por un snapshot o una página de eventos; ligado a view_id, scope, autorización, ownership_epoch y restore_epoch. No se sustituye por after_seq.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 4096
+        example: eyJraWQiOiJrMSIsInZpZXdfaWQiOiJvcGFxdWUifQ
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Clave opaca; se liga a principal, endpoint y hash del cuerpo.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 255
+        pattern: '^[A-Za-z0-9._~-]+$'
+        example: snap-20260907-client-a-0001
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: ETag fuerte de la versión del caso leída por el decisor.
+      schema:
+        type: string
+        pattern: '^"[^"\\]+"$'
+        example: '"case-v3"'
+    DealerId:
+      name: dealer_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    DealerIdQuery:
+      name: dealer_id
+      in: query
+      required: false
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    PointOfSaleId:
+      name: point_of_sale_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    InventoryId:
+      name: inventory_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    InventoryIdQuery:
+      name: inventory_id
+      in: query
+      required: false
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    InventoryItemId:
+      name: inventory_item_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    SnapshotId:
+      name: snapshot_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    SnapshotIdQuery:
+      name: snapshot_id
+      in: query
+      required: false
+      description: Fija la misma representación que una página de inventario.
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    ListingId:
+      name: listing_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    CertificateId:
+      name: certificate_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    SourceId:
+      name: source_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    StreamId:
+      name: stream_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    CaseId:
+      name: case_id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UuidV7'}
+  headers:
+    RequestId:
+      description: Correlación segura para soporte; no revela internals.
+      schema: {$ref: '#/components/schemas/UuidV7'}
+    RetryAfter:
+      description: Segundos enteros no negativos o fecha HTTP según RFC 9110.
+      schema:
+        type: string
+        example: '120'
+  responses:
+    BadRequest:
+      description: Petición o cursor mal formado/incompatible.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            cursor_scope_mismatch:
+              value:
+                type: https://api.cardeex.example/problems/cursor-scope-mismatch
+                title: Cursor scope mismatch
+                status: 400
+                detail: El cursor no pertenece al scope, orden o autorización de esta petición.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6091
+                code: cursor_scope_mismatch
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6092
+    Unauthorized:
+      description: Falta autenticación o el token no es válido.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            unauthenticated:
+              value:
+                type: https://api.cardeex.example/problems/unauthenticated
+                title: Authentication required
+                status: 401
+                detail: Presente un token de servicio válido.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6093
+                code: unauthenticated
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6094
+    Forbidden:
+      description: El token carece de una capacidad general; no confirma existencia de recursos.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            insufficient_scope:
+              value:
+                type: https://api.cardeex.example/problems/insufficient-scope
+                title: Insufficient scope
+                status: 403
+                detail: El token no permite esta operación.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6095
+                code: insufficient_scope
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6096
+    NotFound:
+      description: No existe una representación autorizada; cuerpo idéntico para no autorizado/inexistente.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            not_found:
+              value:
+                type: https://api.cardeex.example/problems/not-found
+                title: Not found
+                status: 404
+                detail: No existe una representación disponible para este principal.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6097
+                code: not_found
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6098
+    Conflict:
+      description: Conflicto de idempotencia o estado.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            idempotency_conflict:
+              value:
+                type: https://api.cardeex.example/problems/idempotency-conflict
+                title: Idempotency conflict
+                status: 409
+                detail: La clave ya se usó con otro cuerpo o endpoint.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6099
+                code: idempotency_conflict
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6100
+    Gone:
+      description: Snapshot/cursor caducado o secuencia fuera de retención; exige bootstrap seguro.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            snapshot_expired:
+              value:
+                type: https://api.cardeex.example/problems/snapshot-expired
+                title: Snapshot expired
+                status: 410
+                detail: Reinicie desde la primera página de un snapshot nuevo; no continúe el cursor viejo.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6101
+                code: snapshot_expired
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6102
+                recovery:
+                  action: restart_snapshot
+                  restart_uri: /v1/dealer-inventories/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003/snapshots
+                  minimum_available_seq: '9007199254740000'
+    PreconditionFailed:
+      description: El ETag ya no coincide con la versión actual.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            version_conflict:
+              value:
+                type: https://api.cardeex.example/problems/version-conflict
+                title: Version conflict
+                status: 412
+                detail: Recargue el caso y decida sobre su nueva versión.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6103
+                code: version_conflict
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6104
+    UnprocessableEntity:
+      description: JSON válido con combinación semánticamente inválida.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            validation_failed:
+              value:
+                type: https://api.cardeex.example/problems/validation-failed
+                title: Validation failed
+                status: 422
+                detail: Uno o más campos no cumplen el contrato.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6105
+                code: validation_failed
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6106
+                errors:
+                  - path: /filters/vehicle_classes/0
+                    code: unsupported_value
+                    message: La clase no está habilitada para este scope.
+    TooManyRequests:
+      description: Límite de API excedido; no afecta presencia de fuentes.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+        Retry-After: {$ref: '#/components/headers/RetryAfter'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            rate_limited:
+              value:
+                type: https://api.cardeex.example/problems/rate-limited
+                title: Rate limited
+                status: 429
+                detail: Reintente después del intervalo indicado.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6107
+                code: rate_limited
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6108
+                retryable: true
+    Unavailable:
+      description: Servicio temporalmente no disponible; no equivale a inventario vacío.
+      headers:
+        X-Request-Id: {$ref: '#/components/headers/RequestId'}
+        Retry-After: {$ref: '#/components/headers/RetryAfter'}
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          examples:
+            temporarily_unavailable:
+              value:
+                type: https://api.cardeex.example/problems/temporarily-unavailable
+                title: Temporarily unavailable
+                status: 503
+                detail: El servicio no puede completar la operación temporalmente.
+                instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6109
+                code: temporarily_unavailable
+                request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6110
+                retryable: true
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      examples: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001]
+    UtcTimestamp:
+      type: string
+      format: date-time
+      pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$'
+      examples: ['2026-09-07T10:15:30Z']
+    UInt64String:
+      type: string
+      pattern: '^(?:0|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|18446744073709550[0-9]{3}|18446744073709551[0-5][0-9]{2}|1844674407370955160[0-9]|1844674407370955161[0-5])$'
+      description: Entero exacto entre 0 y 18446744073709551615, serializado como cadena decimal.
+      examples: ['9007199254740993']
+    PositiveRevisionString:
+      type: string
+      pattern: '^[1-9][0-9]{0,9}$'
+      examples: ['3']
+    CountString:
+      type: string
+      pattern: '^(0|[1-9][0-9]*)$'
+      examples: ['12540']
+    Sha256Digest:
+      type: string
+      pattern: '^[0-9a-f]{64}$'
+      examples: [3a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbaa]
+    MarketCountry:
+      type: string
+      enum: [ES, FR, DE, NL, BE, CH]
+      examples: [ES]
+    VehicleClass:
+      type: string
+      enum: [car, lcv, motorcycle, motorhome]
+      examples: [car]
+    SourceType:
+      type: string
+      enum:
+        - marketplace
+        - dealer_owned
+        - manufacturer_inventory
+        - auction
+        - classifieds
+        - salvage_complete_vehicles
+        - authorized_aggregator
+        - unknown
+      examples: [marketplace]
+    HealthStatus:
+      type: string
+      enum: [healthy, degraded, unavailable, rate_limited, suspended, unknown]
+      examples: [degraded]
+    SloState:
+      type: string
+      enum: [meeting, at_risk, unmet, not_applicable]
+      examples: [at_risk]
+    PresenceState:
+      type: string
+      enum: [observed_present, absence_suspected, not_observed, withdrawn]
+      examples: [observed_present]
+    MembershipState:
+      type: string
+      enum: [candidate, effective, rejected, superseded]
+      examples: [effective]
+    ApiMeta:
+      type: object
+      additionalProperties: false
+      required: [request_id, served_at, contract_version]
+      properties:
+        request_id: {$ref: '#/components/schemas/UuidV7'}
+        served_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        contract_version:
+          type: string
+          const: '1.0.0-design'
+      examples:
+        - request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+          served_at: '2026-09-07T10:15:30Z'
+          contract_version: 1.0.0-design
+    PageMeta:
+      type: object
+      additionalProperties: false
+      required: [limit, has_more, next_cursor, cursor_expires_at]
+      properties:
+        limit: {type: integer, minimum: 1, maximum: 500}
+        has_more: {type: boolean}
+        next_cursor:
+          type: [string, 'null']
+          minLength: 16
+          maxLength: 4096
+        cursor_expires_at:
+          oneOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+            - type: 'null'
+      examples:
+        - limit: 100
+          has_more: false
+          next_cursor: null
+          cursor_expires_at: '2026-09-07T10:30:30Z'
+    RetentionWindow:
+      type: object
+      additionalProperties: false
+      required: [earliest_available_at, completeness]
+      properties:
+        earliest_available_at:
+          oneOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+            - type: 'null'
+        completeness:
+          type: string
+          enum: [complete_within_window, policy_limited, unknown]
+        limitation_reason:
+          type: [string, 'null']
+          maxLength: 500
+      examples:
+        - earliest_available_at: '2025-09-07T00:00:00Z'
+          completeness: policy_limited
+          limitation_reason: Historial anterior fuera de la retención autorizada.
+    EvidenceLink:
+      type: object
+      additionalProperties: false
+      required: [evidence_ref_id, evidence_type, observed_at]
+      properties:
+        evidence_ref_id: {$ref: '#/components/schemas/UuidV7'}
+        evidence_type:
+          type: string
+          enum: [raw_capture, observation, relationship_assertion, completeness_certificate, resolution_decision, policy_action]
+        observed_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+          evidence_type: relationship_assertion
+          observed_at: '2026-09-07T09:59:00Z'
+    ResolutionProvenance:
+      type: object
+      additionalProperties: false
+      required: [relationship_assertion_ids, resolution_decision_id, resolver_version, confidence]
+      properties:
+        relationship_assertion_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/UuidV7'}
+        resolution_decision_id: {$ref: '#/components/schemas/UuidV7'}
+        resolver_version: {type: string, minLength: 1, maxLength: 100}
+        confidence: {type: number, minimum: 0, maximum: 1}
+      examples:
+        - relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+          resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+          resolver_version: membership-resolver/1.0.0
+          confidence: 0.99
+    ProblemFieldError:
+      type: object
+      additionalProperties: false
+      required: [path, code, message]
+      properties:
+        path: {type: string, minLength: 1, maxLength: 500}
+        code: {type: string, pattern: '^[a-z][a-z0-9_]*$'}
+        message: {type: string, minLength: 1, maxLength: 1000}
+    ProblemRecovery:
+      type: object
+      additionalProperties: false
+      required: [action, restart_uri]
+      properties:
+        action:
+          type: string
+          enum: [restart_snapshot, snapshot_then_stream]
+        restart_uri: {type: string, format: uri-reference}
+        minimum_available_seq:
+          oneOf:
+            - $ref: '#/components/schemas/UInt64String'
+            - type: 'null'
+      examples:
+        - action: snapshot_then_stream
+          restart_uri: /v1/dealer-inventories/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003/snapshots
+          minimum_available_seq: '9007199254740000'
+    Problem:
+      type: object
+      additionalProperties: false
+      required: [type, title, status, detail, instance, code, request_id]
+      properties:
+        type: {type: string, format: uri-reference}
+        title: {type: string, minLength: 1, maxLength: 200}
+        status: {type: integer, minimum: 400, maximum: 599}
+        detail: {type: string, minLength: 1, maxLength: 2000}
+        instance: {type: string, format: uri-reference}
+        code:
+          type: string
+          enum:
+            - invalid_request
+            - cursor_scope_mismatch
+            - unauthenticated
+            - insufficient_scope
+            - not_found
+            - idempotency_conflict
+            - snapshot_expired
+            - snapshot_not_ready
+            - bulk_not_available
+            - materialization_failed
+            - cursor_expired
+            - event_retention_exceeded
+            - version_conflict
+            - validation_failed
+            - rate_limited
+            - temporarily_unavailable
+        request_id: {$ref: '#/components/schemas/UuidV7'}
+        retryable: {type: boolean, default: false}
+        errors:
+          type: array
+          maxItems: 100
+          items: {$ref: '#/components/schemas/ProblemFieldError'}
+        recovery: {$ref: '#/components/schemas/ProblemRecovery'}
+      examples:
+        - type: https://api.cardeex.example/problems/snapshot-expired
+          title: Snapshot expired
+          status: 410
+          detail: Reinicie el snapshot completo y deduplique por ID.
+          instance: urn:cardeex:problem:018f47a2-7b5c-7f10-8a2b-1c3d4e5f6101
+          code: snapshot_expired
+          request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6102
+          recovery:
+            action: restart_snapshot
+            restart_uri: /v1/dealer-inventories/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003/snapshots
+            minimum_available_seq: '9007199254740000'
+    DealerClassification:
+      type: string
+      enum: [professional_dealer, garage_workshop, salvage_operator, other_professional]
+      examples: [professional_dealer]
+    Dealer:
+      type: object
+      additionalProperties: false
+      required:
+        - dealer_id
+        - classification
+        - classification_state
+        - display_name
+        - inventory_id
+        - inventory_uri
+        - market_countries
+        - observed_vehicle_classes
+        - evidence
+        - valid_from
+      properties:
+        dealer_id:
+          description: Mismo UUID que el Seller profesional efectivo de P1; no es una entidad duplicada.
+          $ref: '#/components/schemas/UuidV7'
+        classification: {$ref: '#/components/schemas/DealerClassification'}
+        classification_state:
+          type: string
+          enum: [effective, disputed]
+        display_name: {type: string, minLength: 1, maxLength: 300}
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_uri:
+          type: string
+          format: uri-reference
+          description: Enlace autorizado al DealerInventory del seller profesional.
+        legal_entity_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        market_countries:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/MarketCountry'}
+        observed_vehicle_classes:
+          type: array
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/VehicleClass'}
+        evidence:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/EvidenceLink'}
+        valid_from: {$ref: '#/components/schemas/UtcTimestamp'}
+        valid_to:
+          oneOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+            - type: 'null'
+      examples:
+        - dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+          classification: professional_dealer
+          classification_state: effective
+          display_name: Motor Ejemplo Norte
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          inventory_uri: /v1/dealer-inventories/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          legal_entity_id: null
+          market_countries: [ES]
+          observed_vehicle_classes: [car, lcv, motorcycle]
+          evidence:
+            - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+              evidence_type: relationship_assertion
+              observed_at: '2026-09-07T09:59:00Z'
+          valid_from: '2026-08-01T00:00:00Z'
+          valid_to: null
+    DealerResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/Dealer'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+            classification: professional_dealer
+            classification_state: effective
+            display_name: Motor Ejemplo Norte
+            inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+            inventory_uri: /v1/dealer-inventories/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+            legal_entity_id: null
+            market_countries: [ES]
+            observed_vehicle_classes: [car, lcv, motorcycle]
+            evidence:
+              - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+                evidence_type: relationship_assertion
+                observed_at: '2026-09-07T09:59:00Z'
+            valid_from: '2026-08-01T00:00:00Z'
+            valid_to: null
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    DealerPage:
+      type: object
+      additionalProperties: false
+      required: [data, page, meta]
+      properties:
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/Dealer'}
+        page: {$ref: '#/components/schemas/PageMeta'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            - dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+              classification: professional_dealer
+              classification_state: effective
+              display_name: Motor Ejemplo Norte
+              inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+              inventory_uri: /v1/dealer-inventories/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+              legal_entity_id: null
+              market_countries: [ES]
+              observed_vehicle_classes: [car, lcv, motorcycle]
+              evidence:
+                - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+                  evidence_type: relationship_assertion
+                  observed_at: '2026-09-07T09:59:00Z'
+              valid_from: '2026-08-01T00:00:00Z'
+              valid_to: null
+          page:
+            limit: 100
+            has_more: false
+            next_cursor: null
+            cursor_expires_at: '2026-09-07T10:30:30Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    ResolvedAddress:
+      type: object
+      additionalProperties: false
+      required: [country, locality, original_text, precision]
+      properties:
+        country: {$ref: '#/components/schemas/MarketCountry'}
+        region_code: {type: [string, 'null'], maxLength: 30}
+        locality: {type: string, minLength: 1, maxLength: 200}
+        postal_code: {type: [string, 'null'], maxLength: 30}
+        original_text: {type: string, minLength: 1, maxLength: 1000}
+        precision:
+          type: string
+          enum: [exact, street, postal_code, locality, region, country]
+      examples:
+        - country: ES
+          region_code: ES-M
+          locality: Madrid
+          postal_code: '28001'
+          original_text: Calle de Ejemplo 1, 28001 Madrid
+          precision: street
+    PointOfSale:
+      type: object
+      additionalProperties: false
+      required:
+        - point_of_sale_id
+        - dealer_id
+        - kind
+        - label
+        - address_state
+        - resolved_address
+        - evidence
+        - valid_from
+      properties:
+        point_of_sale_id: {$ref: '#/components/schemas/UuidV7'}
+        dealer_id: {$ref: '#/components/schemas/UuidV7'}
+        kind: {type: string, enum: [physical, virtual]}
+        label: {type: string, minLength: 1, maxLength: 300}
+        address_state: {type: string, enum: [known, unknown, withheld, not_applicable]}
+        resolved_address:
+          oneOf:
+            - $ref: '#/components/schemas/ResolvedAddress'
+            - type: 'null'
+        evidence:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/EvidenceLink'}
+        valid_from: {$ref: '#/components/schemas/UtcTimestamp'}
+        valid_to:
+          oneOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+            - type: 'null'
+      examples:
+        - point_of_sale_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002
+          dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+          kind: physical
+          label: Sucursal Madrid Centro
+          address_state: known
+          resolved_address:
+            country: ES
+            region_code: ES-M
+            locality: Madrid
+            postal_code: '28001'
+            original_text: Calle de Ejemplo 1, 28001 Madrid
+            precision: street
+          evidence:
+            - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+              evidence_type: relationship_assertion
+              observed_at: '2026-09-07T09:59:00Z'
+          valid_from: '2026-08-01T00:00:00Z'
+          valid_to: null
+    PointOfSaleResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/PointOfSale'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            point_of_sale_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002
+            dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+            kind: physical
+            label: Sucursal Madrid Centro
+            address_state: known
+            resolved_address:
+              country: ES
+              region_code: ES-M
+              locality: Madrid
+              postal_code: '28001'
+              original_text: Calle de Ejemplo 1, 28001 Madrid
+              precision: street
+            evidence:
+              - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+                evidence_type: relationship_assertion
+                observed_at: '2026-09-07T09:59:00Z'
+            valid_from: '2026-08-01T00:00:00Z'
+            valid_to: null
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    PointOfSalePage:
+      type: object
+      additionalProperties: false
+      required: [data, page, meta]
+      properties:
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/PointOfSale'}
+        page: {$ref: '#/components/schemas/PageMeta'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            - point_of_sale_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002
+              dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+              kind: physical
+              label: Sucursal Madrid Centro
+              address_state: known
+              resolved_address:
+                country: ES
+                region_code: ES-M
+                locality: Madrid
+                postal_code: '28001'
+                original_text: Calle de Ejemplo 1, 28001 Madrid
+                precision: street
+              evidence:
+                - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+                  evidence_type: relationship_assertion
+                  observed_at: '2026-09-07T09:59:00Z'
+              valid_from: '2026-08-01T00:00:00Z'
+              valid_to: null
+          page:
+            limit: 100
+            has_more: false
+            next_cursor: null
+            cursor_expires_at: '2026-09-07T10:30:30Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    KnowledgeState:
+      type: string
+      enum: [known, partial, unknown]
+      examples: [known]
+    CountMetrics:
+      type: object
+      additionalProperties: false
+      required:
+        - knowledge_state
+        - inventory_item_count
+        - listing_count
+        - resolved_vehicle_count
+        - unresolved_vehicle_item_count
+        - unassigned_point_of_sale_item_count
+      properties:
+        knowledge_state: {$ref: '#/components/schemas/KnowledgeState'}
+        inventory_item_count:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+        listing_count:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+        resolved_vehicle_count:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+        unresolved_vehicle_item_count:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+        unassigned_point_of_sale_item_count:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+      description: Valores exactos para el subset autorizado del snapshot; pueden ser viejos. Null exige knowledge_state unknown.
+      examples:
+        - knowledge_state: known
+          inventory_item_count: '1'
+          listing_count: '2'
+          resolved_vehicle_count: '1'
+          unresolved_vehicle_item_count: '0'
+          unassigned_point_of_sale_item_count: '0'
+    Freshness:
+      type: object
+      additionalProperties: false
+      required:
+        - tier
+        - state
+        - measured_at
+        - delta_target_seconds
+        - reconciliation_target_seconds
+        - p50_age_seconds
+        - p95_age_seconds
+        - max_age_seconds
+        - presence_last_confirmed_at
+        - delta_verified_through
+        - last_full_census_at
+        - projection_lag_seconds
+        - fields
+      properties:
+        tier: {type: string, enum: [T0, T1, T2]}
+        state: {type: string, enum: [within_target, late, unknown, unavailable]}
+        measured_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        delta_target_seconds: {type: integer, minimum: 1}
+        reconciliation_target_seconds: {type: integer, minimum: 1}
+        p50_age_seconds: {type: [integer, 'null'], minimum: 0}
+        p95_age_seconds: {type: [integer, 'null'], minimum: 0}
+        max_age_seconds: {type: [integer, 'null'], minimum: 0}
+        presence_last_confirmed_at:
+          oneOf: [{$ref: '#/components/schemas/UtcTimestamp'}, {type: 'null'}]
+        delta_verified_through:
+          oneOf: [{$ref: '#/components/schemas/UtcTimestamp'}, {type: 'null'}]
+          description: Ventana delta cerrada; no refresca por sí misma los atributos.
+        last_full_census_at:
+          oneOf: [{$ref: '#/components/schemas/UtcTimestamp'}, {type: 'null'}]
+        projection_lag_seconds: {type: [integer, 'null'], minimum: 0}
+        fields:
+          type: array
+          items: {$ref: '#/components/schemas/FieldFreshness'}
+      description: Objetivos de diseño y mediciones de la vista; no son benchmarks prometidos.
+      examples:
+        - tier: T1
+          state: within_target
+          measured_at: '2026-09-07T10:15:30Z'
+          delta_target_seconds: 21600
+          reconciliation_target_seconds: 259200
+          p50_age_seconds: 900
+          p95_age_seconds: 1800
+          max_age_seconds: 2400
+          presence_last_confirmed_at: '2026-09-07T10:00:00Z'
+          delta_verified_through: '2026-09-07T10:10:00Z'
+          last_full_census_at: '2026-09-07T08:00:00Z'
+          projection_lag_seconds: 30
+          fields:
+            - field: /offers/price
+              field_last_observed_at: '2026-09-07T10:00:00Z'
+              state: within_target
+    FieldFreshness:
+      type: object
+      additionalProperties: false
+      required: [field, field_last_observed_at, state]
+      properties:
+        field: {type: string, pattern: '^/.*', maxLength: 300}
+        field_last_observed_at:
+          oneOf: [{$ref: '#/components/schemas/UtcTimestamp'}, {type: 'null'}]
+          description: Última observación positiva que contenía evidencia para este campo; no avanza por 304 ni por un delta vacío.
+        state: {type: string, enum: [within_target, late, unknown, unavailable, not_applicable]}
+      examples:
+        - field: /offers/price
+          field_last_observed_at: '2026-09-07T10:00:00Z'
+          state: within_target
+    InventoryGenerationRef:
+      type: object
+      additionalProperties: false
+      required:
+        - generation_id
+        - generation_kind
+        - through_seq
+        - ownership_epoch
+        - committed_at
+        - projection_version
+        - normalization_version
+        - identity_version
+        - membership_resolution_version
+      properties:
+        generation_id: {$ref: '#/components/schemas/UuidV7'}
+        generation_kind:
+          type: string
+          enum: [positive_batch, reconciliation, explicit_terminal, identity, membership, correction, suppression, rebuild]
+        through_seq: {$ref: '#/components/schemas/UInt64String'}
+        ownership_epoch: {$ref: '#/components/schemas/UInt64String'}
+        committed_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        projection_version: {type: string, minLength: 1, maxLength: 100}
+        normalization_version: {type: string, minLength: 1, maxLength: 100}
+        identity_version: {type: string, minLength: 1, maxLength: 100}
+        membership_resolution_version: {type: string, minLength: 1, maxLength: 100}
+        rebuild_of_generation_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        certificate_ids:
+          type: array
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/UuidV7'}
+      examples:
+        - generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6009
+          generation_kind: reconciliation
+          through_seq: '9007199254740993'
+          ownership_epoch: '17'
+          committed_at: '2026-09-07T10:14:00Z'
+          projection_version: inventory-projection/1.0.0
+          normalization_version: vehicle-normalization/1.0.0
+          identity_version: vehicle-identity/1.0.0
+          membership_resolution_version: membership-resolver/1.0.0
+          rebuild_of_generation_id: null
+          certificate_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6015]
+    InventoryHealthRef:
+      type: object
+      additionalProperties: false
+      required: [source_id, status, slo_state, assessed_at]
+      properties:
+        source_id: {$ref: '#/components/schemas/UuidV7'}
+        status: {$ref: '#/components/schemas/HealthStatus'}
+        slo_state: {$ref: '#/components/schemas/SloState'}
+        assessed_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+          status: healthy
+          slo_state: meeting
+          assessed_at: '2026-09-07T10:14:30Z'
+    DealerInventory:
+      type: object
+      additionalProperties: false
+      required:
+        - inventory_id
+        - dealer_id
+        - generation
+        - counts
+        - freshness
+        - source_health
+        - completeness_state
+      properties:
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        dealer_id: {$ref: '#/components/schemas/UuidV7'}
+        generation: {$ref: '#/components/schemas/InventoryGenerationRef'}
+        counts: {$ref: '#/components/schemas/CountMetrics'}
+        freshness: {$ref: '#/components/schemas/Freshness'}
+        source_health:
+          type: array
+          items: {$ref: '#/components/schemas/InventoryHealthRef'}
+        completeness_state:
+          type: string
+          enum: [certified_for_declared_scopes, mixed, positive_only, unknown]
+      examples:
+        - inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+          generation:
+            generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6009
+            generation_kind: reconciliation
+            through_seq: '9007199254740993'
+            ownership_epoch: '17'
+            committed_at: '2026-09-07T10:14:00Z'
+            projection_version: inventory-projection/1.0.0
+            normalization_version: vehicle-normalization/1.0.0
+            identity_version: vehicle-identity/1.0.0
+            membership_resolution_version: membership-resolver/1.0.0
+            rebuild_of_generation_id: null
+            certificate_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6015]
+          counts:
+            knowledge_state: known
+            inventory_item_count: '1'
+            listing_count: '2'
+            resolved_vehicle_count: '1'
+            unresolved_vehicle_item_count: '0'
+            unassigned_point_of_sale_item_count: '0'
+          freshness:
+            tier: T1
+            state: within_target
+            measured_at: '2026-09-07T10:15:30Z'
+            delta_target_seconds: 21600
+            reconciliation_target_seconds: 259200
+            p50_age_seconds: 900
+            p95_age_seconds: 1800
+            max_age_seconds: 2400
+            presence_last_confirmed_at: '2026-09-07T10:00:00Z'
+            delta_verified_through: '2026-09-07T10:10:00Z'
+            last_full_census_at: '2026-09-07T08:00:00Z'
+            projection_lag_seconds: 30
+            fields:
+              - field: /offers/price
+                field_last_observed_at: '2026-09-07T10:00:00Z'
+                state: within_target
+          source_health:
+            - source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+              status: healthy
+              slo_state: meeting
+              assessed_at: '2026-09-07T10:14:30Z'
+          completeness_state: certified_for_declared_scopes
+    DealerInventoryResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/DealerInventory'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+            dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+            generation:
+              generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6009
+              generation_kind: reconciliation
+              through_seq: '9007199254740993'
+              ownership_epoch: '17'
+              committed_at: '2026-09-07T10:14:00Z'
+              projection_version: inventory-projection/1.0.0
+              normalization_version: vehicle-normalization/1.0.0
+              identity_version: vehicle-identity/1.0.0
+              membership_resolution_version: membership-resolver/1.0.0
+              rebuild_of_generation_id: null
+              certificate_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6015]
+            counts:
+              knowledge_state: known
+              inventory_item_count: '1'
+              listing_count: '2'
+              resolved_vehicle_count: '1'
+              unresolved_vehicle_item_count: '0'
+              unassigned_point_of_sale_item_count: '0'
+            freshness:
+              tier: T1
+              state: within_target
+              measured_at: '2026-09-07T10:15:30Z'
+              delta_target_seconds: 21600
+              reconciliation_target_seconds: 259200
+              p50_age_seconds: 900
+              p95_age_seconds: 1800
+              max_age_seconds: 2400
+              presence_last_confirmed_at: '2026-09-07T10:00:00Z'
+              delta_verified_through: '2026-09-07T10:10:00Z'
+              last_full_census_at: '2026-09-07T08:00:00Z'
+              projection_lag_seconds: 30
+              fields:
+                - field: /offers/price
+                  field_last_observed_at: '2026-09-07T10:00:00Z'
+                  state: within_target
+            source_health:
+              - source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+                status: healthy
+                slo_state: meeting
+                assessed_at: '2026-09-07T10:14:30Z'
+            completeness_state: certified_for_declared_scopes
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    DealerInventoryPage:
+      type: object
+      additionalProperties: false
+      required: [data, page, meta]
+      properties:
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/DealerInventory'}
+        page: {$ref: '#/components/schemas/PageMeta'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data: []
+          page:
+            limit: 100
+            has_more: false
+            next_cursor: null
+            cursor_expires_at: '2026-09-07T10:30:30Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    Money:
+      type: object
+      additionalProperties: false
+      required: [amount, currency]
+      properties:
+        amount:
+          type: string
+          pattern: '^(0|[1-9][0-9]*)(\.[0-9]{1,4})?$'
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+      examples:
+        - amount: '21990.00'
+          currency: EUR
+    OfferPrice:
+      type: object
+      additionalProperties: false
+      required: [kind, value, tax_basis]
+      properties:
+        kind: {type: string, enum: [cash, finance_total, periodic_payment, auction_bid, unknown]}
+        value: {$ref: '#/components/schemas/Money'}
+        tax_basis: {type: string, enum: [gross, net, unknown]}
+        period: {type: [string, 'null'], enum: [month, week, day, null]}
+        conditions_text: {type: [string, 'null'], maxLength: 2000}
+      examples:
+        - kind: cash
+          value: {amount: '21990.00', currency: EUR}
+          tax_basis: gross
+          period: null
+          conditions_text: null
+    OfferView:
+      type: object
+      additionalProperties: false
+      required: [offer_id, listing_id, channel, price_state, price, observed_at]
+      properties:
+        offer_id: {$ref: '#/components/schemas/UuidV7'}
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        channel: {type: string, enum: [sale, finance, lease, auction, unknown]}
+        price_state: {type: string, enum: [known, unknown, not_applicable, withheld]}
+        price:
+          oneOf:
+            - $ref: '#/components/schemas/OfferPrice'
+            - type: 'null'
+        observed_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - offer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6006
+          listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+          channel: sale
+          price_state: known
+          price:
+            kind: cash
+            value: {amount: '21990.00', currency: EUR}
+            tax_basis: gross
+            period: null
+            conditions_text: null
+          observed_at: '2026-09-07T10:00:00Z'
+    ListingPresence:
+      type: object
+      additionalProperties: false
+      required: [state, reason, effective_at, absence_miss_count, evidence]
+      properties:
+        state: {$ref: '#/components/schemas/PresenceState'}
+        reason:
+          type: string
+          enum:
+            - positive_observation
+            - first_comparable_miss
+            - second_comparable_miss
+            - source_tombstone
+            - source_expired
+            - source_withdrawn
+            - source_claimed_sold
+            - corrected
+        effective_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        absence_miss_count: {type: integer, minimum: 0}
+        comparison_key:
+          oneOf:
+            - $ref: '#/components/schemas/Sha256Digest'
+            - type: 'null'
+        evidence:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/EvidenceLink'}
+      examples:
+        - state: observed_present
+          reason: positive_observation
+          effective_at: '2026-09-07T10:00:00Z'
+          absence_miss_count: 0
+          comparison_key: null
+          evidence:
+            - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6030
+              evidence_type: observation
+              observed_at: '2026-09-07T10:00:00Z'
+    SourceListingIdentity:
+      type: object
+      additionalProperties: false
+      required: [listing_id, listing_namespace_id, source_listing_key, incarnation]
+      properties:
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        listing_namespace_id: {$ref: '#/components/schemas/UuidV7'}
+        source_listing_key: {type: string, minLength: 1, maxLength: 1000}
+        incarnation:
+          allOf:
+            - $ref: '#/components/schemas/UInt64String'
+            - pattern: '^[1-9][0-9]{0,19}$'
+      examples:
+        - listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+          listing_namespace_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6014
+          source_listing_key: synthetic-vehicle-123
+          incarnation: '1'
+    SellerAttribution:
+      type: object
+      additionalProperties: false
+      required: [kind, seller_id, dealer_id, provenance]
+      properties:
+        kind: {type: string, enum: [professional, particular, unknown, withheld]}
+        seller_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        dealer_id:
+          description: Solo existe para kind professional y es el mismo seller_id.
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        provenance:
+          oneOf: [{$ref: '#/components/schemas/ResolutionProvenance'}, {type: 'null'}]
+      examples:
+        - kind: professional
+          seller_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+          dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+          provenance:
+            relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+            resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+            resolver_version: seller-resolution/1.0.0
+            confidence: 0.99
+    ListingView:
+      type: object
+      additionalProperties: false
+      required:
+        - identity
+        - source_id
+        - surface_id
+        - stream_id
+        - market_country
+        - vehicle_class
+        - seller
+        - presence
+        - offers
+      properties:
+        identity: {$ref: '#/components/schemas/SourceListingIdentity'}
+        source_id: {$ref: '#/components/schemas/UuidV7'}
+        surface_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_id: {$ref: '#/components/schemas/UuidV7'}
+        market_country: {$ref: '#/components/schemas/MarketCountry'}
+        vehicle_class: {$ref: '#/components/schemas/VehicleClass'}
+        seller: {$ref: '#/components/schemas/SellerAttribution'}
+        presence: {$ref: '#/components/schemas/ListingPresence'}
+        offers:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/OfferView'}
+      examples:
+        - identity:
+            listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+            listing_namespace_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6014
+            source_listing_key: synthetic-vehicle-123
+            incarnation: '1'
+          source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+          surface_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6012
+          stream_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6013
+          market_country: ES
+          vehicle_class: car
+          seller:
+            kind: professional
+            seller_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+            dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+            provenance:
+              relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+              resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+              resolver_version: seller-resolution/1.0.0
+              confidence: 0.99
+          presence:
+            state: observed_present
+            reason: positive_observation
+            effective_at: '2026-09-07T10:00:00Z'
+            absence_miss_count: 0
+            comparison_key: null
+            evidence:
+              - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6030
+                evidence_type: observation
+                observed_at: '2026-09-07T10:00:00Z'
+          offers:
+            - offer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6006
+              listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+              channel: sale
+              price_state: known
+              price:
+                kind: cash
+                value: {amount: '21990.00', currency: EUR}
+                tax_basis: gross
+                period: null
+                conditions_text: null
+              observed_at: '2026-09-07T10:00:00Z'
+    PointOfSaleAssignment:
+      type: object
+      additionalProperties: false
+      required: [state, point_of_sale_id, provenance]
+      properties:
+        state: {type: string, enum: [assigned, unassigned, ambiguous, withheld]}
+        point_of_sale_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        provenance:
+          oneOf:
+            - $ref: '#/components/schemas/ResolutionProvenance'
+            - type: 'null'
+      examples:
+        - state: assigned
+          point_of_sale_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002
+          provenance:
+            relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+            resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+            resolver_version: membership-resolver/1.0.0
+            confidence: 0.99
+    EffectiveInventoryMembership:
+      type: object
+      additionalProperties: false
+      required:
+        - membership_id
+        - state
+        - inventory_id
+        - inventory_item_id
+        - listing_id
+        - offer_id
+        - dealer_id
+        - point_of_sale
+        - provenance
+        - valid_from
+      properties:
+        membership_id: {$ref: '#/components/schemas/UuidV7'}
+        state: {type: string, const: effective}
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_item_id: {$ref: '#/components/schemas/UuidV7'}
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        offer_id: {$ref: '#/components/schemas/UuidV7'}
+        dealer_id: {$ref: '#/components/schemas/UuidV7'}
+        point_of_sale: {$ref: '#/components/schemas/PointOfSaleAssignment'}
+        provenance: {$ref: '#/components/schemas/ResolutionProvenance'}
+        valid_from: {$ref: '#/components/schemas/UtcTimestamp'}
+        valid_to:
+          oneOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+            - type: 'null'
+      examples:
+        - membership_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6018
+          state: effective
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          inventory_item_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6004
+          listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+          offer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6006
+          dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+          point_of_sale:
+            state: assigned
+            point_of_sale_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002
+            provenance:
+              relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+              resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+              resolver_version: membership-resolver/1.0.0
+              confidence: 0.99
+          provenance:
+            relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+            resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+            resolver_version: membership-resolver/1.0.0
+            confidence: 0.99
+          valid_from: '2026-09-07T10:00:00Z'
+          valid_to: null
+    VehicleDisposition:
+      type: object
+      additionalProperties: false
+      required: [state, confidence, evidence]
+      properties:
+        state: {type: string, enum: [unknown, offered_observed, sold_inferred, sold_confirmed, otherwise_disposed]}
+        confidence: {type: number, minimum: 0, maximum: 1}
+        evidence:
+          type: array
+          items: {$ref: '#/components/schemas/EvidenceLink'}
+      examples:
+        - state: offered_observed
+          confidence: 0.99
+          evidence:
+            - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6030
+              evidence_type: observation
+              observed_at: '2026-09-07T10:00:00Z'
+    InventoryItem:
+      type: object
+      additionalProperties: false
+      required:
+        - inventory_item_id
+        - inventory_id
+        - dealer_id
+        - inventory_state
+        - vehicle_resolution_state
+        - vehicle_id
+        - vehicle_class
+        - vehicle_disposition
+        - memberships
+        - listings
+        - display_offer_id
+        - updated_at
+        - version_seq
+      properties:
+        inventory_item_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        dealer_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_state: {type: string, enum: [current, not_current, disputed]}
+        vehicle_resolution_state: {type: string, enum: [resolved, unresolved, disputed, withheld]}
+        vehicle_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        vehicle_class: {$ref: '#/components/schemas/VehicleClass'}
+        vehicle_disposition: {$ref: '#/components/schemas/VehicleDisposition'}
+        memberships:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/EffectiveInventoryMembership'}
+        listings:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/ListingView'}
+        display_offer_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        updated_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        version_seq: {$ref: '#/components/schemas/UInt64String'}
+      examples:
+        - inventory_item_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6004
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+          inventory_state: current
+          vehicle_resolution_state: resolved
+          vehicle_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6007
+          vehicle_class: car
+          vehicle_disposition:
+            state: offered_observed
+            confidence: 0.99
+            evidence:
+              - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6030
+                evidence_type: observation
+                observed_at: '2026-09-07T10:00:00Z'
+          memberships:
+            - membership_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6018
+              state: effective
+              inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+              inventory_item_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6004
+              listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+              offer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6006
+              dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+              point_of_sale:
+                state: assigned
+                point_of_sale_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002
+                provenance:
+                  relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+                  resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+                  resolver_version: membership-resolver/1.0.0
+                  confidence: 0.99
+              provenance:
+                relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+                resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+                resolver_version: membership-resolver/1.0.0
+                confidence: 0.99
+              valid_from: '2026-09-07T10:00:00Z'
+              valid_to: null
+          listings:
+            - identity:
+                listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+                listing_namespace_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6014
+                source_listing_key: synthetic-vehicle-123
+                incarnation: '1'
+              source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+              surface_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6012
+              stream_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6013
+              market_country: ES
+              vehicle_class: car
+              seller:
+                kind: professional
+                seller_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+                dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+                provenance:
+                  relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+                  resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+                  resolver_version: seller-resolution/1.0.0
+                  confidence: 0.99
+              presence:
+                state: observed_present
+                reason: positive_observation
+                effective_at: '2026-09-07T10:00:00Z'
+                absence_miss_count: 0
+                comparison_key: null
+                evidence:
+                  - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6030
+                    evidence_type: observation
+                    observed_at: '2026-09-07T10:00:00Z'
+              offers:
+                - offer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6006
+                  listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+                  channel: sale
+                  price_state: known
+                  price:
+                    kind: cash
+                    value: {amount: '21990.00', currency: EUR}
+                    tax_basis: gross
+                    period: null
+                    conditions_text: null
+                  observed_at: '2026-09-07T10:00:00Z'
+          display_offer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6006
+          updated_at: '2026-09-07T10:14:00Z'
+          version_seq: '9007199254740993'
+    InventoryFilter:
+      type: object
+      additionalProperties: false
+      properties:
+        market_countries:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/MarketCountry'}
+        vehicle_classes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/VehicleClass'}
+        point_of_sale_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/UuidV7'}
+        presence_states:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/PresenceState'}
+        updated_after: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - market_countries: [ES]
+          vehicle_classes: [car, lcv]
+          point_of_sale_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002]
+          presence_states: [observed_present, absence_suspected]
+    InventorySort:
+      type: object
+      additionalProperties: false
+      required: [field, direction]
+      properties:
+        field: {type: string, enum: [inventory_item_id, updated_at, display_price, vehicle_class]}
+        direction: {type: string, enum: [asc, desc]}
+      examples:
+        - field: inventory_item_id
+          direction: asc
+    CreateInventorySnapshotRequest:
+      type: object
+      additionalProperties: false
+      required: [consistency, delivery_mode, snapshot_ttl_seconds, filters, sort]
+      properties:
+        consistency:
+          type: string
+          const: published
+          description: El snapshot es un prefijo exacto del log publicado; no hay overlay fuera de secuencia.
+        delivery_mode:
+          type: string
+          enum: [auto, paged, bulk]
+          default: auto
+          description: Auto enruta a async/bulk si estimated_item_count > 100000 o estimated_traversal_seconds > 0.5 × snapshot_ttl_seconds; es routing, no límite duro.
+        snapshot_ttl_seconds:
+          type: integer
+          minimum: 300
+          maximum: 86400
+          default: 1800
+        filters: {$ref: '#/components/schemas/InventoryFilter'}
+        sort:
+          type: array
+          minItems: 1
+          maxItems: 3
+          items: {$ref: '#/components/schemas/InventorySort'}
+      examples:
+        - consistency: published
+          delivery_mode: auto
+          snapshot_ttl_seconds: 1800
+          filters:
+            market_countries: [ES]
+            vehicle_classes: [car, lcv]
+            point_of_sale_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002]
+            presence_states: [observed_present, absence_suspected]
+          sort:
+            - field: updated_at
+              direction: desc
+            - field: inventory_item_id
+              direction: asc
+    InventorySnapshot:
+      type: object
+      additionalProperties: false
+      required:
+        - snapshot_id
+        - view_id
+        - inventory_id
+        - status
+        - delivery_mode
+        - consistency
+        - generation
+        - snapshot_seq
+        - resume_after_seq
+        - ownership_epoch
+        - restore_epoch
+        - filters
+        - sort
+        - counts
+        - freshness
+        - event_cursor
+        - items_uri
+        - bulk_manifest_uri
+        - created_at
+        - expires_at
+      properties:
+        snapshot_id: {$ref: '#/components/schemas/UuidV7'}
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        status: {type: string, const: ready}
+        delivery_mode: {type: string, enum: [paged, bulk]}
+        consistency: {type: string, const: published}
+        generation: {$ref: '#/components/schemas/InventoryGenerationRef'}
+        snapshot_seq: {$ref: '#/components/schemas/UInt64String'}
+        resume_after_seq:
+          description: Marcador diagnóstico igual a snapshot_seq; la continuación autorizada usa event_cursor.
+          $ref: '#/components/schemas/UInt64String'
+        ownership_epoch: {$ref: '#/components/schemas/UInt64String'}
+        restore_epoch:
+          description: Cambia tras una restauración con ventana de pérdida; invalida cursores previos.
+          $ref: '#/components/schemas/UInt64String'
+        filters: {$ref: '#/components/schemas/InventoryFilter'}
+        sort:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/InventorySort'}
+        counts: {$ref: '#/components/schemas/CountMetrics'}
+        freshness: {$ref: '#/components/schemas/Freshness'}
+        event_cursor:
+          type: string
+          minLength: 16
+          maxLength: 4096
+          description: Continuación opaca ligada al snapshot, filtros y autorización.
+        items_uri: {type: string, format: uri-reference}
+        bulk_manifest_uri: {type: [string, 'null'], format: uri-reference}
+        created_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        expires_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - snapshot_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6008
+          view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6040
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          status: ready
+          delivery_mode: paged
+          consistency: published
+          generation:
+            generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6009
+            generation_kind: reconciliation
+            through_seq: '9007199254740993'
+            ownership_epoch: '17'
+            committed_at: '2026-09-07T10:14:00Z'
+            projection_version: inventory-projection/1.0.0
+            normalization_version: vehicle-normalization/1.0.0
+            identity_version: vehicle-identity/1.0.0
+            membership_resolution_version: membership-resolver/1.0.0
+            rebuild_of_generation_id: null
+            certificate_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6015]
+          snapshot_seq: '9007199254740993'
+          resume_after_seq: '9007199254740993'
+          ownership_epoch: '17'
+          restore_epoch: '4'
+          filters:
+            market_countries: [ES]
+            vehicle_classes: [car, lcv]
+            point_of_sale_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002]
+            presence_states: [observed_present, absence_suspected]
+          sort:
+            - field: updated_at
+              direction: desc
+            - field: inventory_item_id
+              direction: asc
+          counts:
+            knowledge_state: known
+            inventory_item_count: '1'
+            listing_count: '2'
+            resolved_vehicle_count: '1'
+            unresolved_vehicle_item_count: '0'
+            unassigned_point_of_sale_item_count: '0'
+          freshness:
+            tier: T1
+            state: within_target
+            measured_at: '2026-09-07T10:15:30Z'
+            delta_target_seconds: 21600
+            reconciliation_target_seconds: 259200
+            p50_age_seconds: 900
+            p95_age_seconds: 1800
+            max_age_seconds: 2400
+            presence_last_confirmed_at: '2026-09-07T10:00:00Z'
+            delta_verified_through: '2026-09-07T10:10:00Z'
+            last_full_census_at: '2026-09-07T08:00:00Z'
+            projection_lag_seconds: 30
+            fields:
+              - field: /offers/price
+                field_last_observed_at: '2026-09-07T10:00:00Z'
+                state: within_target
+          event_cursor: eyJraWQiOiJrMSIsInNuYXBzaG90X3NlcSI6IjkwMDcxOTkyNTQ3NDA5OTMifQ
+          items_uri: /v1/inventory-snapshots/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6008/items
+          bulk_manifest_uri: null
+          created_at: '2026-09-07T10:15:30Z'
+          expires_at: '2026-09-07T10:30:30Z'
+    InventorySnapshotResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/InventorySnapshot'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            snapshot_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6008
+            view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6040
+            inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+            status: ready
+            delivery_mode: paged
+            consistency: published
+            generation:
+              generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6009
+              generation_kind: reconciliation
+              through_seq: '9007199254740993'
+              ownership_epoch: '17'
+              committed_at: '2026-09-07T10:14:00Z'
+              projection_version: inventory-projection/1.0.0
+              normalization_version: vehicle-normalization/1.0.0
+              identity_version: vehicle-identity/1.0.0
+              membership_resolution_version: membership-resolver/1.0.0
+              rebuild_of_generation_id: null
+              certificate_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6015]
+            snapshot_seq: '9007199254740993'
+            resume_after_seq: '9007199254740993'
+            ownership_epoch: '17'
+            restore_epoch: '4'
+            filters:
+              market_countries: [ES]
+              vehicle_classes: [car, lcv]
+              point_of_sale_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002]
+              presence_states: [observed_present, absence_suspected]
+            sort:
+              - field: updated_at
+                direction: desc
+              - field: inventory_item_id
+                direction: asc
+            counts:
+              knowledge_state: known
+              inventory_item_count: '1'
+              listing_count: '2'
+              resolved_vehicle_count: '1'
+              unresolved_vehicle_item_count: '0'
+              unassigned_point_of_sale_item_count: '0'
+            freshness:
+              tier: T1
+              state: within_target
+              measured_at: '2026-09-07T10:15:30Z'
+              delta_target_seconds: 21600
+              reconciliation_target_seconds: 259200
+              p50_age_seconds: 900
+              p95_age_seconds: 1800
+              max_age_seconds: 2400
+              presence_last_confirmed_at: '2026-09-07T10:00:00Z'
+              delta_verified_through: '2026-09-07T10:10:00Z'
+              last_full_census_at: '2026-09-07T08:00:00Z'
+              projection_lag_seconds: 30
+              fields:
+                - field: /offers/price
+                  field_last_observed_at: '2026-09-07T10:00:00Z'
+                  state: within_target
+            event_cursor: eyJraWQiOiJrMSIsInNuYXBzaG90X3NlcSI6IjkwMDcxOTkyNTQ3NDA5OTMifQ
+            items_uri: /v1/inventory-snapshots/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6008/items
+            bulk_manifest_uri: null
+            created_at: '2026-09-07T10:15:30Z'
+            expires_at: '2026-09-07T10:30:30Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    InventorySnapshotJob:
+      type: object
+      additionalProperties: false
+      required:
+        - snapshot_id
+        - view_id
+        - inventory_id
+        - status
+        - delivery_mode
+        - snapshot_seq
+        - resume_after_seq
+        - ownership_epoch
+        - restore_epoch
+        - filters
+        - sort
+        - created_at
+        - expires_at
+        - retry_after_seconds
+        - failure_code
+      properties:
+        snapshot_id: {$ref: '#/components/schemas/UuidV7'}
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        status: {type: string, enum: [building, failed]}
+        delivery_mode: {type: string, enum: [paged, bulk]}
+        snapshot_seq: {$ref: '#/components/schemas/UInt64String'}
+        resume_after_seq: {$ref: '#/components/schemas/UInt64String'}
+        ownership_epoch: {$ref: '#/components/schemas/UInt64String'}
+        restore_epoch: {$ref: '#/components/schemas/UInt64String'}
+        filters: {$ref: '#/components/schemas/InventoryFilter'}
+        sort:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/InventorySort'}
+        created_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        expires_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        retry_after_seconds: {type: integer, minimum: 1, maximum: 3600}
+        failure_code: {type: [string, 'null'], enum: [materialization_failed, authorization_revoked, policy_erasure, null]}
+      examples:
+        - snapshot_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6041
+          view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6042
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          status: building
+          delivery_mode: bulk
+          snapshot_seq: '9007199254740993'
+          resume_after_seq: '9007199254740993'
+          ownership_epoch: '17'
+          restore_epoch: '4'
+          filters:
+            market_countries: [ES]
+            vehicle_classes: [car, lcv]
+          sort:
+            - field: inventory_item_id
+              direction: asc
+          created_at: '2026-09-07T10:15:30Z'
+          expires_at: '2026-09-08T10:15:30Z'
+          retry_after_seconds: 30
+          failure_code: null
+    InventorySnapshotStatusResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/InventorySnapshot'
+            - $ref: '#/components/schemas/InventorySnapshotJob'
+          discriminator:
+            propertyName: status
+            mapping:
+              ready: '#/components/schemas/InventorySnapshot'
+              building: '#/components/schemas/InventorySnapshotJob'
+              failed: '#/components/schemas/InventorySnapshotJob'
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            snapshot_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6041
+            view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6042
+            inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+            status: building
+            delivery_mode: bulk
+            snapshot_seq: '9007199254740993'
+            resume_after_seq: '9007199254740993'
+            ownership_epoch: '17'
+            restore_epoch: '4'
+            filters:
+              market_countries: [ES]
+              vehicle_classes: [car, lcv]
+            sort:
+              - field: inventory_item_id
+                direction: asc
+            created_at: '2026-09-07T10:15:30Z'
+            expires_at: '2026-09-08T10:15:30Z'
+            retry_after_seconds: 30
+            failure_code: null
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    BulkPart:
+      type: object
+      additionalProperties: false
+      required: [part_id, part_number, item_count, compressed_bytes, sha256, first_key, last_key, download_url, url_expires_at]
+      properties:
+        part_id: {$ref: '#/components/schemas/UuidV7'}
+        part_number: {type: integer, minimum: 1}
+        item_count: {$ref: '#/components/schemas/CountString'}
+        compressed_bytes: {$ref: '#/components/schemas/CountString'}
+        sha256:
+          description: SHA-256 de los bytes gzip exactos servidos para esta parte.
+          $ref: '#/components/schemas/Sha256Digest'
+        first_key: {type: string, minLength: 1, maxLength: 1000}
+        last_key: {type: string, minLength: 1, maxLength: 1000}
+        download_url:
+          type: string
+          format: uri
+          description: URL de máximo 15 minutos al gateway Cardeex; exige además OAuth y entitlement vigentes en cada GET/Range, y su nonce es revocable.
+        url_expires_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - part_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6045
+          part_number: 1
+          item_count: '100000'
+          compressed_bytes: '52428800'
+          sha256: 3a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbaa
+          first_key: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6004
+          last_key: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6999
+          download_url: https://api.cardeex.example/v1/bulk-parts/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6045?download_token=opaque
+          url_expires_at: '2026-09-07T10:30:30Z'
+    BulkManifest:
+      type: object
+      additionalProperties: false
+      description: El núcleo es inmutable. manifest_sha256 cubre su JCS excluyendo el propio digest y download_url/url_expires_at; renovar URLs no cambia IDs, orden, bytes ni rangos.
+      required:
+        - manifest_id
+        - snapshot_id
+        - view_id
+        - inventory_id
+        - snapshot_seq
+        - resume_after_seq
+        - ownership_epoch
+        - restore_epoch
+        - media_type
+        - content_encoding
+        - item_schema
+        - total_items
+        - manifest_sha256
+        - parts
+        - expires_at
+      properties:
+        manifest_id: {$ref: '#/components/schemas/UuidV7'}
+        snapshot_id: {$ref: '#/components/schemas/UuidV7'}
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        snapshot_seq: {$ref: '#/components/schemas/UInt64String'}
+        resume_after_seq: {$ref: '#/components/schemas/UInt64String'}
+        ownership_epoch: {$ref: '#/components/schemas/UInt64String'}
+        restore_epoch: {$ref: '#/components/schemas/UInt64String'}
+        media_type: {type: string, const: application/x-ndjson}
+        content_encoding: {type: string, const: gzip}
+        item_schema: {type: string, const: '#/components/schemas/InventoryItem'}
+        total_items: {$ref: '#/components/schemas/CountString'}
+        manifest_sha256:
+          description: SHA-256 del JCS del núcleo, autoexcluido y sin campos renovables de descarga.
+          $ref: '#/components/schemas/Sha256Digest'
+        parts:
+          type: array
+          items: {$ref: '#/components/schemas/BulkPart'}
+        expires_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      allOf:
+        - if:
+            required: [total_items]
+            properties:
+              total_items: {const: '0'}
+          then:
+            properties:
+              parts: {maxItems: 0}
+          else:
+            properties:
+              parts: {minItems: 1}
+      examples:
+        - manifest_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6043
+          snapshot_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6041
+          view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6042
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          snapshot_seq: '9007199254740993'
+          resume_after_seq: '9007199254740993'
+          ownership_epoch: '17'
+          restore_epoch: '4'
+          media_type: application/x-ndjson
+          content_encoding: gzip
+          item_schema: '#/components/schemas/InventoryItem'
+          total_items: '100000'
+          manifest_sha256: 4a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbab
+          parts:
+            - part_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6045
+              part_number: 1
+              item_count: '100000'
+              compressed_bytes: '52428800'
+              sha256: 3a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbaa
+              first_key: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6004
+              last_key: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6999
+              download_url: https://api.cardeex.example/v1/bulk-parts/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6045?download_token=opaque
+              url_expires_at: '2026-09-07T10:30:30Z'
+          expires_at: '2026-09-08T10:15:30Z'
+    BulkManifestResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/BulkManifest'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+    InventoryEventBase:
+      type: object
+      required:
+        - event_id
+        - view_id
+        - inventory_id
+        - seq
+        - generation_id
+        - event_type
+        - occurred_at
+        - recorded_at
+        - correlation_id
+      properties:
+        event_id:
+          description: Identidad del cambio canónico; deduplicar junto con view_id al mezclar vistas.
+          $ref: '#/components/schemas/UuidV7'
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        seq: {$ref: '#/components/schemas/UInt64String'}
+        generation_id: {$ref: '#/components/schemas/UuidV7'}
+        event_type: {type: string}
+        occurred_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        recorded_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        correlation_id: {$ref: '#/components/schemas/UuidV7'}
+    ItemUpsertedPayload:
+      type: object
+      additionalProperties: false
+      required: [item]
+      properties:
+        item: {$ref: '#/components/schemas/InventoryItem'}
+    ItemRemovedPayload:
+      type: object
+      additionalProperties: false
+      required: [inventory_item_id, reason, prior_version_seq]
+      properties:
+        inventory_item_id: {$ref: '#/components/schemas/UuidV7'}
+        reason:
+          type: string
+          enum: [not_observed, withdrawn, left_filter, membership_reassigned, identity_merge, suppressed, authorization_changed]
+        prior_version_seq: {$ref: '#/components/schemas/UInt64String'}
+    ListingLifecycleChangedPayload:
+      type: object
+      additionalProperties: false
+      required: [listing_id, from, to, reason]
+      properties:
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        from: {$ref: '#/components/schemas/PresenceState'}
+        to: {$ref: '#/components/schemas/PresenceState'}
+        reason: {type: string, minLength: 1, maxLength: 100}
+    ListingReclassifiedPayload:
+      type: object
+      additionalProperties: false
+      required: [listing_id, from, to, resolution_decision_id]
+      properties:
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        from: {$ref: '#/components/schemas/VehicleClass'}
+        to: {$ref: '#/components/schemas/VehicleClass'}
+        resolution_decision_id: {$ref: '#/components/schemas/UuidV7'}
+    OfferPriceChangedPayload:
+      type: object
+      additionalProperties: false
+      required: [listing_id, offer_id, before, after, observed_at]
+      properties:
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        offer_id: {$ref: '#/components/schemas/UuidV7'}
+        before:
+          oneOf: [{$ref: '#/components/schemas/OfferPrice'}, {type: 'null'}]
+        after:
+          oneOf: [{$ref: '#/components/schemas/OfferPrice'}, {type: 'null'}]
+        observed_at: {$ref: '#/components/schemas/UtcTimestamp'}
+    MembershipReassignedPayload:
+      type: object
+      additionalProperties: false
+      required:
+        - listing_id
+        - from_inventory_id
+        - to_inventory_id
+        - from_inventory_item_id
+        - to_inventory_item_id
+        - transfer_id
+        - ownership_epoch
+        - resolution_decision_id
+      properties:
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        from_inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        to_inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        from_inventory_item_id: {$ref: '#/components/schemas/UuidV7'}
+        to_inventory_item_id: {$ref: '#/components/schemas/UuidV7'}
+        transfer_id: {$ref: '#/components/schemas/UuidV7'}
+        ownership_epoch: {$ref: '#/components/schemas/UInt64String'}
+        resolution_decision_id: {$ref: '#/components/schemas/UuidV7'}
+    ObservationCorrectedPayload:
+      type: object
+      additionalProperties: false
+      required: [observation_id, superseded_effect_event_ids, correction_reason, resolution_decision_id]
+      properties:
+        observation_id: {$ref: '#/components/schemas/UuidV7'}
+        superseded_effect_event_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/UuidV7'}
+        correction_reason: {type: string, minLength: 1, maxLength: 1000}
+        resolution_decision_id: {$ref: '#/components/schemas/UuidV7'}
+    GenerationCommittedPayload:
+      type: object
+      additionalProperties: false
+      required: [generation]
+      properties:
+        generation: {$ref: '#/components/schemas/InventoryGenerationRef'}
+    SequenceGapPayload:
+      type: object
+      additionalProperties: false
+      required: [from_seq, through_seq, reason]
+      description: Control sin efecto de dominio. El seq del evento es from_seq y el scanner salta de forma explícita hasta through_seq.
+      properties:
+        from_seq: {$ref: '#/components/schemas/UInt64String'}
+        through_seq: {$ref: '#/components/schemas/UInt64String'}
+        reason: {type: string, const: abandoned_reservation_after_crash}
+      examples:
+        - from_seq: '9007199254740995'
+          through_seq: '9007199254741000'
+          reason: abandoned_reservation_after_crash
+    InventoryItemUpsertedEvent:
+      allOf:
+        - $ref: '#/components/schemas/InventoryEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: inventory.item_upserted}
+            data: {$ref: '#/components/schemas/ItemUpsertedPayload'}
+    InventoryItemRemovedEvent:
+      allOf:
+        - $ref: '#/components/schemas/InventoryEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: inventory.item_removed}
+            data: {$ref: '#/components/schemas/ItemRemovedPayload'}
+      examples:
+        - event_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6010
+          view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6040
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          seq: '9007199254740994'
+          generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6044
+          event_type: inventory.item_removed
+          occurred_at: '2026-09-07T10:16:00Z'
+          recorded_at: '2026-09-07T10:16:01Z'
+          correlation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6023
+          data:
+            inventory_item_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6004
+            reason: left_filter
+            prior_version_seq: '9007199254740993'
+    ListingLifecycleChangedEvent:
+      allOf:
+        - $ref: '#/components/schemas/InventoryEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: listing.lifecycle_changed}
+            data: {$ref: '#/components/schemas/ListingLifecycleChangedPayload'}
+    ListingReclassifiedEvent:
+      allOf:
+        - $ref: '#/components/schemas/InventoryEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: listing.reclassified}
+            data: {$ref: '#/components/schemas/ListingReclassifiedPayload'}
+    OfferPriceChangedEvent:
+      allOf:
+        - $ref: '#/components/schemas/InventoryEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: offer.price_changed}
+            data: {$ref: '#/components/schemas/OfferPriceChangedPayload'}
+    InventoryMembershipReassignedEvent:
+      allOf:
+        - $ref: '#/components/schemas/InventoryEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: inventory.membership_reassigned}
+            data: {$ref: '#/components/schemas/MembershipReassignedPayload'}
+    ObservationCorrectedEvent:
+      allOf:
+        - $ref: '#/components/schemas/InventoryEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: observation.corrected}
+            data: {$ref: '#/components/schemas/ObservationCorrectedPayload'}
+    InventoryGenerationCommittedEvent:
+      allOf:
+        - $ref: '#/components/schemas/InventoryEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: inventory.generation_committed}
+            data: {$ref: '#/components/schemas/GenerationCommittedPayload'}
+    InventorySequenceGapEvent:
+      allOf:
+        - $ref: '#/components/schemas/InventoryEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: inventory.sequence_gap}
+            data: {$ref: '#/components/schemas/SequenceGapPayload'}
+      examples:
+        - event_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6060
+          view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6040
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          seq: '9007199254740995'
+          generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6061
+          event_type: inventory.sequence_gap
+          occurred_at: '2026-09-07T10:16:03Z'
+          recorded_at: '2026-09-07T10:16:04Z'
+          correlation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6062
+          data:
+            from_seq: '9007199254740995'
+            through_seq: '9007199254741000'
+            reason: abandoned_reservation_after_crash
+    InventoryEvent:
+      oneOf:
+        - $ref: '#/components/schemas/InventoryItemUpsertedEvent'
+        - $ref: '#/components/schemas/InventoryItemRemovedEvent'
+        - $ref: '#/components/schemas/ListingLifecycleChangedEvent'
+        - $ref: '#/components/schemas/ListingReclassifiedEvent'
+        - $ref: '#/components/schemas/OfferPriceChangedEvent'
+        - $ref: '#/components/schemas/InventoryMembershipReassignedEvent'
+        - $ref: '#/components/schemas/ObservationCorrectedEvent'
+        - $ref: '#/components/schemas/InventoryGenerationCommittedEvent'
+        - $ref: '#/components/schemas/InventorySequenceGapEvent'
+      discriminator:
+        propertyName: event_type
+        mapping:
+          inventory.item_upserted: '#/components/schemas/InventoryItemUpsertedEvent'
+          inventory.item_removed: '#/components/schemas/InventoryItemRemovedEvent'
+          listing.lifecycle_changed: '#/components/schemas/ListingLifecycleChangedEvent'
+          listing.reclassified: '#/components/schemas/ListingReclassifiedEvent'
+          offer.price_changed: '#/components/schemas/OfferPriceChangedEvent'
+          inventory.membership_reassigned: '#/components/schemas/InventoryMembershipReassignedEvent'
+          observation.corrected: '#/components/schemas/ObservationCorrectedEvent'
+          inventory.generation_committed: '#/components/schemas/InventoryGenerationCommittedEvent'
+          inventory.sequence_gap: '#/components/schemas/InventorySequenceGapEvent'
+    InventoryEventPage:
+      type: object
+      additionalProperties: false
+      required:
+        - view_id
+        - inventory_id
+        - restore_epoch
+        - data
+        - scanned_through_seq
+        - next_event_cursor
+        - has_more
+        - meta
+      properties:
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        restore_epoch: {$ref: '#/components/schemas/UInt64String'}
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/InventoryEvent'}
+        scanned_through_seq: {$ref: '#/components/schemas/UInt64String'}
+        next_event_cursor: {type: string, minLength: 16, maxLength: 4096}
+        has_more: {type: boolean}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6040
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          restore_epoch: '4'
+          data:
+            - event_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6010
+              view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6040
+              inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+              seq: '9007199254740994'
+              generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6044
+              event_type: inventory.item_removed
+              occurred_at: '2026-09-07T10:16:00Z'
+              recorded_at: '2026-09-07T10:16:01Z'
+              correlation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6023
+              data:
+                inventory_item_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6004
+                reason: left_filter
+                prior_version_seq: '9007199254740993'
+          scanned_through_seq: '9007199254740994'
+          next_event_cursor: eyJraWQiOiJrMSIsInNlcSI6IjkwMDcxOTkyNTQ3NDA5OTQifQ
+          has_more: false
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:16:02Z'
+            contract_version: 1.0.0-design
+    WebhookEnvelope:
+      type: object
+      additionalProperties: false
+      required: [delivery_id, attempt, replay, delivered_at, event]
+      properties:
+        delivery_id: {$ref: '#/components/schemas/UuidV7'}
+        attempt: {type: integer, minimum: 1}
+        replay: {type: boolean}
+        delivered_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        event: {$ref: '#/components/schemas/InventoryEvent'}
+      examples:
+        - delivery_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6045
+          attempt: 2
+          replay: false
+          delivered_at: '2026-09-07T10:16:10Z'
+          event:
+            event_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6010
+            view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6040
+            inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+            seq: '9007199254740994'
+            generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6044
+            event_type: inventory.item_removed
+            occurred_at: '2026-09-07T10:16:00Z'
+            recorded_at: '2026-09-07T10:16:01Z'
+            correlation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6023
+            data:
+              inventory_item_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6004
+              reason: left_filter
+              prior_version_seq: '9007199254740993'
+    JsonValue:
+      description: Valor JSON preservado; interpretar junto con estado, path y versión.
+      oneOf:
+        - type: string
+        - type: number
+        - type: boolean
+        - type: array
+          items: {}
+        - type: object
+        - type: 'null'
+    FieldValue:
+      type: object
+      additionalProperties: false
+      required: [state, value]
+      properties:
+        state: {type: string, enum: [known, unknown, explicit_null, not_applicable, withheld]}
+        value: {$ref: '#/components/schemas/JsonValue'}
+      examples:
+        - state: known
+          value: '21990.00'
+    FieldChange:
+      type: object
+      additionalProperties: false
+      required: [path, before, after]
+      properties:
+        path: {type: string, pattern: '^/.*', maxLength: 500}
+        before: {$ref: '#/components/schemas/FieldValue'}
+        after: {$ref: '#/components/schemas/FieldValue'}
+      examples:
+        - path: /offers/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6006/price/value/amount
+          before: {state: known, value: '22990.00'}
+          after: {state: known, value: '21990.00'}
+    ListingHistoryEntry:
+      type: object
+      additionalProperties: false
+      required:
+        - history_entry_id
+        - listing_id
+        - entry_type
+        - observed_at
+        - recorded_at
+        - published_at
+        - field_changes
+        - evidence
+        - derivation_version
+      properties:
+        history_entry_id: {$ref: '#/components/schemas/UuidV7'}
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        entry_type: {type: string, enum: [presence, attribute, offer, relationship, correction, suppression]}
+        observed_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        recorded_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        published_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        field_changes:
+          type: array
+          items: {$ref: '#/components/schemas/FieldChange'}
+        evidence:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/EvidenceLink'}
+        derivation_version: {type: string, minLength: 1, maxLength: 100}
+        corrects_history_entry_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      examples:
+        - history_entry_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6046
+          listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+          entry_type: offer
+          observed_at: '2026-09-07T10:00:00Z'
+          recorded_at: '2026-09-07T10:00:30Z'
+          published_at: '2026-09-07T10:01:00Z'
+          field_changes:
+            - path: /offers/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6006/price/value/amount
+              before: {state: known, value: '22990.00'}
+              after: {state: known, value: '21990.00'}
+          evidence:
+            - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6030
+              evidence_type: observation
+              observed_at: '2026-09-07T10:00:00Z'
+          derivation_version: listing-history/1.0.0
+          corrects_history_entry_id: null
+    ListingHistoryPage:
+      type: object
+      additionalProperties: false
+      required: [listing_id, data, retention, page, meta]
+      properties:
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/ListingHistoryEntry'}
+        retention: {$ref: '#/components/schemas/RetentionWindow'}
+        page: {$ref: '#/components/schemas/PageMeta'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+          data:
+            - history_entry_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6046
+              listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+              entry_type: offer
+              observed_at: '2026-09-07T10:00:00Z'
+              recorded_at: '2026-09-07T10:00:30Z'
+              published_at: '2026-09-07T10:01:00Z'
+              field_changes:
+                - path: /offers/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6006/price/value/amount
+                  before: {state: known, value: '22990.00'}
+                  after: {state: known, value: '21990.00'}
+              evidence:
+                - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6030
+                  evidence_type: observation
+                  observed_at: '2026-09-07T10:00:00Z'
+              derivation_version: listing-history/1.0.0
+              corrects_history_entry_id: null
+          retention:
+            earliest_available_at: '2025-09-07T00:00:00Z'
+            completeness: policy_limited
+            limitation_reason: Historial anterior fuera de la retención autorizada.
+          page:
+            limit: 100
+            has_more: false
+            next_cursor: null
+            cursor_expires_at: '2026-09-07T10:30:30Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    ListingResponse:
+      type: object
+      additionalProperties: false
+      required: [data, projection_seq, meta]
+      properties:
+        data: {$ref: '#/components/schemas/ListingView'}
+        projection_seq: {$ref: '#/components/schemas/UInt64String'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+    ReconciliationEntityRef:
+      type: object
+      additionalProperties: false
+      required: [entity_type, entity_id]
+      properties:
+        entity_type: {type: string, enum: [listing, offer, vehicle, inventory, inventory_item, seller, point_of_sale, observation, certificate]}
+        entity_id: {$ref: '#/components/schemas/UuidV7'}
+      examples:
+        - entity_type: listing
+          entity_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+    MembershipCandidate:
+      type: object
+      additionalProperties: false
+      required: [membership_id, state, listing_id, dealer_id, inventory_id, inventory_item_id, point_of_sale_id, provenance]
+      properties:
+        membership_id: {$ref: '#/components/schemas/UuidV7'}
+        state: {$ref: '#/components/schemas/MembershipState'}
+        listing_id: {$ref: '#/components/schemas/UuidV7'}
+        dealer_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        inventory_item_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        point_of_sale_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        provenance: {$ref: '#/components/schemas/ResolutionProvenance'}
+      examples:
+        - membership_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6047
+          state: candidate
+          listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+          dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+          inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          inventory_item_id: null
+          point_of_sale_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002
+          provenance:
+            relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+            resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+            resolver_version: membership-resolver/1.0.0
+            confidence: 0.61
+    ReconciliationCase:
+      type: object
+      additionalProperties: false
+      required:
+        - case_id
+        - case_type
+        - state
+        - version
+        - inventory_ids
+        - subjects
+        - membership_candidates
+        - evidence
+        - opened_at
+        - updated_at
+      properties:
+        case_id: {$ref: '#/components/schemas/UuidV7'}
+        case_type: {type: string, enum: [membership_ambiguity, point_of_sale_ambiguity, presence_conflict, identity_conflict, late_evidence, certificate_conflict]}
+        state: {type: string, enum: [open, decided, superseded]}
+        version: {$ref: '#/components/schemas/UInt64String'}
+        inventory_ids:
+          type: array
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/UuidV7'}
+        subjects:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/ReconciliationEntityRef'}
+        membership_candidates:
+          type: array
+          items: {$ref: '#/components/schemas/MembershipCandidate'}
+        evidence:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/EvidenceLink'}
+        opened_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        updated_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - case_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6021
+          case_type: point_of_sale_ambiguity
+          state: open
+          version: '3'
+          inventory_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003]
+          subjects:
+            - entity_type: listing
+              entity_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+          membership_candidates:
+            - membership_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6047
+              state: candidate
+              listing_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+              dealer_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6001
+              inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+              inventory_item_id: null
+              point_of_sale_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002
+              provenance:
+                relationship_assertion_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019]
+                resolution_decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6020
+                resolver_version: membership-resolver/1.0.0
+                confidence: 0.61
+          evidence:
+            - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+              evidence_type: relationship_assertion
+              observed_at: '2026-09-07T09:59:00Z'
+          opened_at: '2026-09-07T10:02:00Z'
+          updated_at: '2026-09-07T10:10:00Z'
+    ReconciliationCaseResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/ReconciliationCase'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            case_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6021
+            case_type: point_of_sale_ambiguity
+            state: open
+            version: '3'
+            inventory_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003]
+            subjects:
+              - entity_type: listing
+                entity_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+            membership_candidates: []
+            evidence:
+              - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+                evidence_type: relationship_assertion
+                observed_at: '2026-09-07T09:59:00Z'
+            opened_at: '2026-09-07T10:02:00Z'
+            updated_at: '2026-09-07T10:10:00Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    ReconciliationCasePage:
+      type: object
+      additionalProperties: false
+      required: [data, page, meta]
+      properties:
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/ReconciliationCase'}
+        page: {$ref: '#/components/schemas/PageMeta'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data: []
+          page:
+            limit: 100
+            has_more: false
+            next_cursor: null
+            cursor_expires_at: '2026-09-07T10:30:30Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    ReconciliationDecisionRequest:
+      type: object
+      additionalProperties: false
+      required: [action, selected_membership_id, target_inventory_id, target_inventory_item_id, target_point_of_sale_id, rationale, evidence_ref_ids]
+      properties:
+        action:
+          type: string
+          enum: [confirm_membership, reject_membership, reassign_membership, defer, invalidate_observation]
+        selected_membership_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        target_inventory_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        target_inventory_item_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        target_point_of_sale_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        rationale: {type: string, minLength: 1, maxLength: 2000}
+        evidence_ref_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/UuidV7'}
+      examples:
+        - action: confirm_membership
+          selected_membership_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6047
+          target_inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003
+          target_inventory_item_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6004
+          target_point_of_sale_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6002
+          rationale: La afirmación profesional y la ubicación están corroboradas por dos evidencias.
+          evidence_ref_ids:
+            - 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+    ReconciliationDecisionResult:
+      type: object
+      additionalProperties: false
+      required: [decision_id, case, emitted_event_ids, ownership_epoch, decided_at]
+      properties:
+        decision_id: {$ref: '#/components/schemas/UuidV7'}
+        case: {$ref: '#/components/schemas/ReconciliationCase'}
+        emitted_event_ids:
+          type: array
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/UuidV7'}
+        ownership_epoch: {$ref: '#/components/schemas/UInt64String'}
+        decided_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6022
+          case:
+            case_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6021
+            case_type: point_of_sale_ambiguity
+            state: decided
+            version: '4'
+            inventory_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003]
+            subjects:
+              - entity_type: listing
+                entity_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+            membership_candidates: []
+            evidence:
+              - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+                evidence_type: relationship_assertion
+                observed_at: '2026-09-07T09:59:00Z'
+            opened_at: '2026-09-07T10:02:00Z'
+            updated_at: '2026-09-07T10:17:00Z'
+          emitted_event_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6010]
+          ownership_epoch: '18'
+          decided_at: '2026-09-07T10:17:00Z'
+    ReconciliationDecisionResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/ReconciliationDecisionResult'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            decision_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6022
+            case:
+              case_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6021
+              case_type: point_of_sale_ambiguity
+              state: decided
+              version: '4'
+              inventory_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6003]
+              subjects:
+                - entity_type: listing
+                  entity_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6005
+              membership_candidates: []
+              evidence:
+                - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6019
+                  evidence_type: relationship_assertion
+                  observed_at: '2026-09-07T09:59:00Z'
+              opened_at: '2026-09-07T10:02:00Z'
+              updated_at: '2026-09-07T10:17:00Z'
+            emitted_event_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6010]
+            ownership_epoch: '18'
+            decided_at: '2026-09-07T10:17:00Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:17:01Z'
+            contract_version: 1.0.0-design
+    ListingCountMetrics:
+      type: object
+      additionalProperties: false
+      required: [knowledge_state, listing_count, professional_count, particular_count, unknown_seller_count]
+      properties:
+        knowledge_state: {$ref: '#/components/schemas/KnowledgeState'}
+        listing_count:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+        professional_count:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+        particular_count:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+        unknown_seller_count:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+      examples:
+        - knowledge_state: known
+          listing_count: '3'
+          professional_count: '1'
+          particular_count: '1'
+          unknown_seller_count: '1'
+    ListingSnapshotFilter:
+      type: object
+      additionalProperties: false
+      properties:
+        market_countries:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/MarketCountry'}
+        vehicle_classes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/VehicleClass'}
+        seller_kinds:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {type: string, enum: [professional, particular, unknown, withheld]}
+        presence_states:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/PresenceState'}
+      examples:
+        - market_countries: [ES]
+          vehicle_classes: [car, lcv, motorcycle, motorhome]
+          seller_kinds: [professional, particular, unknown]
+          presence_states: [observed_present, absence_suspected]
+    ListingSort:
+      type: object
+      additionalProperties: false
+      required: [field, direction]
+      properties:
+        field: {type: string, enum: [listing_id, updated_at, display_price, vehicle_class, seller_kind]}
+        direction: {type: string, enum: [asc, desc]}
+      examples:
+        - field: listing_id
+          direction: asc
+    CreateListingSnapshotRequest:
+      type: object
+      additionalProperties: false
+      required: [consistency, delivery_mode, snapshot_ttl_seconds, filters, sort]
+      properties:
+        consistency: {type: string, const: published}
+        delivery_mode:
+          type: string
+          enum: [auto, paged, bulk]
+          default: auto
+          description: Auto enruta a async/bulk si estimated_item_count > 100000 o estimated_traversal_seconds > 0.5 × snapshot_ttl_seconds; es routing, no truncación.
+        snapshot_ttl_seconds: {type: integer, minimum: 300, maximum: 86400, default: 1800}
+        filters: {$ref: '#/components/schemas/ListingSnapshotFilter'}
+        sort:
+          type: array
+          minItems: 1
+          maxItems: 3
+          items: {$ref: '#/components/schemas/ListingSort'}
+      examples:
+        - consistency: published
+          delivery_mode: auto
+          snapshot_ttl_seconds: 1800
+          filters:
+            market_countries: [ES]
+            vehicle_classes: [car, lcv, motorcycle, motorhome]
+            seller_kinds: [professional, particular, unknown]
+            presence_states: [observed_present, absence_suspected]
+          sort:
+            - field: listing_id
+              direction: asc
+    ListingSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+        - snapshot_id
+        - view_id
+        - stream_inventory_id
+        - stream_id
+        - source_id
+        - scope_revision
+        - status
+        - delivery_mode
+        - generation
+        - snapshot_seq
+        - resume_after_seq
+        - restore_epoch
+        - filters
+        - sort
+        - counts
+        - event_cursor
+        - listings_uri
+        - bulk_manifest_uri
+        - created_at
+        - expires_at
+      properties:
+        snapshot_id: {$ref: '#/components/schemas/UuidV7'}
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_id: {$ref: '#/components/schemas/UuidV7'}
+        source_id: {$ref: '#/components/schemas/UuidV7'}
+        scope_revision: {$ref: '#/components/schemas/PositiveRevisionString'}
+        status: {type: string, const: ready}
+        delivery_mode: {type: string, enum: [paged, bulk]}
+        generation: {$ref: '#/components/schemas/InventoryGenerationRef'}
+        snapshot_seq: {$ref: '#/components/schemas/UInt64String'}
+        resume_after_seq: {$ref: '#/components/schemas/UInt64String'}
+        restore_epoch: {$ref: '#/components/schemas/UInt64String'}
+        filters: {$ref: '#/components/schemas/ListingSnapshotFilter'}
+        sort:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/ListingSort'}
+        counts: {$ref: '#/components/schemas/ListingCountMetrics'}
+        event_cursor: {type: string, minLength: 16, maxLength: 4096}
+        listings_uri: {type: string, format: uri-reference}
+        bulk_manifest_uri: {type: [string, 'null'], format: uri-reference}
+        created_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        expires_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - snapshot_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6051
+          view_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6052
+          stream_inventory_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6053
+          stream_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6013
+          source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+          scope_revision: '3'
+          status: ready
+          delivery_mode: paged
+          generation:
+            generation_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6054
+            generation_kind: positive_batch
+            through_seq: '9007199254740993'
+            ownership_epoch: '17'
+            committed_at: '2026-09-07T10:14:00Z'
+            projection_version: listing-projection/1.0.0
+            normalization_version: vehicle-normalization/1.0.0
+            identity_version: vehicle-identity/1.0.0
+            membership_resolution_version: membership-resolver/1.0.0
+            rebuild_of_generation_id: null
+            certificate_ids: []
+          snapshot_seq: '9007199254740993'
+          resume_after_seq: '9007199254740993'
+          restore_epoch: '4'
+          filters:
+            market_countries: [ES]
+            vehicle_classes: [car, lcv, motorcycle, motorhome]
+            seller_kinds: [professional, particular, unknown]
+            presence_states: [observed_present, absence_suspected]
+          sort:
+            - field: listing_id
+              direction: asc
+          counts:
+            knowledge_state: known
+            listing_count: '3'
+            professional_count: '1'
+            particular_count: '1'
+            unknown_seller_count: '1'
+          event_cursor: eyJraWQiOiJrMSIsInZpZXdfaWQiOiJsaXN0aW5ncyJ9
+          listings_uri: /v1/listing-snapshots/018f47a2-7b5c-7f10-8a2b-1c3d4e5f6051/listings
+          bulk_manifest_uri: null
+          created_at: '2026-09-07T10:15:30Z'
+          expires_at: '2026-09-07T10:45:30Z'
+    ListingSnapshotResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/ListingSnapshot'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+    ListingSnapshotJob:
+      type: object
+      additionalProperties: false
+      required: [snapshot_id, view_id, stream_inventory_id, stream_id, source_id, scope_revision, status, delivery_mode, snapshot_seq, resume_after_seq, restore_epoch, filters, sort, created_at, expires_at, retry_after_seconds, failure_code]
+      properties:
+        snapshot_id: {$ref: '#/components/schemas/UuidV7'}
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_id: {$ref: '#/components/schemas/UuidV7'}
+        source_id: {$ref: '#/components/schemas/UuidV7'}
+        scope_revision: {$ref: '#/components/schemas/PositiveRevisionString'}
+        status: {type: string, enum: [building, failed]}
+        delivery_mode: {type: string, enum: [paged, bulk]}
+        snapshot_seq: {$ref: '#/components/schemas/UInt64String'}
+        resume_after_seq: {$ref: '#/components/schemas/UInt64String'}
+        restore_epoch: {$ref: '#/components/schemas/UInt64String'}
+        filters: {$ref: '#/components/schemas/ListingSnapshotFilter'}
+        sort:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/ListingSort'}
+        created_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        expires_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        retry_after_seconds: {type: integer, minimum: 1, maximum: 3600}
+        failure_code: {type: [string, 'null'], enum: [materialization_failed, authorization_revoked, policy_erasure, null]}
+    ListingSnapshotStatusResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/ListingSnapshot'
+            - $ref: '#/components/schemas/ListingSnapshotJob'
+          discriminator:
+            propertyName: status
+            mapping:
+              ready: '#/components/schemas/ListingSnapshot'
+              building: '#/components/schemas/ListingSnapshotJob'
+              failed: '#/components/schemas/ListingSnapshotJob'
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+    ListingSnapshotPage:
+      type: object
+      additionalProperties: false
+      required: [snapshot_id, snapshot_seq, data, counts, page, meta]
+      properties:
+        snapshot_id: {$ref: '#/components/schemas/UuidV7'}
+        snapshot_seq: {$ref: '#/components/schemas/UInt64String'}
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/ListingView'}
+        counts: {$ref: '#/components/schemas/ListingCountMetrics'}
+        page: {$ref: '#/components/schemas/PageMeta'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+    ListingBulkManifest:
+      type: object
+      additionalProperties: false
+      description: Mismas reglas de núcleo JCS inmutable y envelope de descarga renovable que BulkManifest.
+      required: [manifest_id, snapshot_id, view_id, stream_inventory_id, stream_id, snapshot_seq, resume_after_seq, restore_epoch, media_type, content_encoding, item_schema, total_items, manifest_sha256, parts, expires_at]
+      properties:
+        manifest_id: {$ref: '#/components/schemas/UuidV7'}
+        snapshot_id: {$ref: '#/components/schemas/UuidV7'}
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_id: {$ref: '#/components/schemas/UuidV7'}
+        snapshot_seq: {$ref: '#/components/schemas/UInt64String'}
+        resume_after_seq: {$ref: '#/components/schemas/UInt64String'}
+        restore_epoch: {$ref: '#/components/schemas/UInt64String'}
+        media_type: {type: string, const: application/x-ndjson}
+        content_encoding: {type: string, const: gzip}
+        item_schema: {type: string, const: '#/components/schemas/ListingView'}
+        total_items: {$ref: '#/components/schemas/CountString'}
+        manifest_sha256:
+          description: SHA-256 del JCS del núcleo, autoexcluido y sin download_url/url_expires_at.
+          $ref: '#/components/schemas/Sha256Digest'
+        parts:
+          type: array
+          items: {$ref: '#/components/schemas/BulkPart'}
+        expires_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      allOf:
+        - if:
+            required: [total_items]
+            properties:
+              total_items: {const: '0'}
+          then:
+            properties:
+              parts: {maxItems: 0}
+          else:
+            properties:
+              parts: {minItems: 1}
+    ListingBulkManifestResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/ListingBulkManifest'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+    ListingProjectionEventBase:
+      type: object
+      required: [event_id, view_id, stream_inventory_id, stream_id, seq, generation_id, event_type, occurred_at, recorded_at, correlation_id]
+      properties:
+        event_id: {$ref: '#/components/schemas/UuidV7'}
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_id: {$ref: '#/components/schemas/UuidV7'}
+        seq: {$ref: '#/components/schemas/UInt64String'}
+        generation_id: {$ref: '#/components/schemas/UuidV7'}
+        event_type: {type: string}
+        occurred_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        recorded_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        correlation_id: {$ref: '#/components/schemas/UuidV7'}
+    ListingUpsertedEvent:
+      allOf:
+        - $ref: '#/components/schemas/ListingProjectionEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: listing.upserted}
+            data:
+              type: object
+              additionalProperties: false
+              required: [listing]
+              properties:
+                listing: {$ref: '#/components/schemas/ListingView'}
+    ListingRemovedEvent:
+      allOf:
+        - $ref: '#/components/schemas/ListingProjectionEventBase'
+        - type: object
+          required: [data]
+          properties:
+            event_type: {const: listing.removed}
+            data:
+              type: object
+              additionalProperties: false
+              required: [listing_id, reason, prior_version_seq]
+              properties:
+                listing_id: {$ref: '#/components/schemas/UuidV7'}
+                reason: {type: string, enum: [not_observed, withdrawn, left_filter, suppressed, authorization_changed]}
+                prior_version_seq: {$ref: '#/components/schemas/UInt64String'}
+    ListingProjectionEvent:
+      oneOf:
+        - $ref: '#/components/schemas/ListingUpsertedEvent'
+        - $ref: '#/components/schemas/ListingRemovedEvent'
+      discriminator:
+        propertyName: event_type
+        mapping:
+          listing.upserted: '#/components/schemas/ListingUpsertedEvent'
+          listing.removed: '#/components/schemas/ListingRemovedEvent'
+    ListingEventPage:
+      type: object
+      additionalProperties: false
+      required: [view_id, stream_inventory_id, stream_id, restore_epoch, data, scanned_through_seq, next_event_cursor, has_more, meta]
+      properties:
+        view_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_inventory_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_id: {$ref: '#/components/schemas/UuidV7'}
+        restore_epoch: {$ref: '#/components/schemas/UInt64String'}
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/ListingProjectionEvent'}
+        scanned_through_seq: {$ref: '#/components/schemas/UInt64String'}
+        next_event_cursor: {type: string, minLength: 16, maxLength: 4096}
+        has_more: {type: boolean}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+    InventoryItemPage:
+      type: object
+      additionalProperties: false
+      required: [snapshot_id, snapshot_seq, data, counts, page, meta]
+      properties:
+        snapshot_id: {$ref: '#/components/schemas/UuidV7'}
+        snapshot_seq: {$ref: '#/components/schemas/UInt64String'}
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/InventoryItem'}
+        counts: {$ref: '#/components/schemas/CountMetrics'}
+        page: {$ref: '#/components/schemas/PageMeta'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - snapshot_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6008
+          snapshot_seq: '9007199254740993'
+          data: []
+          counts:
+            knowledge_state: known
+            inventory_item_count: '1'
+            listing_count: '2'
+            resolved_vehicle_count: '1'
+            unresolved_vehicle_item_count: '0'
+            unassigned_point_of_sale_item_count: '0'
+          page:
+            limit: 100
+            has_more: false
+            next_cursor: null
+            cursor_expires_at: '2026-09-07T10:30:30Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    InventoryItemResponse:
+      type: object
+      additionalProperties: false
+      required: [data, snapshot_id, snapshot_seq, meta]
+      properties:
+        data: {$ref: '#/components/schemas/InventoryItem'}
+        snapshot_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        snapshot_seq: {$ref: '#/components/schemas/UInt64String'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+    PartitionOutcome:
+      type: object
+      additionalProperties: false
+      required: [partition_id, state, fetched_count, distinct_listing_count, manifest_digest]
+      properties:
+        partition_id: {$ref: '#/components/schemas/UuidV7'}
+        state: {type: string, enum: [complete, failed, rate_limited, truncated, cancelled, scope_changed]}
+        fetched_count: {$ref: '#/components/schemas/CountString'}
+        distinct_listing_count: {$ref: '#/components/schemas/CountString'}
+        manifest_digest: {$ref: '#/components/schemas/Sha256Digest'}
+        failure_code: {type: [string, 'null'], maxLength: 100}
+      examples:
+        - partition_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6031
+          state: complete
+          fetched_count: '12540'
+          distinct_listing_count: '12540'
+          manifest_digest: 3a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbaa
+          failure_code: null
+    CompletenessCertificate:
+      type: object
+      additionalProperties: false
+      required:
+        - certificate_id
+        - status
+        - source_id
+        - surface_id
+        - stream_id
+        - listing_namespace_id
+        - scope_revision
+        - plan_revision
+        - plan_digest
+        - run_id
+        - barrier_id
+        - comparison_key
+        - enumeration_consistency
+        - window_opened_at
+        - window_closed_at
+        - evidence_recorded_through
+        - cadence_target_seconds
+        - partitions
+        - issued_at
+        - expires_at
+        - evidence
+      properties:
+        certificate_id: {$ref: '#/components/schemas/UuidV7'}
+        status: {type: string, enum: [complete, positive_only, invalid, superseded]}
+        source_id: {$ref: '#/components/schemas/UuidV7'}
+        surface_id: {$ref: '#/components/schemas/UuidV7'}
+        stream_id: {$ref: '#/components/schemas/UuidV7'}
+        listing_namespace_id: {$ref: '#/components/schemas/UuidV7'}
+        scope_revision: {$ref: '#/components/schemas/PositiveRevisionString'}
+        plan_revision: {$ref: '#/components/schemas/PositiveRevisionString'}
+        plan_digest: {$ref: '#/components/schemas/Sha256Digest'}
+        run_id: {$ref: '#/components/schemas/UuidV7'}
+        barrier_id: {$ref: '#/components/schemas/UuidV7'}
+        comparison_key: {$ref: '#/components/schemas/Sha256Digest'}
+        enumeration_consistency:
+          type: string
+          enum: [native_snapshot, closed_change_window, live_unclosed, unknown]
+        window_opened_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        window_closed_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        evidence_recorded_through: {$ref: '#/components/schemas/UtcTimestamp'}
+        cadence_target_seconds: {type: integer, minimum: 1}
+        partitions:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/PartitionOutcome'}
+        issued_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        expires_at:
+          oneOf: [{$ref: '#/components/schemas/UtcTimestamp'}, {type: 'null'}]
+        supersedes_certificate_id:
+          type: [string, 'null']
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        evidence:
+          type: array
+          minItems: 1
+          items: {$ref: '#/components/schemas/EvidenceLink'}
+      examples:
+        - certificate_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6015
+          status: complete
+          source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+          surface_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6012
+          stream_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6013
+          listing_namespace_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6014
+          scope_revision: '3'
+          plan_revision: '7'
+          plan_digest: 3a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbaa
+          run_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6016
+          barrier_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6017
+          comparison_key: 4a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbab
+          enumeration_consistency: native_snapshot
+          window_opened_at: '2026-09-07T08:00:00Z'
+          window_closed_at: '2026-09-07T08:05:00Z'
+          evidence_recorded_through: '2026-09-07T08:06:00Z'
+          cadence_target_seconds: 259200
+          partitions:
+            - partition_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6031
+              state: complete
+              fetched_count: '12540'
+              distinct_listing_count: '12540'
+              manifest_digest: 3a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbaa
+              failure_code: null
+          issued_at: '2026-09-07T08:07:00Z'
+          expires_at: '2026-09-10T08:07:00Z'
+          supersedes_certificate_id: null
+          evidence:
+            - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6032
+              evidence_type: raw_capture
+              observed_at: '2026-09-07T08:00:00Z'
+    CompletenessCertificateResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/CompletenessCertificate'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            certificate_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6015
+            status: positive_only
+            source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+            surface_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6012
+            stream_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6013
+            listing_namespace_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6014
+            scope_revision: '3'
+            plan_revision: '7'
+            plan_digest: 3a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbaa
+            run_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6016
+            barrier_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6017
+            comparison_key: 4a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbab
+            enumeration_consistency: live_unclosed
+            window_opened_at: '2026-09-07T08:00:00Z'
+            window_closed_at: '2026-09-07T08:05:00Z'
+            evidence_recorded_through: '2026-09-07T08:06:00Z'
+            cadence_target_seconds: 259200
+            partitions:
+              - partition_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6031
+                state: complete
+                fetched_count: '12540'
+                distinct_listing_count: '12540'
+                manifest_digest: 3a7bd3e2360a3d80a7ab5ef1e1f2fe8d34dc52c61b8e8cbe809d8ed45e29fbaa
+                failure_code: null
+            issued_at: '2026-09-07T08:07:00Z'
+            expires_at: '2026-09-10T08:07:00Z'
+            supersedes_certificate_id: null
+            evidence:
+              - evidence_ref_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6032
+                evidence_type: raw_capture
+                observed_at: '2026-09-07T08:00:00Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    CoverageCell:
+      type: object
+      additionalProperties: false
+      required:
+        - coverage_cell_id
+        - market_country
+        - vehicle_class
+        - source_type
+        - universe_version
+        - denominator_state
+        - certified_units
+        - declared_comparable_units
+        - ratio
+        - exclusions_count
+        - certificate_ids
+        - measured_at
+      properties:
+        coverage_cell_id: {$ref: '#/components/schemas/UuidV7'}
+        market_country: {$ref: '#/components/schemas/MarketCountry'}
+        vehicle_class: {$ref: '#/components/schemas/VehicleClass'}
+        source_type: {$ref: '#/components/schemas/SourceType'}
+        universe_version: {type: string, minLength: 1, maxLength: 100}
+        denominator_state: {type: string, enum: [known_comparable, estimated, unknown, not_applicable]}
+        certified_units:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+        declared_comparable_units:
+          oneOf: [{$ref: '#/components/schemas/CountString'}, {type: 'null'}]
+        ratio: {type: [number, 'null'], minimum: 0, maximum: 1}
+        exclusions_count: {$ref: '#/components/schemas/CountString'}
+        certificate_ids:
+          type: array
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/UuidV7'}
+        measured_at: {$ref: '#/components/schemas/UtcTimestamp'}
+      examples:
+        - coverage_cell_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6033
+          market_country: ES
+          vehicle_class: car
+          source_type: marketplace
+          universe_version: es-car-marketplace/2026-09-07
+          denominator_state: known_comparable
+          certified_units: '98'
+          declared_comparable_units: '100'
+          ratio: 0.98
+          exclusions_count: '2'
+          certificate_ids: [018f47a2-7b5c-7f10-8a2b-1c3d4e5f6015]
+          measured_at: '2026-09-07T10:00:00Z'
+    CoveragePage:
+      type: object
+      additionalProperties: false
+      required: [data, page, meta]
+      properties:
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/CoverageCell'}
+        page: {$ref: '#/components/schemas/PageMeta'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            - coverage_cell_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6033
+              market_country: ES
+              vehicle_class: car
+              source_type: marketplace
+              universe_version: es-car-marketplace/2026-09-07
+              denominator_state: unknown
+              certified_units: null
+              declared_comparable_units: null
+              ratio: null
+              exclusions_count: '2'
+              certificate_ids: []
+              measured_at: '2026-09-07T10:00:00Z'
+          page:
+            limit: 100
+            has_more: false
+            next_cursor: null
+            cursor_expires_at: '2026-09-07T10:30:30Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    SourceHealth:
+      type: object
+      additionalProperties: false
+      required:
+        - source_id
+        - status
+        - slo_state
+        - tier
+        - assessed_at
+        - last_successful_positive_at
+        - delta_verified_through
+        - last_full_census_at
+        - projection_lag_seconds
+        - active_issue_codes
+      properties:
+        source_id: {$ref: '#/components/schemas/UuidV7'}
+        status: {$ref: '#/components/schemas/HealthStatus'}
+        slo_state: {$ref: '#/components/schemas/SloState'}
+        tier: {type: string, enum: [T0, T1, T2]}
+        assessed_at: {$ref: '#/components/schemas/UtcTimestamp'}
+        last_successful_positive_at:
+          oneOf: [{$ref: '#/components/schemas/UtcTimestamp'}, {type: 'null'}]
+        delta_verified_through:
+          oneOf: [{$ref: '#/components/schemas/UtcTimestamp'}, {type: 'null'}]
+        last_full_census_at:
+          oneOf: [{$ref: '#/components/schemas/UtcTimestamp'}, {type: 'null'}]
+        projection_lag_seconds: {type: [integer, 'null'], minimum: 0}
+        active_issue_codes:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum: [rate_limit, auth_expired, source_5xx, parser_drift, pagination_truncated, live_pagination_unclosed, permission_expired, operator_suspended, unknown]
+      examples:
+        - source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+          status: rate_limited
+          slo_state: unmet
+          tier: T1
+          assessed_at: '2026-09-07T10:14:30Z'
+          last_successful_positive_at: '2026-09-07T03:00:00Z'
+          delta_verified_through: '2026-09-07T02:55:00Z'
+          last_full_census_at: '2026-09-04T00:00:00Z'
+          projection_lag_seconds: 45
+          active_issue_codes: [rate_limit]
+    SourceHealthResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: {$ref: '#/components/schemas/SourceHealth'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data:
+            source_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6011
+            status: rate_limited
+            slo_state: unmet
+            tier: T1
+            assessed_at: '2026-09-07T10:14:30Z'
+            last_successful_positive_at: '2026-09-07T03:00:00Z'
+            delta_verified_through: '2026-09-07T02:55:00Z'
+            last_full_census_at: '2026-09-04T00:00:00Z'
+            projection_lag_seconds: 45
+            active_issue_codes: [rate_limit]
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design
+    SourceHealthPage:
+      type: object
+      additionalProperties: false
+      required: [data, page, meta]
+      properties:
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/SourceHealth'}
+        page: {$ref: '#/components/schemas/PageMeta'}
+        meta: {$ref: '#/components/schemas/ApiMeta'}
+      examples:
+        - data: []
+          page:
+            limit: 100
+            has_more: false
+            next_cursor: null
+            cursor_expires_at: '2026-09-07T10:30:30Z'
+          meta:
+            request_id: 018f47a2-7b5c-7f10-8a2b-1c3d4e5f6050
+            served_at: '2026-09-07T10:15:30Z'
+            contract_version: 1.0.0-design

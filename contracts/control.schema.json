@@ -1,0 +1,1116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cardeex.invalid/control/1.0.0",
+  "title": "Cardeex control plane and handoff contracts",
+  "description": "Design contract, synthetic examples only. Validation checks structure, not permission validity or external completeness. Normative semantics: docs/CARDEEX_FOUNDATION.md sections 13-15.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SourceRegistration"
+    },
+    {
+      "$ref": "#/$defs/Surface"
+    },
+    {
+      "$ref": "#/$defs/Stream"
+    },
+    {
+      "$ref": "#/$defs/DiscoveryCandidate"
+    },
+    {
+      "$ref": "#/$defs/AdmissionDecision"
+    },
+    {
+      "$ref": "#/$defs/CapabilityManifest"
+    },
+    {
+      "$ref": "#/$defs/PartitionPlan"
+    }
+  ],
+  "$defs": {
+    "UUIDv7": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "Revision": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{0,9}$"
+    },
+    "Digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "Country": {
+      "enum": [
+        "ES",
+        "FR",
+        "DE",
+        "NL",
+        "BE",
+        "CH"
+      ]
+    },
+    "VehicleClass": {
+      "enum": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    "EvidenceRefs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/UUIDv7"
+      }
+    },
+    "SourceRegistration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "source_id",
+        "display_name",
+        "source_type",
+        "market_countries",
+        "lifecycle",
+        "revision",
+        "evidence_refs",
+        "recorded_at"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "source_registration"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "source_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "source_type": {
+          "enum": [
+            "marketplace",
+            "dealer_owned",
+            "manufacturer_inventory",
+            "auction",
+            "classifieds",
+            "salvage_complete_vehicles",
+            "authorized_aggregator",
+            "unknown"
+          ]
+        },
+        "market_countries": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Country"
+          }
+        },
+        "lifecycle": {
+          "enum": [
+            "candidate",
+            "classified",
+            "assessed",
+            "admitted",
+            "onboarding",
+            "monitored",
+            "degraded",
+            "blocked",
+            "quarantined",
+            "suspended",
+            "retired",
+            "rejected"
+          ]
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/EvidenceRefs"
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      }
+    },
+    "Surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "surface_id",
+        "source_id",
+        "listing_namespace_id",
+        "surface_type",
+        "allowed_origins",
+        "auth_mode",
+        "credential_ref",
+        "admission_id",
+        "revision",
+        "evidence_refs"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "surface"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "surface_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "source_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "listing_namespace_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "surface_type": {
+          "enum": [
+            "api",
+            "feed",
+            "web",
+            "authorized_export"
+          ]
+        },
+        "allowed_origins": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://[^/?#@\\s]+$"
+          }
+        },
+        "auth_mode": {
+          "enum": [
+            "none",
+            "api_key",
+            "oauth2",
+            "session",
+            "mutual_tls",
+            "signed_feed"
+          ]
+        },
+        "credential_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "admission_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/EvidenceRefs"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "auth_mode": {
+                "const": "none"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "credential_ref": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "credential_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "market_countries",
+        "vehicle_classes",
+        "source_filters_fingerprint",
+        "scope_revision"
+      ],
+      "properties": {
+        "market_countries": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Country"
+          }
+        },
+        "vehicle_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/VehicleClass"
+          }
+        },
+        "source_filters_fingerprint": {
+          "$ref": "#/$defs/Digest"
+        },
+        "scope_revision": {
+          "$ref": "#/$defs/Revision"
+        }
+      }
+    },
+    "Stream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "stream_id",
+        "surface_id",
+        "source_id",
+        "scope",
+        "negative_evidence_capability",
+        "discovery_only",
+        "capability_manifest_id",
+        "admission_id",
+        "revision"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "stream"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "stream_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "surface_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "source_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "negative_evidence_capability": {
+          "enum": [
+            "none",
+            "explicit_only",
+            "comparable_census_and_explicit"
+          ]
+        },
+        "discovery_only": {
+          "const": false
+        },
+        "capability_manifest_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "admission_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        }
+      }
+    },
+    "CandidateDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason",
+        "actor_ref",
+        "decided_at",
+        "target_id"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "unreviewed",
+            "accepted",
+            "duplicate_candidate",
+            "rejected",
+            "needs_evidence"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "actor_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "decided_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UUIDv7"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "duplicate_candidate"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_id": {
+                "$ref": "#/$defs/UUIDv7"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "DiscoveryCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "candidate_id",
+        "claimed_kind",
+        "observed_locator",
+        "discovered_at",
+        "evidence_refs",
+        "method",
+        "method_version",
+        "claimed_countries",
+        "suspected_classes",
+        "related_candidate_ids",
+        "decision",
+        "review_due_at"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "discovery_candidate"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "candidate_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "claimed_kind": {
+          "enum": [
+            "source",
+            "publisher_account",
+            "professional_seller",
+            "point_of_sale",
+            "unknown"
+          ]
+        },
+        "observed_locator": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^/?#@\\s]+(?:[/?#].*)?$"
+        },
+        "discovered_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/EvidenceRefs"
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "method_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "claimed_countries": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Country"
+          }
+        },
+        "suspected_classes": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/VehicleClass"
+          }
+        },
+        "related_candidate_ids": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        },
+        "decision": {
+          "$ref": "#/$defs/CandidateDecision"
+        },
+        "review_due_at": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      }
+    },
+    "Rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acquire_inventory",
+        "serve_attributes",
+        "store_media",
+        "serve_media",
+        "derive_identity",
+        "train_models",
+        "evidence_policy_ref"
+      ],
+      "properties": {
+        "acquire_inventory": {
+          "type": "boolean"
+        },
+        "serve_attributes": {
+          "type": "boolean"
+        },
+        "store_media": {
+          "type": "boolean"
+        },
+        "serve_media": {
+          "type": "boolean"
+        },
+        "derive_identity": {
+          "type": "boolean"
+        },
+        "train_models": {
+          "type": "boolean"
+        },
+        "evidence_policy_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "AdmissionDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "admission_id",
+        "surface_id",
+        "revision",
+        "status",
+        "scope",
+        "purpose",
+        "assessment_ref",
+        "rights",
+        "retention_policy_ref",
+        "budget_policy_ref",
+        "responsible_actor_ref",
+        "valid_from",
+        "valid_until",
+        "review_due_at",
+        "evidence_refs"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "admission_decision"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "admission_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "surface_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "status": {
+          "enum": [
+            "approved",
+            "blocked",
+            "expired",
+            "revoked"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "assessment_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "rights": {
+          "$ref": "#/$defs/Rights"
+        },
+        "retention_policy_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "budget_policy_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "responsible_actor_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "valid_from": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "valid_until": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "review_due_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/EvidenceRefs"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "approved"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rights": {
+                "properties": {
+                  "acquire_inventory": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "rights": {
+                "properties": {
+                  "acquire_inventory": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "CapabilityManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "capability_manifest_id",
+        "surface_id",
+        "revision",
+        "evidence_refs",
+        "pagination",
+        "result_cap",
+        "result_cap_status",
+        "supports_detail",
+        "supports_not_modified",
+        "source_ordering",
+        "deletion_signal",
+        "max_response_bytes",
+        "capabilities_verified_at",
+        "revalidate_at"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "capability_manifest"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "capability_manifest_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "surface_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/EvidenceRefs"
+        },
+        "pagination": {
+          "enum": [
+            "cursor_snapshot",
+            "cursor_live",
+            "offset_live",
+            "finite_export",
+            "none",
+            "unknown"
+          ]
+        },
+        "result_cap": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_cap_status": {
+          "enum": [
+            "verified_bounded",
+            "unknown"
+          ]
+        },
+        "supports_detail": {
+          "type": "boolean"
+        },
+        "supports_not_modified": {
+          "type": "boolean"
+        },
+        "source_ordering": {
+          "enum": [
+            "stable_snapshot",
+            "source_revision",
+            "timestamp_and_id",
+            "unstable",
+            "unknown"
+          ]
+        },
+        "deletion_signal": {
+          "enum": [
+            "explicit_tombstones",
+            "comparable_census",
+            "both",
+            "none",
+            "unknown"
+          ]
+        },
+        "max_response_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "capabilities_verified_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "revalidate_at": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "result_cap_status": {
+                "const": "verified_bounded"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "result_cap": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "result_cap": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Partition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "partition_id",
+        "partition_key",
+        "predicate_ref",
+        "predicate_sha256",
+        "interval_convention",
+        "parent_partition_id",
+        "saturation_policy"
+      ],
+      "properties": {
+        "partition_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "partition_key": {
+          "$ref": "#/$defs/Digest",
+          "description": "Deterministic key for the canonical partition predicate within a registered immutable stream/scope/plan context; never an external listing identity. Runtime verifies the canonical artifact hash and lookup uniqueness."
+        },
+        "predicate_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "predicate_sha256": {
+          "$ref": "#/$defs/Digest"
+        },
+        "interval_convention": {
+          "enum": [
+            "half_open",
+            "explicit_disjoint_set",
+            "provider_snapshot"
+          ]
+        },
+        "parent_partition_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UUIDv7"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "saturation_policy": {
+          "const": "split_or_block_completeness"
+        }
+      }
+    },
+    "PartitionPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "plan_id",
+        "stream_id",
+        "scope_revision",
+        "plan_revision",
+        "plan_sha256",
+        "capability_manifest_id",
+        "planning_evidence_refs",
+        "partitioning_semantics",
+        "reconciliation_boundary",
+        "max_partitions",
+        "max_requests",
+        "max_runtime_seconds",
+        "partitions",
+        "created_at"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "partition_plan"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "plan_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "stream_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "scope_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "plan_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "plan_sha256": {
+          "$ref": "#/$defs/Digest",
+          "description": "SHA-256 of the immutable canonical plan artifact, not the numeric plan revision or a hash of this enclosing registry record. Runtime verifies referenced bytes; examples use synthetic artifact digests."
+        },
+        "capability_manifest_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "planning_evidence_refs": {
+          "$ref": "#/$defs/EvidenceRefs"
+        },
+        "partitioning_semantics": {
+          "enum": [
+            "stable_key",
+            "mutable_filters",
+            "provider_snapshot"
+          ]
+        },
+        "reconciliation_boundary": {
+          "const": "whole_stream_scope"
+        },
+        "max_partitions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "max_requests": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_runtime_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "partitions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Partition"
+          }
+        },
+        "created_at": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "record_type": "source_registration",
+      "schema_version": "1.0.0",
+      "source_id": "01992000-0000-7000-8000-000000000001",
+      "display_name": "Synthetic mixed vehicle publisher",
+      "source_type": "marketplace",
+      "market_countries": [
+        "ES"
+      ],
+      "lifecycle": "onboarding",
+      "revision": "1",
+      "evidence_refs": [
+        "01992000-0000-7000-8000-000000000009"
+      ],
+      "recorded_at": "2026-09-07T10:00:00Z"
+    },
+    {
+      "record_type": "surface",
+      "schema_version": "1.0.0",
+      "surface_id": "01992000-0000-7000-8000-000000000002",
+      "source_id": "01992000-0000-7000-8000-000000000001",
+      "listing_namespace_id": "01992000-0000-7000-8000-000000000003",
+      "surface_type": "api",
+      "allowed_origins": [
+        "https://publisher.example"
+      ],
+      "auth_mode": "api_key",
+      "credential_ref": "secretref:synthetic/source/api",
+      "admission_id": "01992000-0000-7000-8000-000000000004",
+      "revision": "1",
+      "evidence_refs": [
+        "01992000-0000-7000-8000-000000000009"
+      ]
+    },
+    {
+      "record_type": "stream",
+      "schema_version": "1.0.0",
+      "stream_id": "01992000-0000-7000-8000-000000000005",
+      "surface_id": "01992000-0000-7000-8000-000000000002",
+      "source_id": "01992000-0000-7000-8000-000000000001",
+      "scope": {
+        "market_countries": [
+          "ES"
+        ],
+        "vehicle_classes": [
+          "car",
+          "lcv",
+          "motorcycle",
+          "motorhome"
+        ],
+        "source_filters_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "scope_revision": "1"
+      },
+      "negative_evidence_capability": "comparable_census_and_explicit",
+      "discovery_only": false,
+      "capability_manifest_id": "01992000-0000-7000-8000-000000000006",
+      "admission_id": "01992000-0000-7000-8000-000000000004",
+      "revision": "1"
+    },
+    {
+      "record_type": "discovery_candidate",
+      "schema_version": "1.0.0",
+      "candidate_id": "01992000-0000-7000-8000-000000000007",
+      "claimed_kind": "point_of_sale",
+      "observed_locator": "https://dealer.example/location",
+      "discovered_at": "2026-09-07T10:00:00Z",
+      "evidence_refs": [
+        "01992000-0000-7000-8000-000000000009"
+      ],
+      "method": "synthetic_fixture",
+      "method_version": "1.0.0",
+      "claimed_countries": [
+        "ES"
+      ],
+      "suspected_classes": [
+        "car",
+        "motorcycle"
+      ],
+      "related_candidate_ids": [],
+      "decision": {
+        "status": "needs_evidence",
+        "reason": "The page names a location but operation and inventory attribution are unresolved.",
+        "actor_ref": "reviewer:synthetic",
+        "decided_at": "2026-09-07T10:05:00Z",
+        "target_id": null
+      },
+      "review_due_at": "2026-10-07T10:00:00Z"
+    },
+    {
+      "record_type": "admission_decision",
+      "schema_version": "1.0.0",
+      "admission_id": "01992000-0000-7000-8000-000000000004",
+      "surface_id": "01992000-0000-7000-8000-000000000002",
+      "revision": "1",
+      "status": "approved",
+      "scope": {
+        "market_countries": [
+          "ES"
+        ],
+        "vehicle_classes": [
+          "car",
+          "lcv",
+          "motorcycle",
+          "motorhome"
+        ],
+        "source_filters_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "scope_revision": "1"
+      },
+      "purpose": "Synthetic specification validation only; no access permission to a real service.",
+      "assessment_ref": "assessment:synthetic:1",
+      "rights": {
+        "acquire_inventory": true,
+        "serve_attributes": true,
+        "store_media": false,
+        "serve_media": false,
+        "derive_identity": true,
+        "train_models": false,
+        "evidence_policy_ref": "policy:synthetic:evidence"
+      },
+      "retention_policy_ref": "policy:synthetic:retention",
+      "budget_policy_ref": "policy:synthetic:budget",
+      "responsible_actor_ref": "reviewer:synthetic",
+      "valid_from": "2026-09-07T00:00:00Z",
+      "valid_until": "2026-10-07T00:00:00Z",
+      "review_due_at": "2026-09-30T00:00:00Z",
+      "evidence_refs": [
+        "01992000-0000-7000-8000-000000000009"
+      ]
+    },
+    {
+      "record_type": "capability_manifest",
+      "schema_version": "1.0.0",
+      "capability_manifest_id": "01992000-0000-7000-8000-000000000006",
+      "surface_id": "01992000-0000-7000-8000-000000000002",
+      "revision": "1",
+      "evidence_refs": [
+        "01992000-0000-7000-8000-000000000009"
+      ],
+      "pagination": "cursor_snapshot",
+      "result_cap": 2000,
+      "result_cap_status": "verified_bounded",
+      "supports_detail": true,
+      "supports_not_modified": true,
+      "source_ordering": "stable_snapshot",
+      "deletion_signal": "both",
+      "max_response_bytes": 10000000,
+      "capabilities_verified_at": "2026-09-07T10:00:00Z",
+      "revalidate_at": "2026-09-08T10:00:00Z"
+    },
+    {
+      "record_type": "partition_plan",
+      "schema_version": "1.0.0",
+      "plan_id": "01992000-0000-7000-8000-000000000008",
+      "stream_id": "01992000-0000-7000-8000-000000000005",
+      "scope_revision": "1",
+      "plan_revision": "1",
+      "plan_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "capability_manifest_id": "01992000-0000-7000-8000-000000000006",
+      "planning_evidence_refs": [
+        "01992000-0000-7000-8000-000000000009"
+      ],
+      "partitioning_semantics": "provider_snapshot",
+      "reconciliation_boundary": "whole_stream_scope",
+      "max_partitions": 100,
+      "max_requests": 10000,
+      "max_runtime_seconds": 3600,
+      "partitions": [
+        {
+          "partition_id": "01992000-0000-7000-8000-000000000010",
+          "partition_key": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "predicate_ref": "predicate:synthetic:all",
+          "predicate_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "interval_convention": "provider_snapshot",
+          "parent_partition_id": null,
+          "saturation_policy": "split_or_block_completeness"
+        }
+      ],
+      "created_at": "2026-09-07T10:00:00Z"
+    }
+  ],
+  "$comment": "Wire shape does not prove authorization or referential integrity. Enforce Source/Surface/Stream references, scope subset of AdmissionDecision, valid_from < valid_until, valid_from <= review_due_at <= valid_until, capability verified_at < revalidate_at, planned partition count <= max_partitions, and unique partition_id/partition_key within the plan. Acquisition additionally requires current approved rights, operational source lifecycle and unexpired admission/review/capability windows. verify_foundation.py exercises these rules on synthetic examples; actual referenced artifact bytes, field/evidence existence, partition coverage and live authorization remain implementation obligations."
+}

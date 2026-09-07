@@ -1,0 +1,4543 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cardeex.invalid/domain/1.0.0",
+  "title": "Cardeex domain and evidence contracts",
+  "description": "Design artifact only. It validates evidence envelopes and selected related records; it does not claim a running product, lawful access, semantic correctness, or coverage.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ObservationEnvelope"
+    },
+    {
+      "$ref": "#/$defs/RawCapture"
+    },
+    {
+      "$ref": "#/$defs/RawDispositionEvent"
+    },
+    {
+      "$ref": "#/$defs/VehicleProfile"
+    },
+    {
+      "$ref": "#/$defs/IdentityResolutionDecision"
+    },
+    {
+      "$ref": "#/$defs/FieldDivergence"
+    }
+  ],
+  "$defs": {
+    "UUIDv7": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "UTCDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,9})?Z$"
+    },
+    "Revision": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{0,9}$"
+    },
+    "UInt64String": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|18446744073709550[0-9]{3}|18446744073709551[0-5][0-9]{2}|1844674407370955160[0-9]|1844674407370955161[0-5])$"
+    },
+    "PositiveUInt64String": {
+      "type": "string",
+      "pattern": "^(?:[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|18446744073709550[0-9]{3}|18446744073709551[0-5][0-9]{2}|1844674407370955160[0-9]|1844674407370955161[0-5])$"
+    },
+    "Sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "DecimalString": {
+      "type": "string",
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "maxLength": 128
+    },
+    "NonNegativeDecimalString": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "maxLength": 128
+    },
+    "LanguageTag": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$",
+      "maxLength": 64
+    },
+    "CountryCode": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$"
+    },
+    "MarketCountry": {
+      "enum": [
+        "ES",
+        "FR",
+        "DE",
+        "NL",
+        "BE",
+        "CH"
+      ]
+    },
+    "JsonPointer": {
+      "type": "string",
+      "pattern": "^(?:/(?:[^~/]|~[01])*)+$",
+      "maxLength": 2048
+    },
+    "TimeInterval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "valid_from"
+      ],
+      "properties": {
+        "valid_from": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "valid_to": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      }
+    },
+    "ListingIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "listing_id",
+        "listing_namespace_id",
+        "source_listing_key",
+        "incarnation"
+      ],
+      "properties": {
+        "listing_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "listing_namespace_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "source_listing_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "incarnation": {
+          "$ref": "#/$defs/PositiveUInt64String"
+        }
+      }
+    },
+    "ListingEntityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_kind",
+        "entity_id"
+      ],
+      "properties": {
+        "entity_kind": {
+          "const": "listing"
+        },
+        "entity_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "OfferEntityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_kind",
+        "entity_id"
+      ],
+      "properties": {
+        "entity_kind": {
+          "const": "offer"
+        },
+        "entity_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "VehicleEntityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_kind",
+        "entity_id"
+      ],
+      "properties": {
+        "entity_kind": {
+          "const": "vehicle"
+        },
+        "entity_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "PublisherAccountEntityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_kind",
+        "entity_id"
+      ],
+      "properties": {
+        "entity_kind": {
+          "const": "publisher_account"
+        },
+        "entity_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "SellerEntityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_kind",
+        "entity_id"
+      ],
+      "properties": {
+        "entity_kind": {
+          "const": "seller"
+        },
+        "entity_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "LegalEntityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_kind",
+        "entity_id"
+      ],
+      "properties": {
+        "entity_kind": {
+          "const": "legal_entity"
+        },
+        "entity_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "PointOfSaleEntityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_kind",
+        "entity_id"
+      ],
+      "properties": {
+        "entity_kind": {
+          "const": "point_of_sale"
+        },
+        "entity_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "AddressEntityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_kind",
+        "entity_id"
+      ],
+      "properties": {
+        "entity_kind": {
+          "const": "address"
+        },
+        "entity_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "EntityRef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ListingEntityRef"
+        },
+        {
+          "$ref": "#/$defs/OfferEntityRef"
+        },
+        {
+          "$ref": "#/$defs/VehicleEntityRef"
+        },
+        {
+          "$ref": "#/$defs/PublisherAccountEntityRef"
+        },
+        {
+          "$ref": "#/$defs/SellerEntityRef"
+        },
+        {
+          "$ref": "#/$defs/LegalEntityRef"
+        },
+        {
+          "$ref": "#/$defs/PointOfSaleEntityRef"
+        },
+        {
+          "$ref": "#/$defs/AddressEntityRef"
+        }
+      ]
+    },
+    "SellerClassification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seller_kind"
+      ],
+      "properties": {
+        "seller_kind": {
+          "enum": [
+            "professional",
+            "private",
+            "unknown"
+          ]
+        },
+        "professional_type": {
+          "enum": [
+            "franchised_dealer",
+            "independent_trader",
+            "garage_workshop",
+            "salvage_operator",
+            "other_professional"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "seller_kind": {
+                "const": "professional"
+              }
+            },
+            "required": [
+              "seller_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "professional_type"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "professional_type"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "AcquisitionLineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "surface_id",
+        "stream_id",
+        "partition_id",
+        "run_id",
+        "fetch_attempt_id",
+        "admission_id",
+        "scope_revision",
+        "plan_id",
+        "plan_revision",
+        "recipe_version_id",
+        "recipe_artifact_sha256"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "surface_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "stream_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "partition_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "run_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "fetch_attempt_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "admission_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "scope_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "plan_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "plan_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "recipe_version_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "recipe_artifact_sha256": {
+          "$ref": "#/$defs/Sha256"
+        }
+      }
+    },
+    "ObservationLineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "surface_id",
+        "stream_id",
+        "partition_id",
+        "run_id",
+        "fetch_attempt_id",
+        "admission_id",
+        "scope_revision",
+        "plan_id",
+        "plan_revision",
+        "recipe_version_id",
+        "recipe_artifact_sha256",
+        "extractor_version_id",
+        "extractor_artifact_sha256"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "surface_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "stream_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "partition_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "run_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "fetch_attempt_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "admission_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "scope_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "plan_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "plan_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "recipe_version_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "recipe_artifact_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "extractor_version_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "extractor_artifact_sha256": {
+          "$ref": "#/$defs/Sha256"
+        }
+      }
+    },
+    "FreshCaptureEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "raw_capture_id",
+        "payload_sha256",
+        "captured_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "fresh_capture"
+        },
+        "raw_capture_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "payload_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "captured_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      }
+    },
+    "RetainedCaptureReplayEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "raw_capture_id",
+        "payload_sha256",
+        "original_captured_at",
+        "replayed_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "retained_capture_replay"
+        },
+        "raw_capture_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "payload_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "original_captured_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "replayed_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      }
+    },
+    "NotModifiedEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "http_status",
+        "validation_raw_capture_id",
+        "prior_representation_raw_capture_id",
+        "prior_payload_sha256",
+        "validated_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "not_modified"
+        },
+        "http_status": {
+          "const": 304
+        },
+        "validation_raw_capture_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "prior_representation_raw_capture_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "prior_payload_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "validated_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      }
+    },
+    "EvidenceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_capture_id",
+        "payload_sha256",
+        "locator_kind",
+        "locator"
+      ],
+      "properties": {
+        "raw_capture_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "payload_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "locator_kind": {
+          "enum": [
+            "json_pointer",
+            "source_field",
+            "xpath",
+            "css_selector",
+            "byte_range",
+            "response_header",
+            "whole_document"
+          ]
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "origin_claim_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "dependency_group_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "syndication_assertion_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "locator_kind": {
+                "const": "json_pointer"
+              }
+            },
+            "required": [
+              "locator_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "locator": {
+                "$ref": "#/$defs/JsonPointer"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "EvidenceLocators": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/EvidenceLocator"
+      }
+    },
+    "Derivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "rule_id",
+        "rule_version",
+        "artifact_sha256",
+        "input_assertion_ids",
+        "confidence"
+      ],
+      "properties": {
+        "method": {
+          "enum": [
+            "direct_extraction",
+            "normalization",
+            "inference",
+            "human_review",
+            "deterministic_replay"
+          ]
+        },
+        "rule_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "rule_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "artifact_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "input_assertion_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "enum": [
+                  "normalization",
+                  "inference",
+                  "deterministic_replay"
+                ]
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_assertion_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "KnownText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "value"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "text"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20000
+        },
+        "language": {
+          "$ref": "#/$defs/LanguageTag"
+        }
+      }
+    },
+    "KnownBoolean": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "value"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "boolean"
+        },
+        "value": {
+          "type": "boolean"
+        }
+      }
+    },
+    "KnownInteger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "value"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "integer"
+        },
+        "value": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "KnownDecimal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "value"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "decimal"
+        },
+        "value": {
+          "$ref": "#/$defs/DecimalString"
+        }
+      }
+    },
+    "KnownDate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "value"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "date"
+        },
+        "value": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$"
+        }
+      }
+    },
+    "KnownDateTime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "value"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "datetime"
+        },
+        "value": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      }
+    },
+    "KnownCode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "namespace",
+        "value"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "code"
+        },
+        "namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "KnownUri": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "value"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "uri"
+        },
+        "value": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      }
+    },
+    "Money": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "amount",
+        "currency"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "money"
+        },
+        "amount": {
+          "$ref": "#/$defs/NonNegativeDecimalString"
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      }
+    },
+    "Quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_type",
+        "amount",
+        "unit"
+      ],
+      "properties": {
+        "value_type": {
+          "const": "quantity"
+        },
+        "amount": {
+          "$ref": "#/$defs/NonNegativeDecimalString"
+        },
+        "unit": {
+          "enum": [
+            "km",
+            "mi",
+            "kg",
+            "mm",
+            "cm3",
+            "m3",
+            "kW",
+            "kWh",
+            "L/100km",
+            "g/km"
+          ]
+        }
+      }
+    },
+    "KnownValue": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/KnownText"
+        },
+        {
+          "$ref": "#/$defs/KnownBoolean"
+        },
+        {
+          "$ref": "#/$defs/KnownInteger"
+        },
+        {
+          "$ref": "#/$defs/KnownDecimal"
+        },
+        {
+          "$ref": "#/$defs/KnownDate"
+        },
+        {
+          "$ref": "#/$defs/KnownDateTime"
+        },
+        {
+          "$ref": "#/$defs/KnownCode"
+        },
+        {
+          "$ref": "#/$defs/KnownUri"
+        },
+        {
+          "$ref": "#/$defs/Quantity"
+        }
+      ]
+    },
+    "KnownState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "value"
+      ],
+      "properties": {
+        "state": {
+          "const": "known"
+        },
+        "value": {
+          "$ref": "#/$defs/KnownValue"
+        }
+      }
+    },
+    "KnownMoneyState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "value"
+      ],
+      "properties": {
+        "state": {
+          "const": "known"
+        },
+        "value": {
+          "$ref": "#/$defs/Money"
+        }
+      }
+    },
+    "ExplicitNullState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "const": "explicit_null"
+        }
+      }
+    },
+    "UnknownState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "const": "unknown"
+        },
+        "reason": {
+          "enum": [
+            "not_present_in_representation",
+            "not_requested",
+            "unparseable",
+            "redacted",
+            "evidence_expired",
+            "conflict_unresolved",
+            "source_semantics_unknown"
+          ]
+        }
+      }
+    },
+    "NotApplicableState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "const": "not_applicable"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    },
+    "FieldValueState": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/KnownState"
+        },
+        {
+          "$ref": "#/$defs/ExplicitNullState"
+        },
+        {
+          "$ref": "#/$defs/UnknownState"
+        },
+        {
+          "$ref": "#/$defs/NotApplicableState"
+        }
+      ]
+    },
+    "MoneyValueState": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/KnownMoneyState"
+        },
+        {
+          "$ref": "#/$defs/ExplicitNullState"
+        },
+        {
+          "$ref": "#/$defs/UnknownState"
+        },
+        {
+          "$ref": "#/$defs/NotApplicableState"
+        }
+      ]
+    },
+    "GeneralAssertionContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_fingerprint_sha256"
+      ],
+      "properties": {
+        "context_fingerprint_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "market_country": {
+          "$ref": "#/$defs/MarketCountry"
+        },
+        "language": {
+          "$ref": "#/$defs/LanguageTag"
+        }
+      }
+    },
+    "OfferPriceContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "listing_identity",
+        "price_kind",
+        "tax_inclusion",
+        "financing_condition",
+        "market_country",
+        "context_fingerprint_sha256"
+      ],
+      "properties": {
+        "listing_identity": {
+          "$ref": "#/$defs/ListingIdentity"
+        },
+        "price_kind": {
+          "enum": [
+            "asking",
+            "cash",
+            "financed",
+            "lease_monthly",
+            "auction_current",
+            "reserve",
+            "other"
+          ]
+        },
+        "tax_inclusion": {
+          "enum": [
+            "included",
+            "excluded",
+            "not_stated"
+          ]
+        },
+        "financing_condition": {
+          "enum": [
+            "unconditional",
+            "conditional",
+            "unknown"
+          ]
+        },
+        "market_country": {
+          "$ref": "#/$defs/MarketCountry"
+        },
+        "context_fingerprint_sha256": {
+          "$ref": "#/$defs/Sha256"
+        }
+      }
+    },
+    "GeneralFieldAssertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "not": {
+        "properties": {
+          "field_path": {
+            "const": "/offer/price"
+          }
+        },
+        "required": [
+          "field_path"
+        ]
+      },
+      "required": [
+        "assertion_id",
+        "subject",
+        "field_path",
+        "field_definition_id",
+        "field_definition_revision",
+        "field_definition_sha256",
+        "semantic_role",
+        "value",
+        "valid_time",
+        "recorded_at",
+        "evidence",
+        "derivation",
+        "supersedes_assertion_ids"
+      ],
+      "properties": {
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "subject": {
+          "$ref": "#/$defs/EntityRef"
+        },
+        "field_path": {
+          "$ref": "#/$defs/JsonPointer"
+        },
+        "field_definition_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "field_definition_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "field_definition_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "semantic_role": {
+          "enum": [
+            "listing_attribute",
+            "offer_non_price_attribute",
+            "vehicle_attribute",
+            "publisher_attribute",
+            "seller_attribute",
+            "legal_entity_attribute",
+            "point_of_sale_attribute",
+            "classification"
+          ]
+        },
+        "value": {
+          "$ref": "#/$defs/FieldValueState"
+        },
+        "context": {
+          "$ref": "#/$defs/GeneralAssertionContext"
+        },
+        "valid_time": {
+          "$ref": "#/$defs/TimeInterval"
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceLocators"
+        },
+        "derivation": {
+          "$ref": "#/$defs/Derivation"
+        },
+        "supersedes_assertion_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "semantic_role": {
+                "const": "listing_attribute"
+              }
+            },
+            "required": [
+              "semantic_role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/ListingEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "semantic_role": {
+                "const": "offer_non_price_attribute"
+              }
+            },
+            "required": [
+              "semantic_role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/OfferEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "semantic_role": {
+                "enum": [
+                  "vehicle_attribute",
+                  "classification"
+                ]
+              }
+            },
+            "required": [
+              "semantic_role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/VehicleEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "semantic_role": {
+                "const": "publisher_attribute"
+              }
+            },
+            "required": [
+              "semantic_role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/PublisherAccountEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "semantic_role": {
+                "const": "seller_attribute"
+              }
+            },
+            "required": [
+              "semantic_role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/SellerEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "semantic_role": {
+                "const": "legal_entity_attribute"
+              }
+            },
+            "required": [
+              "semantic_role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/LegalEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "semantic_role": {
+                "const": "point_of_sale_attribute"
+              }
+            },
+            "required": [
+              "semantic_role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/PointOfSaleEntityRef"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "OfferPriceAssertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assertion_id",
+        "subject",
+        "field_path",
+        "field_definition_id",
+        "field_definition_revision",
+        "field_definition_sha256",
+        "semantic_role",
+        "value",
+        "context",
+        "valid_time",
+        "recorded_at",
+        "evidence",
+        "derivation",
+        "supersedes_assertion_ids"
+      ],
+      "properties": {
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "subject": {
+          "$ref": "#/$defs/OfferEntityRef"
+        },
+        "field_path": {
+          "const": "/offer/price"
+        },
+        "field_definition_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "field_definition_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "field_definition_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "semantic_role": {
+          "const": "offer_price"
+        },
+        "value": {
+          "$ref": "#/$defs/MoneyValueState"
+        },
+        "context": {
+          "$ref": "#/$defs/OfferPriceContext"
+        },
+        "valid_time": {
+          "$ref": "#/$defs/TimeInterval"
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceLocators"
+        },
+        "derivation": {
+          "$ref": "#/$defs/Derivation"
+        },
+        "supersedes_assertion_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        }
+      }
+    },
+    "FieldAssertion": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/GeneralFieldAssertion"
+        },
+        {
+          "$ref": "#/$defs/OfferPriceAssertion"
+        }
+      ]
+    },
+    "RelationshipAssertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assertion_id",
+        "subject",
+        "predicate",
+        "object",
+        "valid_time",
+        "recorded_at",
+        "evidence",
+        "derivation",
+        "supersedes_assertion_ids"
+      ],
+      "properties": {
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "subject": {
+          "$ref": "#/$defs/EntityRef"
+        },
+        "predicate": {
+          "enum": [
+            "listing_published_by",
+            "offer_presented_in_listing",
+            "publisher_account_represents_seller",
+            "offer_offered_by",
+            "seller_corresponds_to_legal_entity",
+            "point_of_sale_operated_by",
+            "offer_fulfilled_at",
+            "listing_describes_vehicle"
+          ]
+        },
+        "object": {
+          "$ref": "#/$defs/EntityRef"
+        },
+        "valid_time": {
+          "$ref": "#/$defs/TimeInterval"
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceLocators"
+        },
+        "derivation": {
+          "$ref": "#/$defs/Derivation"
+        },
+        "supersedes_assertion_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "predicate": {
+                "const": "offer_presented_in_listing"
+              }
+            },
+            "required": [
+              "predicate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/OfferEntityRef"
+              },
+              "object": {
+                "$ref": "#/$defs/ListingEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "predicate": {
+                "const": "listing_published_by"
+              }
+            },
+            "required": [
+              "predicate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/ListingEntityRef"
+              },
+              "object": {
+                "$ref": "#/$defs/PublisherAccountEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "predicate": {
+                "const": "publisher_account_represents_seller"
+              }
+            },
+            "required": [
+              "predicate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/PublisherAccountEntityRef"
+              },
+              "object": {
+                "$ref": "#/$defs/SellerEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "predicate": {
+                "const": "offer_offered_by"
+              }
+            },
+            "required": [
+              "predicate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/OfferEntityRef"
+              },
+              "object": {
+                "$ref": "#/$defs/SellerEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "predicate": {
+                "const": "seller_corresponds_to_legal_entity"
+              }
+            },
+            "required": [
+              "predicate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/SellerEntityRef"
+              },
+              "object": {
+                "$ref": "#/$defs/LegalEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "predicate": {
+                "const": "point_of_sale_operated_by"
+              }
+            },
+            "required": [
+              "predicate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/PointOfSaleEntityRef"
+              },
+              "object": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/SellerEntityRef"
+                  },
+                  {
+                    "$ref": "#/$defs/LegalEntityRef"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "predicate": {
+                "const": "offer_fulfilled_at"
+              }
+            },
+            "required": [
+              "predicate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/OfferEntityRef"
+              },
+              "object": {
+                "$ref": "#/$defs/PointOfSaleEntityRef"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "predicate": {
+                "const": "listing_describes_vehicle"
+              }
+            },
+            "required": [
+              "predicate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "$ref": "#/$defs/ListingEntityRef"
+              },
+              "object": {
+                "$ref": "#/$defs/VehicleEntityRef"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AdministrativeArea": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "label"
+      ],
+      "properties": {
+        "level": {
+          "enum": [
+            "country_subdivision_1",
+            "country_subdivision_2",
+            "country_subdivision_3",
+            "other"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "code_system": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "dependentRequired": {
+        "code": [
+          "code_system"
+        ],
+        "code_system": [
+          "code"
+        ]
+      }
+    },
+    "GeoPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "crs",
+        "latitude",
+        "longitude",
+        "precision",
+        "method"
+      ],
+      "properties": {
+        "crs": {
+          "const": "EPSG:4326"
+        },
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "precision": {
+          "enum": [
+            "rooftop",
+            "parcel",
+            "street",
+            "postal_code",
+            "locality",
+            "region",
+            "country",
+            "unknown"
+          ]
+        },
+        "accuracy_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "method": {
+          "enum": [
+            "source_reported",
+            "geocoded",
+            "human_review"
+          ]
+        },
+        "provider_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "provider_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "geocoded"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "provider_ref",
+              "provider_version"
+            ]
+          }
+        }
+      ]
+    },
+    "PostalAddress": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "original_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "language": {
+          "$ref": "#/$defs/LanguageTag"
+        },
+        "address_lines": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "postal_code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "locality": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "country_code": {
+          "$ref": "#/$defs/CountryCode"
+        },
+        "administrative_areas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AdministrativeArea"
+          }
+        },
+        "geo": {
+          "$ref": "#/$defs/GeoPoint"
+        }
+      }
+    },
+    "AddressAssertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assertion_id",
+        "subject",
+        "address_id",
+        "address",
+        "valid_time",
+        "recorded_at",
+        "evidence",
+        "derivation",
+        "supersedes_assertion_ids"
+      ],
+      "properties": {
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "subject": {
+          "$ref": "#/$defs/EntityRef"
+        },
+        "address_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "address": {
+          "$ref": "#/$defs/PostalAddress"
+        },
+        "valid_time": {
+          "$ref": "#/$defs/TimeInterval"
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceLocators"
+        },
+        "derivation": {
+          "$ref": "#/$defs/Derivation"
+        },
+        "supersedes_assertion_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        }
+      }
+    },
+    "FetchedMediaContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "media_asset_id",
+        "content_sha256",
+        "media_type",
+        "byte_length"
+      ],
+      "properties": {
+        "state": {
+          "const": "fetched"
+        },
+        "media_asset_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "content_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "media_type": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9!#$&^_.+-]+/[A-Za-z0-9!#$&^_.+-]+$",
+          "maxLength": 128
+        },
+        "byte_length": {
+          "$ref": "#/$defs/UInt64String"
+        },
+        "width_px": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height_px": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "dependentRequired": {
+        "width_px": [
+          "height_px"
+        ],
+        "height_px": [
+          "width_px"
+        ]
+      }
+    },
+    "UnfetchedMediaContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "const": "not_fetched"
+        },
+        "reason": {
+          "enum": [
+            "rights_disallow",
+            "budget_deferred",
+            "source_reference_only",
+            "fetch_error",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "MediaOccurrence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "media_occurrence_id",
+        "role",
+        "position",
+        "locator_fingerprint_sha256",
+        "content",
+        "evidence"
+      ],
+      "properties": {
+        "media_occurrence_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "role": {
+          "enum": [
+            "exterior",
+            "interior",
+            "detail",
+            "document",
+            "video",
+            "audio",
+            "other"
+          ]
+        },
+        "position": {
+          "$ref": "#/$defs/UInt64String"
+        },
+        "source_media_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "locator_fingerprint_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "caption": {
+          "$ref": "#/$defs/KnownText"
+        },
+        "content": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/FetchedMediaContent"
+            },
+            {
+              "$ref": "#/$defs/UnfetchedMediaContent"
+            }
+          ]
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceLocators"
+        }
+      }
+    },
+    "MediaManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverage",
+        "ordering_asserted",
+        "items"
+      ],
+      "properties": {
+        "coverage": {
+          "enum": [
+            "complete_for_declared_scope",
+            "not_in_declared_scope",
+            "unavailable"
+          ]
+        },
+        "ordering_asserted": {
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MediaOccurrence"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coverage": {
+                "enum": [
+                  "not_in_declared_scope",
+                  "unavailable"
+                ]
+              }
+            },
+            "required": [
+              "coverage"
+            ]
+          },
+          "then": {
+            "properties": {
+              "items": {
+                "maxItems": 0
+              },
+              "ordering_asserted": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "SnapshotScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_contract_id",
+        "scope_revision",
+        "declared_field_set_sha256",
+        "covered_sections",
+        "completeness"
+      ],
+      "properties": {
+        "scope_contract_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "scope_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "declared_field_set_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "covered_sections": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "listing_identity",
+              "vehicle_core",
+              "vehicle_class_extension",
+              "offer_terms",
+              "publisher_and_seller",
+              "location",
+              "media"
+            ]
+          }
+        },
+        "completeness": {
+          "const": "complete_for_declared_scope"
+        }
+      }
+    },
+    "PresenceSignal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "basis"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "observed_present",
+            "source_reports_withdrawn",
+            "locator_not_found"
+          ]
+        },
+        "basis": {
+          "enum": [
+            "detail_fetch",
+            "index_membership",
+            "explicit_tombstone",
+            "conditional_not_modified"
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "state": {
+              "const": "observed_present"
+            },
+            "basis": {
+              "enum": [
+                "detail_fetch",
+                "index_membership",
+                "conditional_not_modified"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "state": {
+              "const": "source_reports_withdrawn"
+            },
+            "basis": {
+              "const": "explicit_tombstone"
+            }
+          }
+        },
+        {
+          "properties": {
+            "state": {
+              "const": "locator_not_found"
+            },
+            "basis": {
+              "const": "detail_fetch"
+            }
+          }
+        }
+      ]
+    },
+    "ListingPresenceObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "observation_id",
+        "observation_kind",
+        "idempotency_key_sha256",
+        "sequence_scope_id",
+        "seq",
+        "lineage",
+        "listing_identity",
+        "observed_at",
+        "recorded_at",
+        "capture_evidence",
+        "presence_signal"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "observation"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "observation_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "observation_kind": {
+          "const": "listing_presence"
+        },
+        "idempotency_key_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "sequence_scope_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "seq": {
+          "$ref": "#/$defs/UInt64String"
+        },
+        "lineage": {
+          "$ref": "#/$defs/ObservationLineage"
+        },
+        "listing_identity": {
+          "$ref": "#/$defs/ListingIdentity"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "capture_evidence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/FreshCaptureEvidence"
+            },
+            {
+              "$ref": "#/$defs/NotModifiedEvidence"
+            }
+          ]
+        },
+        "presence_signal": {
+          "$ref": "#/$defs/PresenceSignal"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "capture_evidence": {
+                "properties": {
+                  "kind": {
+                    "const": "not_modified"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "capture_evidence"
+            ]
+          },
+          "then": {
+            "properties": {
+              "presence_signal": {
+                "properties": {
+                  "state": {
+                    "const": "observed_present"
+                  },
+                  "basis": {
+                    "const": "conditional_not_modified"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ListingAttributeSnapshotObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "observation_id",
+        "observation_kind",
+        "idempotency_key_sha256",
+        "sequence_scope_id",
+        "seq",
+        "lineage",
+        "listing_identity",
+        "observed_at",
+        "recorded_at",
+        "capture_evidence",
+        "snapshot_scope",
+        "field_assertions",
+        "relationship_assertions",
+        "address_assertions",
+        "media_manifest"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "observation"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "observation_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "observation_kind": {
+          "const": "listing_attribute_snapshot"
+        },
+        "idempotency_key_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "sequence_scope_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "seq": {
+          "$ref": "#/$defs/UInt64String"
+        },
+        "lineage": {
+          "$ref": "#/$defs/ObservationLineage"
+        },
+        "listing_identity": {
+          "$ref": "#/$defs/ListingIdentity"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "capture_evidence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/FreshCaptureEvidence"
+            },
+            {
+              "$ref": "#/$defs/RetainedCaptureReplayEvidence"
+            }
+          ]
+        },
+        "snapshot_scope": {
+          "$ref": "#/$defs/SnapshotScope"
+        },
+        "field_assertions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/FieldAssertion"
+          }
+        },
+        "relationship_assertions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RelationshipAssertion"
+          }
+        },
+        "address_assertions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AddressAssertion"
+          }
+        },
+        "media_manifest": {
+          "$ref": "#/$defs/MediaManifest"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "snapshot_scope": {
+                "properties": {
+                  "covered_sections": {
+                    "contains": {
+                      "const": "media"
+                    }
+                  }
+                },
+                "required": [
+                  "covered_sections"
+                ]
+              }
+            },
+            "required": [
+              "snapshot_scope"
+            ]
+          },
+          "then": {
+            "properties": {
+              "media_manifest": {
+                "properties": {
+                  "coverage": {
+                    "const": "complete_for_declared_scope"
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "media_manifest": {
+                "properties": {
+                  "coverage": {
+                    "enum": [
+                      "not_in_declared_scope",
+                      "unavailable"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ObservationEnvelope": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ListingPresenceObservation"
+        },
+        {
+          "$ref": "#/$defs/ListingAttributeSnapshotObservation"
+        }
+      ]
+    },
+    "StoredRawRepresentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "payload_sha256",
+        "byte_length",
+        "media_type",
+        "storage_object_ref"
+      ],
+      "properties": {
+        "state": {
+          "const": "stored_body"
+        },
+        "payload_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "byte_length": {
+          "$ref": "#/$defs/UInt64String"
+        },
+        "media_type": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9!#$&^_.+-]+/[A-Za-z0-9!#$&^_.+-]+$",
+          "maxLength": 128
+        },
+        "content_encoding": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "storage_object_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      }
+    },
+    "EmptyRawRepresentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "payload_sha256",
+        "byte_length"
+      ],
+      "properties": {
+        "state": {
+          "const": "empty_by_protocol"
+        },
+        "payload_sha256": {
+          "const": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "byte_length": {
+          "const": "0"
+        }
+      }
+    },
+    "MetadataOnlyRawRepresentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "payload_sha256",
+        "byte_length",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "const": "metadata_only_by_policy"
+        },
+        "payload_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "byte_length": {
+          "$ref": "#/$defs/UInt64String"
+        },
+        "reason": {
+          "enum": [
+            "retention_forbidden",
+            "privacy_minimization",
+            "media_storage_disallowed",
+            "transient_processing_only"
+          ]
+        }
+      }
+    },
+    "RawCapture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "raw_capture_id",
+        "lineage",
+        "captured_at",
+        "transport",
+        "representation",
+        "rights_domain_id",
+        "retention_domain_id",
+        "storage_security_domain_id",
+        "retention_policy_ref",
+        "privacy_classification",
+        "retention_review_at"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "raw_capture"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "raw_capture_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "lineage": {
+          "$ref": "#/$defs/AcquisitionLineage"
+        },
+        "captured_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "transport": {
+          "enum": [
+            "http",
+            "file_import"
+          ]
+        },
+        "response_status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "request_fingerprint_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "headers_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "import_manifest_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "importer_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "representation": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/StoredRawRepresentation"
+            },
+            {
+              "$ref": "#/$defs/EmptyRawRepresentation"
+            },
+            {
+              "$ref": "#/$defs/MetadataOnlyRawRepresentation"
+            }
+          ]
+        },
+        "rights_domain_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "retention_domain_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "storage_security_domain_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "retention_policy_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "privacy_classification": {
+          "enum": [
+            "public_inventory",
+            "personal_data_possible",
+            "restricted",
+            "unknown"
+          ]
+        },
+        "retention_review_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transport": {
+                "const": "http"
+              }
+            },
+            "required": [
+              "transport"
+            ]
+          },
+          "then": {
+            "required": [
+              "response_status",
+              "request_fingerprint_sha256",
+              "headers_sha256"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "import_manifest_sha256"
+                  ]
+                },
+                {
+                  "required": [
+                    "importer_ref"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "import_manifest_sha256",
+              "importer_ref"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "response_status"
+                  ]
+                },
+                {
+                  "required": [
+                    "request_fingerprint_sha256"
+                  ]
+                },
+                {
+                  "required": [
+                    "headers_sha256"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "response_status": {
+                "const": 304
+              }
+            },
+            "required": [
+              "response_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "representation": {
+                "$ref": "#/$defs/EmptyRawRepresentation"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RawDispositionEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "disposition_event_id",
+        "raw_capture_id",
+        "action",
+        "reason_code",
+        "policy_ref",
+        "authority_ref",
+        "effective_at",
+        "recorded_at",
+        "purge_derivatives",
+        "supersedes_disposition_event_ids"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "raw_disposition_event"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "disposition_event_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "raw_capture_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "action": {
+          "enum": [
+            "retention_expired",
+            "privacy_deleted",
+            "rights_revoked",
+            "quarantined",
+            "legal_hold_applied",
+            "legal_hold_released"
+          ]
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,127}$"
+        },
+        "policy_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "authority_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "effective_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "purge_derivatives": {
+          "type": "boolean"
+        },
+        "supersedes_disposition_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "privacy_deleted",
+                  "rights_revoked"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "purge_derivatives": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AttributedText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "assertion_id"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "AttributedInteger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "assertion_id"
+      ],
+      "properties": {
+        "value": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "AttributedQuantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "assertion_id"
+      ],
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "AttributedDistanceQuantity": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/AttributedQuantity"
+        },
+        {
+          "properties": {
+            "value": {
+              "properties": {
+                "unit": {
+                  "enum": [
+                    "km",
+                    "mi"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AttributedPowerQuantity": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/AttributedQuantity"
+        },
+        {
+          "properties": {
+            "value": {
+              "properties": {
+                "unit": {
+                  "const": "kW"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AttributedMassQuantity": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/AttributedQuantity"
+        },
+        {
+          "properties": {
+            "value": {
+              "properties": {
+                "unit": {
+                  "const": "kg"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AttributedVolumeQuantity": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/AttributedQuantity"
+        },
+        {
+          "properties": {
+            "value": {
+              "properties": {
+                "unit": {
+                  "const": "m3"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AttributedEngineDisplacementQuantity": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/AttributedQuantity"
+        },
+        {
+          "properties": {
+            "value": {
+              "properties": {
+                "unit": {
+                  "const": "cm3"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AttributedCode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "assertion_id"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "VehicleIdentifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identifier_type",
+        "normalized_value",
+        "assertion_id"
+      ],
+      "properties": {
+        "identifier_type": {
+          "enum": [
+            "vin",
+            "chassis_number",
+            "registration_number",
+            "manufacturer_stock_number",
+            "other"
+          ]
+        },
+        "normalized_value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "issuing_country": {
+          "$ref": "#/$defs/CountryCode"
+        },
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "RoadRegistrationEligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "assertion_id"
+      ],
+      "properties": {
+        "value": {
+          "enum": [
+            "eligible",
+            "ineligible",
+            "unknown"
+          ]
+        },
+        "assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      }
+    },
+    "CommonVehicleAttributes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "make": {
+          "$ref": "#/$defs/AttributedText"
+        },
+        "model": {
+          "$ref": "#/$defs/AttributedText"
+        },
+        "variant": {
+          "$ref": "#/$defs/AttributedText"
+        },
+        "first_registration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "assertion_id"
+          ],
+          "properties": {
+            "value": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$"
+            },
+            "assertion_id": {
+              "$ref": "#/$defs/UUIDv7"
+            }
+          }
+        },
+        "mileage": {
+          "$ref": "#/$defs/AttributedDistanceQuantity"
+        },
+        "power": {
+          "$ref": "#/$defs/AttributedPowerQuantity"
+        },
+        "energy_source": {
+          "$ref": "#/$defs/AttributedCode"
+        },
+        "transmission": {
+          "$ref": "#/$defs/AttributedCode"
+        },
+        "condition": {
+          "$ref": "#/$defs/AttributedCode"
+        },
+        "road_registration_eligibility": {
+          "$ref": "#/$defs/RoadRegistrationEligibility"
+        },
+        "identifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/VehicleIdentifier"
+          }
+        }
+      }
+    },
+    "CarExtension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extension_type"
+      ],
+      "properties": {
+        "extension_type": {
+          "const": "car"
+        },
+        "body_style": {
+          "$ref": "#/$defs/AttributedCode"
+        },
+        "door_count": {
+          "$ref": "#/$defs/AttributedInteger"
+        },
+        "seat_count": {
+          "$ref": "#/$defs/AttributedInteger"
+        }
+      }
+    },
+    "LcvExtension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extension_type"
+      ],
+      "properties": {
+        "extension_type": {
+          "const": "lcv"
+        },
+        "lcv_body_style": {
+          "$ref": "#/$defs/AttributedCode"
+        },
+        "gross_vehicle_mass": {
+          "$ref": "#/$defs/AttributedMassQuantity"
+        },
+        "payload": {
+          "$ref": "#/$defs/AttributedMassQuantity"
+        },
+        "cargo_volume": {
+          "$ref": "#/$defs/AttributedVolumeQuantity"
+        }
+      }
+    },
+    "MotorcycleExtension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extension_type",
+        "motorcycle_subtype"
+      ],
+      "properties": {
+        "extension_type": {
+          "const": "motorcycle"
+        },
+        "motorcycle_subtype": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "assertion_id"
+          ],
+          "properties": {
+            "value": {
+              "enum": [
+                "motorcycle",
+                "scooter",
+                "moped"
+              ]
+            },
+            "assertion_id": {
+              "$ref": "#/$defs/UUIDv7"
+            }
+          }
+        },
+        "motorcycle_style": {
+          "$ref": "#/$defs/AttributedCode"
+        },
+        "engine_displacement": {
+          "$ref": "#/$defs/AttributedEngineDisplacementQuantity"
+        }
+      }
+    },
+    "MotorhomeExtension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extension_type",
+        "motorhome_subtype"
+      ],
+      "properties": {
+        "extension_type": {
+          "const": "motorhome"
+        },
+        "motorhome_subtype": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "assertion_id"
+          ],
+          "properties": {
+            "value": {
+              "enum": [
+                "motorhome",
+                "campervan"
+              ]
+            },
+            "assertion_id": {
+              "$ref": "#/$defs/UUIDv7"
+            }
+          }
+        },
+        "berth_count": {
+          "$ref": "#/$defs/AttributedInteger"
+        },
+        "gross_vehicle_mass": {
+          "$ref": "#/$defs/AttributedMassQuantity"
+        },
+        "base_vehicle": {
+          "$ref": "#/$defs/AttributedText"
+        }
+      }
+    },
+    "UnknownVehicleExtension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extension_type",
+        "quarantine_reason",
+        "candidate_classes"
+      ],
+      "properties": {
+        "extension_type": {
+          "const": "unknown"
+        },
+        "quarantine_reason": {
+          "enum": [
+            "missing_class_evidence",
+            "ambiguous_mapping",
+            "out_of_scope_candidate",
+            "unsupported_class",
+            "contradictory_evidence"
+          ]
+        },
+        "raw_class_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "candidate_classes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "car",
+              "lcv",
+              "motorcycle",
+              "motorhome"
+            ]
+          }
+        }
+      }
+    },
+    "VehicleProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "vehicle_id",
+        "profile_revision",
+        "as_of_recorded_at",
+        "taxonomy_version_id",
+        "taxonomy_artifact_sha256",
+        "vehicle_class",
+        "class_assertion_id",
+        "serving_state",
+        "common",
+        "extension"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "vehicle_profile"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "vehicle_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "profile_revision": {
+          "$ref": "#/$defs/PositiveUInt64String"
+        },
+        "as_of_recorded_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "taxonomy_version_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "taxonomy_artifact_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "vehicle_class": {
+          "enum": [
+            "car",
+            "lcv",
+            "motorcycle",
+            "motorhome",
+            "unknown"
+          ]
+        },
+        "class_assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "serving_state": {
+          "enum": [
+            "candidate",
+            "eligible",
+            "quarantined"
+          ]
+        },
+        "common": {
+          "$ref": "#/$defs/CommonVehicleAttributes"
+        },
+        "extension": {}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "vehicle_class": {
+                "const": "car"
+              }
+            },
+            "required": [
+              "vehicle_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "extension": {
+                "$ref": "#/$defs/CarExtension"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "vehicle_class": {
+                "const": "lcv"
+              }
+            },
+            "required": [
+              "vehicle_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "extension": {
+                "$ref": "#/$defs/LcvExtension"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "vehicle_class": {
+                "const": "motorcycle"
+              }
+            },
+            "required": [
+              "vehicle_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "extension": {
+                "$ref": "#/$defs/MotorcycleExtension"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "vehicle_class": {
+                "const": "motorhome"
+              }
+            },
+            "required": [
+              "vehicle_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "extension": {
+                "$ref": "#/$defs/MotorhomeExtension"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "vehicle_class": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "vehicle_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "serving_state": {
+                "const": "quarantined"
+              },
+              "extension": {
+                "$ref": "#/$defs/UnknownVehicleExtension"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "IdentitySignal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal_id",
+        "signal_type",
+        "polarity",
+        "signal_value_sha256",
+        "evidence"
+      ],
+      "properties": {
+        "signal_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "signal_type": {
+          "enum": [
+            "source_listing_continuity",
+            "vin_exact",
+            "chassis_exact",
+            "registration_exact",
+            "publisher_stock_id_exact",
+            "media_similarity",
+            "attribute_similarity",
+            "temporal_overlap_conflict",
+            "vehicle_class_conflict",
+            "identifier_conflict",
+            "human_evidence"
+          ]
+        },
+        "polarity": {
+          "enum": [
+            "supports",
+            "contradicts",
+            "neutral"
+          ]
+        },
+        "signal_value_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceLocators"
+        }
+      }
+    },
+    "MembershipChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "listing_id",
+        "operation"
+      ],
+      "properties": {
+        "listing_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "operation": {
+          "enum": [
+            "assign",
+            "unassign",
+            "reassign"
+          ]
+        },
+        "from_vehicle_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "to_vehicle_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "assign"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "required": [
+              "to_vehicle_id"
+            ],
+            "not": {
+              "required": [
+                "from_vehicle_id"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "unassign"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "required": [
+              "from_vehicle_id"
+            ],
+            "not": {
+              "required": [
+                "to_vehicle_id"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "reassign"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "required": [
+              "from_vehicle_id",
+              "to_vehicle_id"
+            ]
+          }
+        }
+      ]
+    },
+    "IdentityResolutionDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "decision_id",
+        "action",
+        "status",
+        "input_vehicle_ids",
+        "output_vehicle_ids",
+        "membership_changes",
+        "signals",
+        "confidence",
+        "policy_id",
+        "policy_revision",
+        "policy_artifact_sha256",
+        "actor_type",
+        "actor_ref",
+        "recorded_at",
+        "supersedes_decision_ids"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "identity_resolution_decision"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "decision_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "action": {
+          "enum": [
+            "assign",
+            "unassign",
+            "merge",
+            "split",
+            "reject_match"
+          ]
+        },
+        "status": {
+          "enum": [
+            "proposed",
+            "effective",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "input_vehicle_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        },
+        "output_vehicle_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        },
+        "membership_changes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MembershipChange"
+          }
+        },
+        "signals": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/IdentitySignal"
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "policy_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "policy_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "policy_artifact_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "actor_type": {
+          "enum": [
+            "automated",
+            "human"
+          ]
+        },
+        "actor_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "supersedes_decision_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "assign"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_vehicle_ids": {
+                "maxItems": 0
+              },
+              "output_vehicle_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "membership_changes": {
+                "minItems": 1,
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/MembershipChange"
+                    },
+                    {
+                      "properties": {
+                        "operation": {
+                          "const": "assign"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "unassign"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_vehicle_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "output_vehicle_ids": {
+                "maxItems": 0
+              },
+              "membership_changes": {
+                "minItems": 1,
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/MembershipChange"
+                    },
+                    {
+                      "properties": {
+                        "operation": {
+                          "const": "unassign"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "merge"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_vehicle_ids": {
+                "minItems": 2
+              },
+              "output_vehicle_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "membership_changes": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "split"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_vehicle_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "output_vehicle_ids": {
+                "minItems": 2
+              },
+              "membership_changes": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "reject_match"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_vehicle_ids": {
+                "minItems": 1
+              },
+              "output_vehicle_ids": {
+                "maxItems": 0
+              },
+              "membership_changes": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldDivergence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "schema_version",
+        "divergence_id",
+        "subject",
+        "field_path",
+        "context_fingerprint_sha256",
+        "assertion_ids",
+        "status",
+        "detected_at",
+        "resolution_policy_revision"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "field_divergence"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "divergence_id": {
+          "$ref": "#/$defs/UUIDv7"
+        },
+        "subject": {
+          "$ref": "#/$defs/EntityRef"
+        },
+        "field_path": {
+          "$ref": "#/$defs/JsonPointer"
+        },
+        "context_fingerprint_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "assertion_ids": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/UUIDv7"
+          }
+        },
+        "status": {
+          "enum": [
+            "expected_contextual_difference",
+            "unresolved_conflict",
+            "resolved_by_policy"
+          ]
+        },
+        "detected_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "resolution_policy_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "effective_assertion_id": {
+          "$ref": "#/$defs/UUIDv7"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "resolved_by_policy"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "effective_assertion_id"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "effective_assertion_id"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "record_type": "observation",
+      "schema_version": "1.0.0",
+      "observation_id": "01992010-0000-7000-8000-000000000001",
+      "observation_kind": "listing_presence",
+      "idempotency_key_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "sequence_scope_id": "01992010-0000-7000-8000-000000000002",
+      "seq": "42",
+      "lineage": {
+        "source_id": "01992000-0000-7000-8000-000000000001",
+        "surface_id": "01992000-0000-7000-8000-000000000002",
+        "stream_id": "01992000-0000-7000-8000-000000000005",
+        "partition_id": "01992000-0000-7000-8000-000000000010",
+        "run_id": "01992010-0000-7000-8000-000000000003",
+        "fetch_attempt_id": "01992010-0000-7000-8000-000000000004",
+        "admission_id": "01992000-0000-7000-8000-000000000004",
+        "scope_revision": "1",
+        "plan_id": "01992000-0000-7000-8000-000000000008",
+        "plan_revision": "1",
+        "recipe_version_id": "01992010-0000-7000-8000-000000000005",
+        "recipe_artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "extractor_version_id": "01992010-0000-7000-8000-000000000006",
+        "extractor_artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "listing_identity": {
+        "listing_id": "01992010-0000-7000-8000-000000000007",
+        "listing_namespace_id": "01992000-0000-7000-8000-000000000003",
+        "source_listing_key": "synthetic-4711",
+        "incarnation": "1"
+      },
+      "observed_at": "2026-09-07T10:10:00Z",
+      "recorded_at": "2026-09-07T10:10:01Z",
+      "capture_evidence": {
+        "kind": "not_modified",
+        "http_status": 304,
+        "validation_raw_capture_id": "01992010-0000-7000-8000-000000000008",
+        "prior_representation_raw_capture_id": "01992010-0000-7000-8000-000000000009",
+        "prior_payload_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "validated_at": "2026-09-07T10:10:00Z"
+      },
+      "presence_signal": {
+        "state": "observed_present",
+        "basis": "conditional_not_modified"
+      }
+    },
+    {
+      "record_type": "observation",
+      "schema_version": "1.0.0",
+      "observation_id": "01992020-0000-7000-8000-000000000001",
+      "observation_kind": "listing_attribute_snapshot",
+      "idempotency_key_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "sequence_scope_id": "01992010-0000-7000-8000-000000000002",
+      "seq": "43",
+      "lineage": {
+        "source_id": "01992000-0000-7000-8000-000000000001",
+        "surface_id": "01992000-0000-7000-8000-000000000002",
+        "stream_id": "01992000-0000-7000-8000-000000000005",
+        "partition_id": "01992000-0000-7000-8000-000000000010",
+        "run_id": "01992010-0000-7000-8000-000000000003",
+        "fetch_attempt_id": "01992020-0000-7000-8000-000000000002",
+        "admission_id": "01992000-0000-7000-8000-000000000004",
+        "scope_revision": "1",
+        "plan_id": "01992000-0000-7000-8000-000000000008",
+        "plan_revision": "1",
+        "recipe_version_id": "01992010-0000-7000-8000-000000000005",
+        "recipe_artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "extractor_version_id": "01992010-0000-7000-8000-000000000006",
+        "extractor_artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "listing_identity": {
+        "listing_id": "01992010-0000-7000-8000-000000000007",
+        "listing_namespace_id": "01992000-0000-7000-8000-000000000003",
+        "source_listing_key": "synthetic-4711",
+        "incarnation": "1"
+      },
+      "observed_at": "2026-09-07T10:11:00Z",
+      "recorded_at": "2026-09-07T10:11:01Z",
+      "capture_evidence": {
+        "kind": "fresh_capture",
+        "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+        "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "captured_at": "2026-09-07T10:11:00Z"
+      },
+      "snapshot_scope": {
+        "scope_contract_id": "01992020-0000-7000-8000-000000000004",
+        "scope_revision": "1",
+        "declared_field_set_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "covered_sections": [
+          "listing_identity",
+          "vehicle_core",
+          "offer_terms",
+          "publisher_and_seller",
+          "location",
+          "media"
+        ],
+        "completeness": "complete_for_declared_scope"
+      },
+      "field_assertions": [
+        {
+          "assertion_id": "01992020-0000-7000-8000-000000000005",
+          "subject": {
+            "entity_kind": "offer",
+            "entity_id": "01992020-0000-7000-8000-000000000006"
+          },
+          "field_path": "/offer/price",
+          "field_definition_id": "01992020-0000-7000-8000-000000000017",
+          "field_definition_revision": "1",
+          "field_definition_sha256": "1010101010101010101010101010101010101010101010101010101010101010",
+          "semantic_role": "offer_price",
+          "value": {
+            "state": "known",
+            "value": {
+              "value_type": "money",
+              "amount": "24990.00",
+              "currency": "EUR"
+            }
+          },
+          "context": {
+            "listing_identity": {
+              "listing_id": "01992010-0000-7000-8000-000000000007",
+              "listing_namespace_id": "01992000-0000-7000-8000-000000000003",
+              "source_listing_key": "synthetic-4711",
+              "incarnation": "1"
+            },
+            "price_kind": "asking",
+            "tax_inclusion": "not_stated",
+            "financing_condition": "unconditional",
+            "market_country": "ES",
+            "context_fingerprint_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+          },
+          "valid_time": {
+            "valid_from": "2026-09-07T10:11:00Z"
+          },
+          "recorded_at": "2026-09-07T10:11:01Z",
+          "evidence": [
+            {
+              "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+              "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "locator_kind": "json_pointer",
+              "locator": "/offer/price"
+            }
+          ],
+          "derivation": {
+            "method": "direct_extraction",
+            "rule_id": "synthetic.price",
+            "rule_version": "1.0.0",
+            "artifact_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+            "input_assertion_ids": [],
+            "confidence": 1
+          },
+          "supersedes_assertion_ids": []
+        },
+        {
+          "assertion_id": "01992020-0000-7000-8000-000000000007",
+          "subject": {
+            "entity_kind": "vehicle",
+            "entity_id": "01992020-0000-7000-8000-000000000008"
+          },
+          "field_path": "/vehicle/mileage",
+          "field_definition_id": "01992020-0000-7000-8000-000000000018",
+          "field_definition_revision": "1",
+          "field_definition_sha256": "2020202020202020202020202020202020202020202020202020202020202020",
+          "semantic_role": "vehicle_attribute",
+          "value": {
+            "state": "known",
+            "value": {
+              "value_type": "quantity",
+              "amount": "41320",
+              "unit": "km"
+            }
+          },
+          "context": {
+            "context_fingerprint_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "market_country": "ES"
+          },
+          "valid_time": {
+            "valid_from": "2026-09-07T10:11:00Z"
+          },
+          "recorded_at": "2026-09-07T10:11:01Z",
+          "evidence": [
+            {
+              "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+              "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "locator_kind": "json_pointer",
+              "locator": "/vehicle/mileage"
+            }
+          ],
+          "derivation": {
+            "method": "direct_extraction",
+            "rule_id": "synthetic.mileage",
+            "rule_version": "1.0.0",
+            "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "input_assertion_ids": [],
+            "confidence": 1
+          },
+          "supersedes_assertion_ids": []
+        },
+        {
+          "assertion_id": "01992020-0000-7000-8000-000000000009",
+          "subject": {
+            "entity_kind": "vehicle",
+            "entity_id": "01992020-0000-7000-8000-000000000008"
+          },
+          "field_path": "/vehicle/vin",
+          "field_definition_id": "01992020-0000-7000-8000-000000000019",
+          "field_definition_revision": "1",
+          "field_definition_sha256": "3030303030303030303030303030303030303030303030303030303030303030",
+          "semantic_role": "vehicle_attribute",
+          "value": {
+            "state": "unknown",
+            "reason": "not_present_in_representation"
+          },
+          "valid_time": {
+            "valid_from": "2026-09-07T10:11:00Z"
+          },
+          "recorded_at": "2026-09-07T10:11:01Z",
+          "evidence": [
+            {
+              "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+              "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "locator_kind": "whole_document",
+              "locator": "/"
+            }
+          ],
+          "derivation": {
+            "method": "direct_extraction",
+            "rule_id": "synthetic.vin_absence",
+            "rule_version": "1.0.0",
+            "artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "input_assertion_ids": [],
+            "confidence": 1
+          },
+          "supersedes_assertion_ids": []
+        },
+        {
+          "assertion_id": "01992020-0000-7000-8000-000000000010",
+          "subject": {
+            "entity_kind": "listing",
+            "entity_id": "01992010-0000-7000-8000-000000000007"
+          },
+          "field_path": "/listing/previous_owner_name",
+          "field_definition_id": "01992020-0000-7000-8000-000000000020",
+          "field_definition_revision": "1",
+          "field_definition_sha256": "4040404040404040404040404040404040404040404040404040404040404040",
+          "semantic_role": "listing_attribute",
+          "value": {
+            "state": "explicit_null"
+          },
+          "valid_time": {
+            "valid_from": "2026-09-07T10:11:00Z"
+          },
+          "recorded_at": "2026-09-07T10:11:01Z",
+          "evidence": [
+            {
+              "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+              "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "locator_kind": "json_pointer",
+              "locator": "/listing/previous_owner_name"
+            }
+          ],
+          "derivation": {
+            "method": "direct_extraction",
+            "rule_id": "synthetic.explicit_null",
+            "rule_version": "1.0.0",
+            "artifact_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "input_assertion_ids": [],
+            "confidence": 1
+          },
+          "supersedes_assertion_ids": []
+        }
+      ],
+      "relationship_assertions": [
+        {
+          "assertion_id": "01992020-0000-7000-8000-000000000021",
+          "subject": {
+            "entity_kind": "offer",
+            "entity_id": "01992020-0000-7000-8000-000000000006"
+          },
+          "predicate": "offer_presented_in_listing",
+          "object": {
+            "entity_kind": "listing",
+            "entity_id": "01992010-0000-7000-8000-000000000007"
+          },
+          "valid_time": {
+            "valid_from": "2026-09-07T10:11:00Z"
+          },
+          "recorded_at": "2026-09-07T10:11:01Z",
+          "evidence": [
+            {
+              "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+              "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "locator_kind": "whole_document",
+              "locator": "/"
+            }
+          ],
+          "derivation": {
+            "method": "direct_extraction",
+            "rule_id": "synthetic.offer_listing",
+            "rule_version": "1.0.0",
+            "artifact_sha256": "abababababababababababababababababababababababababababababababab",
+            "input_assertion_ids": [],
+            "confidence": 1
+          },
+          "supersedes_assertion_ids": []
+        },
+        {
+          "assertion_id": "01992020-0000-7000-8000-000000000011",
+          "subject": {
+            "entity_kind": "offer",
+            "entity_id": "01992020-0000-7000-8000-000000000006"
+          },
+          "predicate": "offer_offered_by",
+          "object": {
+            "entity_kind": "seller",
+            "entity_id": "01992020-0000-7000-8000-000000000012"
+          },
+          "valid_time": {
+            "valid_from": "2026-09-07T10:11:00Z"
+          },
+          "recorded_at": "2026-09-07T10:11:01Z",
+          "evidence": [
+            {
+              "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+              "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "locator_kind": "json_pointer",
+              "locator": "/seller"
+            }
+          ],
+          "derivation": {
+            "method": "direct_extraction",
+            "rule_id": "synthetic.offer_seller",
+            "rule_version": "1.0.0",
+            "artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "input_assertion_ids": [],
+            "confidence": 0.95
+          },
+          "supersedes_assertion_ids": []
+        }
+      ],
+      "address_assertions": [
+        {
+          "assertion_id": "01992020-0000-7000-8000-000000000013",
+          "subject": {
+            "entity_kind": "point_of_sale",
+            "entity_id": "01992020-0000-7000-8000-000000000014"
+          },
+          "address_id": "01992020-0000-7000-8000-000000000015",
+          "address": {
+            "original_text": "Calle Sintética 1, 28000 Madrid",
+            "language": "es",
+            "address_lines": [
+              "Calle Sintética 1"
+            ],
+            "postal_code": "28000",
+            "locality": "Madrid",
+            "country_code": "ES",
+            "administrative_areas": [
+              {
+                "level": "country_subdivision_1",
+                "label": "Comunidad de Madrid",
+                "code_system": "ISO-3166-2",
+                "code": "ES-MD"
+              }
+            ],
+            "geo": {
+              "crs": "EPSG:4326",
+              "latitude": 40.4168,
+              "longitude": -3.7038,
+              "precision": "locality",
+              "method": "source_reported"
+            }
+          },
+          "valid_time": {
+            "valid_from": "2026-09-07T10:11:00Z"
+          },
+          "recorded_at": "2026-09-07T10:11:01Z",
+          "evidence": [
+            {
+              "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+              "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "locator_kind": "json_pointer",
+              "locator": "/seller/address"
+            }
+          ],
+          "derivation": {
+            "method": "direct_extraction",
+            "rule_id": "synthetic.address",
+            "rule_version": "1.0.0",
+            "artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "input_assertion_ids": [],
+            "confidence": 0.8
+          },
+          "supersedes_assertion_ids": []
+        }
+      ],
+      "media_manifest": {
+        "coverage": "complete_for_declared_scope",
+        "ordering_asserted": true,
+        "items": [
+          {
+            "media_occurrence_id": "01992020-0000-7000-8000-000000000016",
+            "role": "exterior",
+            "position": "0",
+            "source_media_key": "image-1",
+            "locator_fingerprint_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "content": {
+              "state": "not_fetched",
+              "reason": "rights_disallow"
+            },
+            "evidence": [
+              {
+                "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+                "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+                "locator_kind": "json_pointer",
+                "locator": "/media/0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "record_type": "vehicle_profile",
+      "schema_version": "1.0.0",
+      "vehicle_id": "01992030-0000-7000-8000-000000000001",
+      "profile_revision": "1",
+      "as_of_recorded_at": "2026-09-07T10:20:00Z",
+      "taxonomy_version_id": "01992030-0000-7000-8000-000000000002",
+      "taxonomy_artifact_sha256": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+      "vehicle_class": "motorcycle",
+      "class_assertion_id": "01992030-0000-7000-8000-000000000003",
+      "serving_state": "candidate",
+      "common": {
+        "make": {
+          "value": "ExampleMoto",
+          "assertion_id": "01992030-0000-7000-8000-000000000004"
+        },
+        "model": {
+          "value": "S1",
+          "assertion_id": "01992030-0000-7000-8000-000000000005"
+        },
+        "mileage": {
+          "value": {
+            "value_type": "quantity",
+            "amount": "8120",
+            "unit": "km"
+          },
+          "assertion_id": "01992030-0000-7000-8000-000000000006"
+        },
+        "road_registration_eligibility": {
+          "value": "unknown",
+          "assertion_id": "01992030-0000-7000-8000-000000000009"
+        }
+      },
+      "extension": {
+        "extension_type": "motorcycle",
+        "motorcycle_subtype": {
+          "value": "scooter",
+          "assertion_id": "01992030-0000-7000-8000-000000000007"
+        },
+        "engine_displacement": {
+          "value": {
+            "value_type": "quantity",
+            "amount": "125",
+            "unit": "cm3"
+          },
+          "assertion_id": "01992030-0000-7000-8000-000000000008"
+        }
+      }
+    },
+    {
+      "record_type": "raw_capture",
+      "schema_version": "1.0.0",
+      "raw_capture_id": "01992040-0000-7000-8000-000000000001",
+      "lineage": {
+        "source_id": "01992000-0000-7000-8000-000000000001",
+        "surface_id": "01992000-0000-7000-8000-000000000002",
+        "stream_id": "01992000-0000-7000-8000-000000000005",
+        "partition_id": "01992000-0000-7000-8000-000000000010",
+        "run_id": "01992010-0000-7000-8000-000000000003",
+        "fetch_attempt_id": "01992040-0000-7000-8000-000000000002",
+        "admission_id": "01992000-0000-7000-8000-000000000004",
+        "scope_revision": "1",
+        "plan_id": "01992000-0000-7000-8000-000000000008",
+        "plan_revision": "1",
+        "recipe_version_id": "01992010-0000-7000-8000-000000000005",
+        "recipe_artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "captured_at": "2026-09-07T10:30:00Z",
+      "transport": "http",
+      "response_status": 200,
+      "request_fingerprint_sha256": "4141414141414141414141414141414141414141414141414141414141414141",
+      "headers_sha256": "4242424242424242424242424242424242424242424242424242424242424242",
+      "representation": {
+        "state": "stored_body",
+        "payload_sha256": "4343434343434343434343434343434343434343434343434343434343434343",
+        "byte_length": "2048",
+        "media_type": "application/json",
+        "content_encoding": "identity",
+        "storage_object_ref": "objectref:synthetic/raw/1"
+      },
+      "rights_domain_id": "01992040-0000-7000-8000-000000000003",
+      "retention_domain_id": "01992040-0000-7000-8000-000000000004",
+      "storage_security_domain_id": "01992040-0000-7000-8000-000000000005",
+      "retention_policy_ref": "policy:synthetic:raw",
+      "privacy_classification": "personal_data_possible",
+      "retention_review_at": "2026-10-07T10:30:00Z"
+    },
+    {
+      "record_type": "raw_capture",
+      "schema_version": "1.0.0",
+      "raw_capture_id": "01992040-0000-7000-8000-00000000000a",
+      "lineage": {
+        "source_id": "01992000-0000-7000-8000-000000000001",
+        "surface_id": "01992000-0000-7000-8000-000000000002",
+        "stream_id": "01992000-0000-7000-8000-000000000005",
+        "partition_id": "01992000-0000-7000-8000-000000000010",
+        "run_id": "01992010-0000-7000-8000-000000000003",
+        "fetch_attempt_id": "01992040-0000-7000-8000-00000000000b",
+        "admission_id": "01992000-0000-7000-8000-000000000004",
+        "scope_revision": "1",
+        "plan_id": "01992000-0000-7000-8000-000000000008",
+        "plan_revision": "1",
+        "recipe_version_id": "01992010-0000-7000-8000-000000000005",
+        "recipe_artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "captured_at": "2026-09-07T10:31:00Z",
+      "transport": "file_import",
+      "import_manifest_sha256": "4545454545454545454545454545454545454545454545454545454545454545",
+      "importer_ref": "importer:synthetic:authorized-export-v1",
+      "representation": {
+        "state": "stored_body",
+        "payload_sha256": "4646464646464646464646464646464646464646464646464646464646464646",
+        "byte_length": "4096",
+        "media_type": "application/x-ndjson",
+        "content_encoding": "identity",
+        "storage_object_ref": "objectref:synthetic/raw/import-1"
+      },
+      "rights_domain_id": "01992040-0000-7000-8000-000000000003",
+      "retention_domain_id": "01992040-0000-7000-8000-000000000004",
+      "storage_security_domain_id": "01992040-0000-7000-8000-000000000005",
+      "retention_policy_ref": "policy:synthetic:authorized-export",
+      "privacy_classification": "restricted",
+      "retention_review_at": "2026-10-07T10:31:00Z"
+    },
+    {
+      "record_type": "raw_disposition_event",
+      "schema_version": "1.0.0",
+      "disposition_event_id": "01992040-0000-7000-8000-000000000006",
+      "raw_capture_id": "01992040-0000-7000-8000-000000000001",
+      "action": "privacy_deleted",
+      "reason_code": "privacy.synthetic_request",
+      "policy_ref": "policy:synthetic:privacy",
+      "authority_ref": "authority:synthetic:reviewer",
+      "effective_at": "2026-09-08T09:00:00Z",
+      "recorded_at": "2026-09-08T09:00:01Z",
+      "purge_derivatives": true,
+      "supersedes_disposition_event_ids": []
+    },
+    {
+      "record_type": "identity_resolution_decision",
+      "schema_version": "1.0.0",
+      "decision_id": "01992050-0000-7000-8000-000000000001",
+      "action": "assign",
+      "status": "proposed",
+      "input_vehicle_ids": [],
+      "output_vehicle_ids": [
+        "01992050-0000-7000-8000-000000000002"
+      ],
+      "membership_changes": [
+        {
+          "listing_id": "01992010-0000-7000-8000-000000000007",
+          "operation": "assign",
+          "to_vehicle_id": "01992050-0000-7000-8000-000000000002"
+        }
+      ],
+      "signals": [
+        {
+          "signal_id": "01992050-0000-7000-8000-000000000003",
+          "signal_type": "source_listing_continuity",
+          "polarity": "supports",
+          "signal_value_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "evidence": [
+            {
+              "raw_capture_id": "01992020-0000-7000-8000-000000000003",
+              "payload_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "locator_kind": "whole_document",
+              "locator": "/",
+              "origin_claim_id": "01992050-0000-7000-8000-000000000004",
+              "dependency_group_id": "01992050-0000-7000-8000-000000000005",
+              "syndication_assertion_ids": []
+            }
+          ]
+        }
+      ],
+      "confidence": 0.7,
+      "policy_id": "01992050-0000-7000-8000-000000000006",
+      "policy_revision": "1",
+      "policy_artifact_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+      "actor_type": "automated",
+      "actor_ref": "agent:synthetic:identity-proposer",
+      "recorded_at": "2026-09-07T10:40:00Z",
+      "supersedes_decision_ids": []
+    },
+    {
+      "record_type": "field_divergence",
+      "schema_version": "1.0.0",
+      "divergence_id": "01992060-0000-7000-8000-000000000001",
+      "subject": {
+        "entity_kind": "vehicle",
+        "entity_id": "01992020-0000-7000-8000-000000000008"
+      },
+      "field_path": "/vehicle/mileage",
+      "context_fingerprint_sha256": "6161616161616161616161616161616161616161616161616161616161616161",
+      "assertion_ids": [
+        "01992020-0000-7000-8000-000000000007",
+        "01992060-0000-7000-8000-000000000002"
+      ],
+      "status": "unresolved_conflict",
+      "detected_at": "2026-09-07T10:50:00Z",
+      "resolution_policy_revision": "1"
+    },
+    {
+      "record_type": "vehicle_profile",
+      "schema_version": "1.0.0",
+      "vehicle_id": "01992070-0000-7000-8000-000000000001",
+      "profile_revision": "1",
+      "as_of_recorded_at": "2026-09-07T11:00:00Z",
+      "taxonomy_version_id": "01992030-0000-7000-8000-000000000002",
+      "taxonomy_artifact_sha256": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+      "vehicle_class": "car",
+      "class_assertion_id": "01992070-0000-7000-8000-000000000002",
+      "serving_state": "eligible",
+      "common": {},
+      "extension": {
+        "extension_type": "car"
+      }
+    },
+    {
+      "record_type": "vehicle_profile",
+      "schema_version": "1.0.0",
+      "vehicle_id": "01992070-0000-7000-8000-000000000003",
+      "profile_revision": "1",
+      "as_of_recorded_at": "2026-09-07T11:00:00Z",
+      "taxonomy_version_id": "01992030-0000-7000-8000-000000000002",
+      "taxonomy_artifact_sha256": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+      "vehicle_class": "lcv",
+      "class_assertion_id": "01992070-0000-7000-8000-000000000004",
+      "serving_state": "candidate",
+      "common": {},
+      "extension": {
+        "extension_type": "lcv"
+      }
+    },
+    {
+      "record_type": "vehicle_profile",
+      "schema_version": "1.0.0",
+      "vehicle_id": "01992070-0000-7000-8000-000000000005",
+      "profile_revision": "1",
+      "as_of_recorded_at": "2026-09-07T11:00:00Z",
+      "taxonomy_version_id": "01992030-0000-7000-8000-000000000002",
+      "taxonomy_artifact_sha256": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+      "vehicle_class": "motorhome",
+      "class_assertion_id": "01992070-0000-7000-8000-000000000006",
+      "serving_state": "candidate",
+      "common": {},
+      "extension": {
+        "extension_type": "motorhome",
+        "motorhome_subtype": {
+          "value": "campervan",
+          "assertion_id": "01992070-0000-7000-8000-000000000007"
+        }
+      }
+    },
+    {
+      "record_type": "vehicle_profile",
+      "schema_version": "1.0.0",
+      "vehicle_id": "01992070-0000-7000-8000-000000000008",
+      "profile_revision": "1",
+      "as_of_recorded_at": "2026-09-07T11:00:00Z",
+      "taxonomy_version_id": "01992030-0000-7000-8000-000000000002",
+      "taxonomy_artifact_sha256": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+      "vehicle_class": "unknown",
+      "class_assertion_id": "01992070-0000-7000-8000-000000000009",
+      "serving_state": "quarantined",
+      "common": {},
+      "extension": {
+        "extension_type": "unknown",
+        "quarantine_reason": "ambiguous_mapping",
+        "raw_class_label": "Synthetic utility vehicle",
+        "candidate_classes": [
+          "car",
+          "lcv"
+        ]
+      }
+    }
+  ]
+}
