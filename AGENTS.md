@@ -4,7 +4,9 @@ Usa `CLAUDE.md` en este mismo directorio como guía operativa de alta prioridad,
 
 ## Aislamiento obligatorio
 
-Cardeex es totalmente independiente de Cardex y Cardeep. Está prohibido leerlos como contexto del proyecto, copiar o adaptar sus archivos, importar sus datos o recetas, reutilizar sus grafos, o inferir que una decisión tomada allí aplica aquí. Solo Elias puede autorizar una comparación concreta y explícita en una petición futura.
+Cardeex es totalmente independiente de Cardex y Cardeep. Desde el 7 de septiembre de 2026, Elias autoriza consultar ambos proyectos en modo de solo lectura como fuentes históricas comparativas durante investigación y auditoría.
+
+Esa consulta no crea herencia: cada hallazgo debe conservar su procedencia, contrastarse de nuevo y aprobarse expresamente antes de convertirse en una decisión de Cardeex. Sigue prohibido copiar o adaptar código, datos, recetas, memorias o grafos, modificar los proyectos legado, o inferir que una decisión tomada allí aplica aquí.
 
 La coincidencia de nombres, dominio o propósito no constituye autorización para mezclar proyectos.
 

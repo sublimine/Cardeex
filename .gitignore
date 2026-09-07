@@ -1,7 +1,6 @@
-# Estado local de Obsidian
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-.obsidian/cache/
+# Estado local de Obsidian; app.json es la única configuración versionada
+.obsidian/*
+!.obsidian/app.json
 .trash/
 
 # Artefactos regenerables de Graphify
