@@ -1,0 +1,544 @@
+{
+  "schema_version": "1.0.0",
+  "country": "BE",
+  "name": "België / Belgique / Belgien",
+  "languages": [
+    "nl",
+    "fr",
+    "de"
+  ],
+  "vehicle_classes": [
+    "car",
+    "lcv",
+    "motorcycle",
+    "motorhome"
+  ],
+  "geography": {
+    "code_system": "Statbel REFNIS / NIS",
+    "unit_name": "gemeente / commune / Gemeinde",
+    "catalogue_url": "https://statbel.fgov.be/fr/open-data/code-refnis-0",
+    "notes": "Use dated five-digit REFNIS for current communes with province/arrondissement/region, and NIS6 only as a distinct submunicipality namespace. Retain 2024/2025 merger aliases. Brussels bilingual names, Flanders, Wallonia, German-speaking eastern communes, rural Ardennes and the coast need explicit strata. Border trade with FR/NL/DE/LU requires independent market and POS-country evidence; .be and language do not prove country."
+  },
+  "strategies": [
+    {
+      "id": "be_kbo_open_data_pending",
+      "family": "official_registry",
+      "evidence_group": "be_kbo",
+      "priority": 90,
+      "access_mode": "permission_required",
+      "source_type": "unknown",
+      "source_ids": [
+        "kbo_reuse",
+        "kbo_registration"
+      ],
+      "seed_urls": [
+        "https://kbopub.economie.fgov.be/kbo-open-data/login?lang=fr"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} vestigingseenheid KBO"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} unité établissement BCE"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Unternehmen ZDU"
+        ]
+      },
+      "notes": "Free Open Data is the proposed registry route, but registration and permitted-field/use admission are pending. Preserve enterprise and establishment-unit identities separately and activity-code vintage; neither proves current digital stock. Do not create accounts or use paid web services.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "be_publicsearch_limited",
+      "family": "official_registry",
+      "evidence_group": "be_kbo",
+      "priority": 15,
+      "access_mode": "permission_required",
+      "source_type": "unknown",
+      "source_ids": [
+        "publicsearch",
+        "kbo_reuse"
+      ],
+      "seed_urls": [
+        "https://economie.fgov.be/fr/themes/entreprises/banque-carrefour-des/services-pour-tous/consultation-et-recherche-de"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} KBO Public Search"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} BCE Public Search"
+        ]
+      },
+      "notes": "Public Search consultation is not the reusable Open Data route. Human-verification challenge remains respected; no bulk scraping. This is correlated with the KBO extract, not independent evidence of completeness.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "be_refnis_local_extract",
+      "family": "geo_directory",
+      "evidence_group": "osm",
+      "priority": 90,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "refnis",
+        "mergers",
+        "osm_license",
+        "nominatim_policy"
+      ],
+      "seed_urls": [
+        "https://statbel.fgov.be/fr/open-data/code-refnis-0",
+        "https://statbel.fgov.be/nl/over-statbel/methodologie/classificaties/geografie"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} industriezone"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} zone artisanale"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Gewerbegebiet"
+        ]
+      },
+      "notes": "Plan current and merged-locality names, including the German-speaking area and rural Ardennes. Licensed local OSM retail/repair POIs may supplement the grid; no public Nominatim systematic queries. Stock remains unknown until evidenced.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "be_traxio_sector_routes",
+      "family": "trade_directory",
+      "evidence_group": "be_traxio",
+      "priority": 85,
+      "access_mode": "public_web",
+      "source_type": "unknown",
+      "source_ids": [
+        "traxio"
+      ],
+      "seed_urls": [
+        "https://www.traxio.be/fr/secteurs-professionnels"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} TRAXIO IMCOBEL"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} TRAXIO indépendant"
+        ],
+        "de": [
+          "{locality} {vehicle_term} TRAXIO"
+        ]
+      },
+      "notes": "Follow official sector links for independent garages and authorised distribution. Sector pages are not themselves all member records; each directory discovered needs access review. Nonmembers and tiny independents stay eligible.",
+      "vehicle_classes": [
+        "car",
+        "lcv"
+      ]
+    },
+    {
+      "id": "be_federmoto_route",
+      "family": "trade_directory",
+      "evidence_group": "be_traxio",
+      "priority": 85,
+      "access_mode": "public_web",
+      "source_type": "unknown",
+      "source_ids": [
+        "traxio"
+      ],
+      "seed_urls": [
+        "https://www.traxio.be/fr/secteurs-professionnels"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} FEDERMOTO"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} FEDERMOTO"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Motorradhändler"
+        ]
+      },
+      "notes": "Motorcycle-specific sector entry prevents the car trade directory from standing in for all classes. FEDERMOTO covers category-L activities beyond current scope; quads/tricycles are not silently admitted.",
+      "vehicle_classes": [
+        "motorcycle"
+      ]
+    },
+    {
+      "id": "be_renault_network",
+      "family": "manufacturer_network",
+      "evidence_group": "oem_renault",
+      "priority": 80,
+      "access_mode": "public_web",
+      "source_type": "manufacturer_inventory",
+      "source_ids": [
+        "renault"
+      ],
+      "seed_urls": [
+        "https://fr.renault.be/trouvez-votre-concessionnaire.html?ds_url_v=2"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} Renault dealer occasies"
+        ],
+        "fr": [
+          "{locality} Renault concessionnaire occasion"
+        ],
+        "de": [
+          "{locality} Renault Händler"
+        ]
+      },
+      "notes": "Check Belgium versus Luxembourg outlet locations individually, preserve bilingual aliases and service-only flags. Manufacturer network coverage is partial and independent dealerships need other routes.",
+      "vehicle_classes": [
+        "car",
+        "lcv"
+      ]
+    },
+    {
+      "id": "be_autoscout",
+      "family": "marketplace",
+      "evidence_group": "be_autoscout",
+      "priority": 75,
+      "access_mode": "manual_review",
+      "source_type": "marketplace",
+      "source_ids": [
+        "autoscout"
+      ],
+      "seed_urls": [
+        "https://www.autoscout24.be/"
+      ],
+      "query_templates": {
+        "nl": [
+          "site:autoscout24.be {locality} {vehicle_term} verkoper"
+        ],
+        "fr": [
+          "site:autoscout24.be {locality} {vehicle_term} professionnel"
+        ],
+        "de": [
+          "site:autoscout24.be {locality} {vehicle_term} Händler"
+        ]
+      },
+      "notes": "Keep seller accounts, entity/POS hypotheses and language surfaces separate. Limited research response proves neither absence nor automated access; specific category coverage needs evidence.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle"
+      ]
+    },
+    {
+      "id": "be_classifieds_tail",
+      "family": "marketplace",
+      "evidence_group": "be_2dehands",
+      "priority": 80,
+      "access_mode": "manual_review",
+      "source_type": "classifieds",
+      "source_ids": [
+        "classifieds"
+      ],
+      "seed_urls": [
+        "https://www.2dehands.be/"
+      ],
+      "query_templates": {
+        "nl": [
+          "site:2dehands.be {locality} {vehicle_term} handelaar"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} professionnel 2ememain"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Belgien gewerblich"
+        ]
+      },
+      "notes": "Complement specialist portals with whole-vehicle and camper classifieds. 2dehands/2ememain language labels do not create independent populations; private accounts are not automatically POS. No minimum stock rule.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "be_local_bilingual",
+      "family": "local_search",
+      "evidence_group": "be_pagesdor",
+      "priority": 85,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "pagesdor"
+      ],
+      "seed_urls": [
+        "https://www.pagesdor.be/"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} garage",
+          "{locality} schadevoertuigen compleet"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} garage",
+          "{locality} véhicules accidentés complets vente"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Garage"
+        ]
+      },
+      "notes": "Search official multilingual names and old municipality aliases while retaining one candidate evidence trail. Prioritise rural and low-observation localities without minimum ratings or stock.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "be_web_index",
+      "family": "web_index",
+      "evidence_group": "commoncrawl",
+      "priority": 85,
+      "access_mode": "manual_review",
+      "source_type": "dealer_owned",
+      "source_ids": [
+        "commoncrawl"
+      ],
+      "seed_urls": [
+        "https://index.commoncrawl.org/"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} onze voorraad"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} notre stock"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Fahrzeugbestand"
+        ]
+      },
+      "notes": "Search owned and hosted dealership stock in three languages, including motorhome independents. Archive URLs only corroborate historical discovery; full-text recipes are not Common Crawl API requests. Domain/translation equality does not merge outlets.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "be_social_public",
+      "family": "social_public",
+      "evidence_group": "meta_public",
+      "priority": 55,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "meta_policy"
+      ],
+      "seed_urls": [
+        "https://about.fb.com/news/2021/04/how-we-combat-scraping/"
+      ],
+      "query_templates": {
+        "nl": [
+          "site:facebook.com {locality} {vehicle_term} handelaar"
+        ],
+        "fr": [
+          "site:facebook.com {locality} {vehicle_term} garage"
+        ],
+        "de": [
+          "site:facebook.com {locality} {vehicle_term} Garage"
+        ]
+      },
+      "notes": "Manual public professional referrals for web-less micro sellers, respecting login walls and automated-collection restrictions. Preserve language and claimed geography as evidence, never identity proof.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    }
+  ],
+  "vocabulary": {
+    "nl": {
+      "car": [
+        "occasions",
+        "autobedrijf",
+        "tweedehands auto's"
+      ],
+      "lcv": [
+        "bestelwagens",
+        "bedrijfswagens tot 3500 kg"
+      ],
+      "motorcycle": [
+        "motorfietsen",
+        "motoroccasions",
+        "scooters"
+      ],
+      "motorhome": [
+        "campers",
+        "kampeerauto's"
+      ]
+    },
+    "fr": {
+      "car": [
+        "voitures d'occasion",
+        "garage automobile",
+        "négociant automobile"
+      ],
+      "lcv": [
+        "utilitaires d'occasion",
+        "fourgonnettes"
+      ],
+      "motorcycle": [
+        "motos d'occasion",
+        "scooters"
+      ],
+      "motorhome": [
+        "camping-cars d'occasion",
+        "fourgons aménagés",
+        "vans aménagés"
+      ]
+    },
+    "de": {
+      "car": [
+        "Gebrauchtwagen",
+        "Autohandel",
+        "Autohaus"
+      ],
+      "lcv": [
+        "Transporter gebraucht",
+        "leichte Nutzfahrzeuge"
+      ],
+      "motorcycle": [
+        "Motorräder gebraucht",
+        "Motorroller"
+      ],
+      "motorhome": [
+        "Wohnmobile gebraucht",
+        "Reisemobile",
+        "Camper"
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "refnis",
+      "url": "https://statbel.fgov.be/fr/open-data/code-refnis-0",
+      "title": "Statbel: REFNIS geography codes",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official region/province/arrondissement/commune code catalogue, with a 2025 edition on the checked page."
+    },
+    {
+      "id": "mergers",
+      "url": "https://statbel.fgov.be/nl/over-statbel/methodologie/classificaties/geografie",
+      "title": "Statbel: municipality mergers and NIS codes",
+      "checked_at": "2026-09-07",
+      "access_notes": "Explicit 2024/2025 merger/code changes and submunicipality NIS6 references. Use temporal aliases, not stale municipality names as separate current places."
+    },
+    {
+      "id": "kbo_reuse",
+      "url": "https://economie.fgov.be/nl/themas/ondernemingen/kruispuntbank-van/diensten-voor-iedereen/hergebruik-van-publieke",
+      "title": "FPS Economy: reuse routes for CBE/KBO",
+      "checked_at": "2026-09-07",
+      "access_notes": "Free Open Data CSVs are distinct from paid Public Search Webservices and broader licensed files. No paid route enabled."
+    },
+    {
+      "id": "kbo_registration",
+      "url": "https://kbopub.economie.fgov.be/kbo-open-data/login?lang=fr",
+      "title": "BCE Open Data: registration entry",
+      "checked_at": "2026-09-07",
+      "access_notes": "Free Open Data delivery requires registration details. No account is created by this system; execution remains pending authorization and field/use review."
+    },
+    {
+      "id": "publicsearch",
+      "url": "https://economie.fgov.be/fr/themes/entreprises/banque-carrefour-des/services-pour-tous/consultation-et-recherche-de",
+      "title": "FPS Economy: Public Search consultation",
+      "checked_at": "2026-09-07",
+      "access_notes": "Consultation and licensed reuse are separate surfaces. Recheck current terms; research revisit encountered a human-verification challenge and was not bypassed."
+    },
+    {
+      "id": "traxio",
+      "url": "https://www.traxio.be/fr/secteurs-professionnels",
+      "title": "TRAXIO: professional sectors",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official sector entry points include ADAR, FEDERMOTO and IMCOBEL. These are discovery routes, not a verified downloadable member census."
+    },
+    {
+      "id": "renault",
+      "url": "https://fr.renault.be/trouvez-votre-concessionnaire.html?ds_url_v=2",
+      "title": "Renault Belgique: dealer locator",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official locality locator observed; Belgium/Luxembourg branding makes per-location country checks necessary."
+    },
+    {
+      "id": "autoscout",
+      "url": "https://www.autoscout24.be/",
+      "title": "AutoScout24 Belgium",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public locale entry observed; response has little content. Surface access, seller classification and class support require review."
+    },
+    {
+      "id": "classifieds",
+      "url": "https://www.2dehands.be/",
+      "title": "2dehands: Belgian classifieds",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public classifieds observed; mixed professional/private and vehicle/parts classes. French and Dutch labels may refer to the same platform evidence."
+    },
+    {
+      "id": "pagesdor",
+      "url": "https://www.pagesdor.be/",
+      "title": "Pagesdor: Belgian local businesses",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public local directory observed. Bilingual names and paid/service listings require identity and activity evidence."
+    },
+    {
+      "id": "osm_license",
+      "url": "https://www.openstreetmap.org/copyright",
+      "title": "OpenStreetMap copyright and licence",
+      "checked_at": "2026-09-07",
+      "access_notes": "ODbL and attribution obligations must be assessed before use of a dated local extract; no country completeness claim."
+    },
+    {
+      "id": "nominatim_policy",
+      "url": "https://operations.osmfoundation.org/policies/nominatim/",
+      "title": "OSMF public Nominatim usage policy",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public Nominatim forbids systematic locality/grid/all-POI queries. It is not an exhaustive discovery backend."
+    },
+    {
+      "id": "commoncrawl",
+      "url": "https://index.commoncrawl.org/",
+      "title": "Common Crawl URL index",
+      "checked_at": "2026-09-07",
+      "access_notes": "Free URL archive index, not full-text search. Bound exact-domain lookups; bulk filtering belongs on local index data with resource budget. Archive results are historical leads."
+    },
+    {
+      "id": "meta_policy",
+      "url": "https://about.fb.com/news/2021/04/how-we-combat-scraping/",
+      "title": "Meta explanation of automated collection restrictions",
+      "checked_at": "2026-09-07",
+      "access_notes": "Prior permission is required for automated collection. This channel is manual public business-page lead review only, without account creation or login bypass."
+    }
+  ],
+  "blind_spots": [
+    "Free KBO/BCE Open Data needs registration; paid Public Search Webservices and broader commercial files are outside execution. Public Search is not an open bulk substitute.",
+    "Legal enterprises and establishment units are distinct; active registry status or an activity code does not prove a selling POS.",
+    "Merged communes and bilingual Brussels/Flemish/Walloon aliases can both hide and duplicate leads; German-speaking eastern communities need their own queries.",
+    "Rural Ardennes, coastal localities and border exporters must remain visible when missing from locality imports.",
+    "TRAXIO and OEM channels omit nonmembers; motorhome independent/conversion and social-only sellers especially need local search.",
+    "One-vehicle and unknown-stock sellers remain eligible; three languages, public URLs and memberships do not establish complete country coverage."
+  ],
+  "review_days": 90
+}

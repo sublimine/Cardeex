@@ -1,0 +1,495 @@
+{
+  "schema_version": "1.0.0",
+  "country": "ES",
+  "name": "España",
+  "languages": [
+    "es",
+    "ca",
+    "eu",
+    "gl"
+  ],
+  "vehicle_classes": [
+    "car",
+    "lcv",
+    "motorcycle",
+    "motorhome"
+  ],
+  "geography": {
+    "code_system": "INE municipality 5-digit",
+    "unit_name": "municipio",
+    "catalogue_url": "https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736177031&idp=1254735976614&menu=ultiDatos",
+    "notes": "Use versioned INE municipality codes as strings, province and autonomous community context, plus locality aliases and rural population nuclei. Explicit strata: peninsular rural municipalities, Balearic Islands, Canary Islands, Ceuta and Melilla; retain cross-border market claims separately from POS address. Municipality is not postcode; do not infer Spain from .es or Spanish."
+  },
+  "strategies": [
+    {
+      "id": "es_borme",
+      "family": "official_registry",
+      "evidence_group": "es_boe",
+      "priority": 60,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "borme"
+      ],
+      "seed_urls": [
+        "https://www.boe.es/diario_borme/"
+      ],
+      "query_templates": {
+        "es": [
+          "{locality} compraventa vehículos BORME",
+          "{locality} {vehicle_term} sociedad"
+        ]
+      },
+      "notes": "Review notices for new legal names and changes; link observed legal-entity candidates with evidence. Corporate object does not establish live sales, a POS or stock. Missing sole traders require independent channels.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "es_geo_local_extract",
+      "family": "geo_directory",
+      "evidence_group": "osm",
+      "priority": 80,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "ine",
+        "osm_license",
+        "nominatim_policy"
+      ],
+      "seed_urls": [
+        "https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736177031&idp=1254735976614&menu=ultiDatos",
+        "https://www.openstreetmap.org/copyright"
+      ],
+      "query_templates": {
+        "es": [
+          "{locality} {vehicle_term} taller venta"
+        ],
+        "ca": [
+          "{locality} {vehicle_term} taller"
+        ],
+        "eu": [
+          "{locality} {vehicle_term} salmenta"
+        ],
+        "gl": [
+          "{locality} {vehicle_term} venda"
+        ]
+      },
+      "notes": "Plan each official municipality, including islands and small settlements; evaluate admitted local OSM extracts for shop=car, motorcycle and relevant repair/retail POIs. No public Nominatim sweep. Workshop and wrecking-yard leads need evidence of whole vehicles for sale.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "es_aseicar",
+      "family": "trade_directory",
+      "evidence_group": "es_aseicar",
+      "priority": 90,
+      "access_mode": "public_web",
+      "source_type": "unknown",
+      "source_ids": [
+        "aseicar"
+      ],
+      "seed_urls": [
+        "https://aseicar.org/asociacion/"
+      ],
+      "query_templates": {
+        "es": [
+          "{locality} {vehicle_term} ASEICAR"
+        ],
+        "ca": [
+          "{locality} {vehicle_term} ASEICAR"
+        ]
+      },
+      "notes": "Follow public association member links after per-surface admission; separate rental-only firms, caravan-only businesses and motorhome sellers. Nonmembers and home-based converters remain an explicit gap.",
+      "vehicle_classes": [
+        "motorhome"
+      ]
+    },
+    {
+      "id": "es_ganvam_limited",
+      "family": "trade_directory",
+      "evidence_group": "es_ganvam",
+      "priority": 25,
+      "access_mode": "permission_required",
+      "source_type": "unknown",
+      "source_ids": [
+        "ganvam"
+      ],
+      "seed_urls": [
+        "https://ganvam.es/afiliados/utilidades/"
+      ],
+      "query_templates": {
+        "es": [
+          "{locality} {vehicle_term} GANVAM asociación provincial"
+        ]
+      },
+      "notes": "Visible restricted channel. Affiliate utilities are not assumed public or free. Public provincial association links may be researched independently; do not sign up or purchase.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "es_seat_network",
+      "family": "manufacturer_network",
+      "evidence_group": "oem_seat",
+      "priority": 85,
+      "access_mode": "public_web",
+      "source_type": "manufacturer_inventory",
+      "source_ids": [
+        "seat"
+      ],
+      "seed_urls": [
+        "https://www.seat.es/red-de-concesionarios-seat/listado-concesionarios"
+      ],
+      "query_templates": {
+        "es": [
+          "{locality} concesionario SEAT"
+        ],
+        "ca": [
+          "{locality} concessionari SEAT"
+        ]
+      },
+      "notes": "Use the explicit provincial list to discover branches including islands, then classify their owned sites. One brand is a starting network, not the full market; independent and other-brand dealers require their own channels.",
+      "vehicle_classes": [
+        "car"
+      ]
+    },
+    {
+      "id": "es_coches_portal",
+      "family": "marketplace",
+      "evidence_group": "es_coches_motos",
+      "priority": 70,
+      "access_mode": "manual_review",
+      "source_type": "marketplace",
+      "source_ids": [
+        "coches"
+      ],
+      "seed_urls": [
+        "https://www.coches.net/concesionarios/"
+      ],
+      "query_templates": {
+        "es": [
+          "site:coches.net {locality} {vehicle_term} concesionario"
+        ]
+      },
+      "notes": "Blocked research fetch remains visible. If permitted review succeeds, preserve source, publisher and possible seller separately; never infer POS solely from a publisher account.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "es_motos_portal",
+      "family": "marketplace",
+      "evidence_group": "es_coches_motos",
+      "priority": 70,
+      "access_mode": "manual_review",
+      "source_type": "marketplace",
+      "source_ids": [
+        "motos"
+      ],
+      "seed_urls": [
+        "https://www.motos.net/"
+      ],
+      "query_templates": {
+        "es": [
+          "site:motos.net {locality} {vehicle_term} profesional"
+        ]
+      },
+      "notes": "Motorcycle-specific route retained despite 403. No anti-bot bypass, automated campaign or inventory proof.",
+      "vehicle_classes": [
+        "motorcycle"
+      ]
+    },
+    {
+      "id": "es_local_directories",
+      "family": "local_search",
+      "evidence_group": "es_beedigital",
+      "priority": 75,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "yellow"
+      ],
+      "seed_urls": [
+        "https://www.paginasamarillas.es/"
+      ],
+      "query_templates": {
+        "es": [
+          "{locality} {vehicle_term} compraventa",
+          "{locality} desguace vehículos completos"
+        ],
+        "ca": [
+          "{locality} {vehicle_term} compravenda"
+        ],
+        "eu": [
+          "{locality} {vehicle_term} salmenta"
+        ],
+        "gl": [
+          "{locality} {vehicle_term} compravenda"
+        ]
+      },
+      "notes": "Rotate locality and regional-language terms, include industrial estates and small repair shops with sales. Directory hits are leads; no minimum stock, ratings or review-count threshold.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "es_web_index",
+      "family": "web_index",
+      "evidence_group": "commoncrawl",
+      "priority": 80,
+      "access_mode": "manual_review",
+      "source_type": "dealer_owned",
+      "source_ids": [
+        "commoncrawl"
+      ],
+      "seed_urls": [
+        "https://index.commoncrawl.org/"
+      ],
+      "query_templates": {
+        "es": [
+          "{locality} {vehicle_term} stock",
+          "{locality} vehículos completos siniestrados venta"
+        ],
+        "ca": [
+          "{locality} {vehicle_term} estoc"
+        ],
+        "eu": [
+          "{locality} {vehicle_term} salmenta"
+        ],
+        "gl": [
+          "{locality} {vehicle_term} dispoñibles"
+        ]
+      },
+      "notes": "Authored search recipes for independent dealer websites; Common Crawl is only a historical URL cross-check of candidate domains, not a full-text query API. Include .com and hosted subpaths; lexical/TLD signals do not prove market country.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "es_social_public",
+      "family": "social_public",
+      "evidence_group": "meta_public",
+      "priority": 55,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "meta_policy"
+      ],
+      "seed_urls": [
+        "https://about.fb.com/news/2021/04/how-we-combat-scraping/"
+      ],
+      "query_templates": {
+        "es": [
+          "site:facebook.com {locality} {vehicle_term} compraventa",
+          "site:instagram.com {locality} {vehicle_term}"
+        ],
+        "ca": [
+          "site:facebook.com {locality} {vehicle_term}"
+        ],
+        "eu": [
+          "site:facebook.com {locality} {vehicle_term}"
+        ],
+        "gl": [
+          "site:facebook.com {locality} {vehicle_term}"
+        ]
+      },
+      "notes": "Public professional-page referrals can reveal tiny web-less sellers. Manually review admissible business signals only; login walls stay blocked and private profiles are not dealer censuses.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    }
+  ],
+  "vocabulary": {
+    "es": {
+      "car": [
+        "coches de ocasión",
+        "compraventa de coches",
+        "vehículos usados"
+      ],
+      "lcv": [
+        "furgonetas de ocasión",
+        "vehículos comerciales ligeros"
+      ],
+      "motorcycle": [
+        "motos de ocasión",
+        "motocicletas usadas",
+        "scooters"
+      ],
+      "motorhome": [
+        "autocaravanas de ocasión",
+        "campers de segunda mano"
+      ]
+    },
+    "ca": {
+      "car": [
+        "cotxes d'ocasió",
+        "compravenda de cotxes"
+      ],
+      "lcv": [
+        "furgonetes d'ocasió",
+        "vehicles comercials lleugers"
+      ],
+      "motorcycle": [
+        "motos d'ocasió",
+        "motocicletes"
+      ],
+      "motorhome": [
+        "autocaravanes d'ocasió",
+        "campers"
+      ]
+    },
+    "eu": {
+      "car": [
+        "bigarren eskuko autoak",
+        "auto salmenta"
+      ],
+      "lcv": [
+        "furgonetak",
+        "ibilgailu komertzialak"
+      ],
+      "motorcycle": [
+        "motozikletak",
+        "bigarren eskuko motoak"
+      ],
+      "motorhome": [
+        "autokarabanak",
+        "camper furgonetak"
+      ]
+    },
+    "gl": {
+      "car": [
+        "coches de ocasión",
+        "compravenda de coches"
+      ],
+      "lcv": [
+        "furgonetas de ocasión",
+        "vehículos comerciais lixeiros"
+      ],
+      "motorcycle": [
+        "motos de ocasión",
+        "motocicletas"
+      ],
+      "motorhome": [
+        "autocaravanas de ocasión",
+        "furgonetas camper"
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "ine",
+      "url": "https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736177031&idp=1254735976614&menu=ultiDatos",
+      "title": "INE: relación de municipios y sus códigos por provincias",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official territorial reference, including intrayear changes; geography does not enumerate sellers."
+    },
+    {
+      "id": "borme",
+      "url": "https://www.boe.es/diario_borme/",
+      "title": "BOE: Boletín Oficial del Registro Mercantil",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public official business notices, useful for names and changes; not a complete establishment or sole-trader directory. Review reuse and personal-data fields."
+    },
+    {
+      "id": "aseicar",
+      "url": "https://aseicar.org/asociacion/",
+      "title": "ASEICAR: association and members listing entry",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public association entry links member discovery; membership is partial and does not prove motorised stock. No membership or private area purchased."
+    },
+    {
+      "id": "ganvam",
+      "url": "https://ganvam.es/afiliados/utilidades/",
+      "title": "GANVAM: affiliate utilities",
+      "checked_at": "2026-09-07",
+      "access_notes": "Affiliate services are not a free open bulk directory; keep as permission-required route without paid access."
+    },
+    {
+      "id": "seat",
+      "url": "https://www.seat.es/red-de-concesionarios-seat/listado-concesionarios",
+      "title": "SEAT: provincial dealer list",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official brand directory explicitly names island and rural outlets; dealership/service distinction and stock require further evidence."
+    },
+    {
+      "id": "coches",
+      "url": "https://www.coches.net/concesionarios/",
+      "title": "coches.net: dealer directory lead",
+      "checked_at": "2026-09-07",
+      "access_notes": "Research request returned HTTP 405; path is a lead with access unverified, not an executable or admitted connector."
+    },
+    {
+      "id": "motos",
+      "url": "https://www.motos.net/",
+      "title": "motos.net: motorcycle portal lead",
+      "checked_at": "2026-09-07",
+      "access_notes": "Research request returned HTTP 403; retain visible for manual access assessment, never bypass the block."
+    },
+    {
+      "id": "yellow",
+      "url": "https://www.paginasamarillas.es/",
+      "title": "Páginas Amarillas: local business directory",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public locality/category search exists. Extraction/reuse permission is unverified; paid placements, stale rows and service-only workshops cause bias."
+    },
+    {
+      "id": "osm_license",
+      "url": "https://www.openstreetmap.org/copyright",
+      "title": "OpenStreetMap copyright and licence",
+      "checked_at": "2026-09-07",
+      "access_notes": "ODbL and attribution obligations must be assessed before use of a dated local extract; no country completeness claim."
+    },
+    {
+      "id": "nominatim_policy",
+      "url": "https://operations.osmfoundation.org/policies/nominatim/",
+      "title": "OSMF public Nominatim usage policy",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public Nominatim forbids systematic locality/grid/all-POI queries. It is not an exhaustive discovery backend."
+    },
+    {
+      "id": "commoncrawl",
+      "url": "https://index.commoncrawl.org/",
+      "title": "Common Crawl URL index",
+      "checked_at": "2026-09-07",
+      "access_notes": "Free URL archive index, not full-text search. Bound exact-domain lookups; bulk filtering belongs on local index data with resource budget. Archive results are historical leads."
+    },
+    {
+      "id": "meta_policy",
+      "url": "https://about.fb.com/news/2021/04/how-we-combat-scraping/",
+      "title": "Meta explanation of automated collection restrictions",
+      "checked_at": "2026-09-07",
+      "access_notes": "Prior permission is required for automated collection. This channel is manual public business-page lead review only, without account creation or login bypass."
+    }
+  ],
+  "blind_spots": [
+    "Rural nuclei and industrial estates can share municipality names while hosting different POS; absent online listings do not mean no business.",
+    "Canary/Balearic islands and Ceuta/Melilla require explicit locality lists and independent access checks, not extrapolation from mainland results.",
+    "Basque, Catalan/Valencian and Galician spelling variants need reviewed aliases; vocabulary here is an authored query set, not a complete linguistic lexicon.",
+    "Association membership and manufacturer networks omit independents; public registries omit some business forms and do not prove digital inventory.",
+    "Tiny sellers with one vehicle or unknown stock remain in scope; dealerships, workshops and dismantlers need whole-vehicle evidence.",
+    "No channel, seed URL or access_mode constitutes permission or coverage certification; query saturation is not a denominator."
+  ],
+  "review_days": 90
+}

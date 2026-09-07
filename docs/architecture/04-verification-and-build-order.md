@@ -2,7 +2,7 @@
 
 Estado: base de diseño por encargo de Elias, 2026-09-07. Este archivo es el plan canónico de entregas, pruebas y promoción; se actualiza en lugar de crear planes por sesión.
 
-Para quienes construyan: trabajar por componente con autor y revisión independiente, usando `subagent-driven-development` o `executing-plans` cuando proceda. La autorización actual desarrolla arquitectura y sus comprobaciones; las estrategias de descubrimiento y scraping son los próximos proyectos. Los paths de producto de este documento son destinos futuros, no archivos existentes ni código ya probado.
+Para quienes construyan: trabajar por componente con autor y revisión independiente, usando `subagent-driven-development` o `executing-plans` cuando proceda. El encargo posterior autoriza el sistema local de descubrimiento de §8, ahora implementado. Las rutas de producto P0–P4 fuera de ese módulo siguen siendo destinos futuros, no código ya probado.
 
 Objetivo: permitir construir un inventario vivo por dealer y POS que conserva evidencia, corrige identidad y escala por límites medidos sin perder trazabilidad.
 
@@ -38,7 +38,7 @@ Los resultados operativos viven en el sistema de evidencias de pruebas y CI cuan
 | Puerta | Entrada y condición de salida | Acción si falla | Estado de esta entrega |
 |---|---|---|---|
 | G0. Base coherente | Esquemas, referencias, ejemplos, aritmética y revisión cruzada sin defecto crítico abierto | Corregir contratos y repetir solo comprobaciones afectadas | Superada en el alcance estático/modelado el 2026-09-07; comando reproducible en §7, sin certificación de producto |
-| G1. Descubrimiento diseñado | Métodos finitos por celda, procedencia, resolución de candidatos y denominadores honestos | Mantener candidatos sin convertirlos en entidades certificadas | Siguiente proyecto |
+| G1. Descubrimiento diseñado | Métodos finitos por celda, procedencia, resolución de candidatos y denominadores honestos | Mantener candidatos sin convertirlos en entidades certificadas | Estrategia y sistema local implementados/probados; campañas, calibración y cobertura reales pendientes |
 | G2. Adquisición diseñada | Capacidad por superficie, permisos, enumeración, replay, límites y reconciliación defendibles | Mantener superficie bloqueada o solo positivos según capacidad | Proyecto posterior a G1 |
 | G3. Núcleo implementado | Pruebas unitarias/modelo/integración de contratos, privacidad y recuperación | No conectar fuentes reales | Construcción posterior |
 | G4. Fuente certificada | Piloto admitido, corpus real permitido, censos comparables, deriva y alarmas verificadas | Cuarentena por fuente/stream; serving marcado degradado | Requiere G2 y G3 |
@@ -255,8 +255,25 @@ La revisión independiente examina: invariantes cruzadas; clocks y finalización
 
 Las tablas de trazabilidad de P1/P2/P3 son el único mapa de sus invariantes hacia el catálogo: el verificador rechaza reglas sin mapa o casos inexistentes. Esa vinculación registra una obligación de aceptación, no una prueba de producto superada. La [comprobación CI](../../.github/workflows/verify-foundation.yml) ejecuta el mismo verificador sin acceso a fuentes de inventario; instalación de dependencias y checkout preceden a su aislamiento de red. El workflow no configura protección de rama ni demuestra por sí solo que GitHub lo haya ejecutado.
 
-## 8. Próximo trabajo exacto
+## 8. Construcción autorizada: descubrimiento
 
-Primero, estrategia de descubrimiento con el contrato del apartado 14 de los fundamentos: fuentes, dealers, puntos de venta, candidatos, evidencia, deduplicación de entidades, frontera geográfica y denominadores. Segundo, estrategias de adquisición/scraping con el apartado 15: capacidades comprobadas, particionado, capturas, cambios y límites. Después, ejecutar los paquetes de construcción con pruebas y puertas correspondientes.
+El encargo posterior de Elias autoriza construir el sistema de descubrimiento, con estrategias específicas para ES/FR/DE/NL/BE/CH, extensibilidad nacional y coste externo cero. No autoriza compras, cuentas, elusión de controles, campañas sin límites ni afirmar cobertura empírica inexistente. El diseño global y la personalización nacional fueron aceptados en conversación; las decisiones de implementación se delegaron al agente.
+
+Objetivo: software ejecutable de planificación, recepción/descubrimiento de candidatos, procedencia, cola recuperable, revisión, exportación contractual y auditoría de cobertura. Arquitectura: paquetes nacionales declarativos sobre un motor único; adaptadores de evidencia independientes; SQLite local para el área de trabajo de descubrimiento, no sustituto del PostgreSQL de control productivo de OPS-013. Python 3.11+, biblioteca estándar y validadores ya fijados; ninguna dependencia SaaS ni llamada LLM de pago.
+
+Plan de implementación (TDD y revisión independiente; este apartado sustituye cualquier plan de sesión):
+
+- [x] D1. `discovery/profiles/*.json`, `discovery/profiles.py`, `tests/discovery/test_profiles.py`: fuentes primarias, perfiles nacionales propios, validación acotada/segura y extensión probadas con revisión independiente.
+- [x] D2. `discovery/model.py`, `discovery/store.py`, `discovery/queue.py`, `tests/discovery/test_store.py`: transacciones/savepoints, evidencia, decisiones reversibles, contradicciones, retención, fencing, presupuestos y turnos persistentes probados.
+- [x] D3. `discovery/planner.py`, `discovery/coverage.py`, `tests/discovery/test_planner.py`, `tests/discovery/test_coverage.py`: frontera versionada y reanudación por conteos sin reconstruir prefijos; geografía explícita, universos desconocidos y deuda por celda probados.
+- [x] D4. `discovery/transport.py`, `discovery/adapters.py`, `tests/discovery/test_transport.py`, `tests/discovery/test_adapters.py`: normalización/SPA, DNS/TLS/SSRF, robots, límites, deadlines, acceso opt-in y parsers puros adversariales probados.
+- [x] D5. `discovery/cli.py`, `discovery/__main__.py`, `discovery/engine.py`, `discovery/handoff.py`, `tests/discovery/test_cli.py`, `tests/discovery/test_engine.py`, `tests/discovery/test_runtime_guards.py`: flujo completo local, revisión, exportación contractual, replay, cooldown tras reinicio y revocación/caducidad durante fetch probados.
+- [x] D6. `docs/architecture/05-discovery-system.md`, README, fundamentos, Home y CI: fuentes/decisiones/runbook integrados, pruebas adversariales y auditoría independiente cerradas; canvas del usuario preservado; verificación de toda la base y pruebas de descubrimiento exigida antes de integrar.
+
+Comando de cada ciclo: `python -m unittest discover -s tests/discovery -p 'test_*.py' -v`. Antes de implementar cada comportamiento, ejecutar su prueba y comprobar fallo por capacidad ausente; después comprobar verde y regresiones. Integración: `python tools/verify_foundation.py`, suite completa y `git diff --check`. Cierre exige inspección de artefactos, no solo el informe del autor. La campaña paneuropea y el scraping de inventarios se distinguen del software entregado; las barreras de acceso quedan explícitas.
+
+## 9. Próximo trabajo exacto
+
+El sistema de [descubrimiento](05-discovery-system.md) permite preparar y ejecutar pilotos locales gobernados. Próximo paso operativo: catálogos territoriales verificados, admisión de canales gratuitos, campañas acotadas y auditoría independiente de huecos. Próximo proyecto de estrategia: adquisición/scraping con el apartado 15 de los fundamentos. Después se promueven componentes y superficies por G3–G6, sin confundir trabajo planificado con inventarios ya obtenidos.
 
 Se actualizan esos contratos y este plan conforme se obtenga evidencia. No se añade una nueva base, un segundo mapa de decisiones ni una pila de checkpoints.

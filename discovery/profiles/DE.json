@@ -1,0 +1,482 @@
+{
+  "schema_version": "1.0.0",
+  "country": "DE",
+  "name": "Deutschland",
+  "languages": [
+    "de",
+    "fr",
+    "nl"
+  ],
+  "vehicle_classes": [
+    "car",
+    "lcv",
+    "motorcycle",
+    "motorhome"
+  ],
+  "geography": {
+    "code_system": "Destatis AGS / ARS",
+    "unit_name": "Gemeinde",
+    "catalogue_url": "https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html",
+    "notes": "Use dated 8-digit AGS and retain 12-digit ARS as separately named identifiers. Preserve leading zeroes, Länder/Kreise and independent cities; postcodes are not municipality IDs. Add Ortsteile, industrial estates, rural eastern/western areas and North/Baltic islands as explicit locality aliases. FR/NL border vocabulary complements German; market country cannot be inferred from .de or language."
+  },
+  "strategies": [
+    {
+      "id": "de_registry_limits",
+      "family": "official_registry",
+      "evidence_group": "de_destatis_business",
+      "priority": 10,
+      "access_mode": "permission_required",
+      "source_type": "unknown",
+      "source_ids": [
+        "base_register_limits",
+        "statistical_register"
+      ],
+      "seed_urls": [
+        "https://www.destatis.de/Verwaltungsregister/DE/Basisregister/_FAQ/faq-Liste.html?nn=612182"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Unternehmensregister"
+        ]
+      },
+      "notes": "This is a visible inaccessible registry route, not an executable census. The administrative base register is not public; statistical aggregates cannot supply dealer rows. Review lawful named-entity evidence through appropriate public surfaces separately without assuming exhaustive registry reuse.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "de_gemeinde_local_extract",
+      "family": "geo_directory",
+      "evidence_group": "osm",
+      "priority": 90,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "gvisys",
+        "osm_license",
+        "nominatim_policy"
+      ],
+      "seed_urls": [
+        "https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html",
+        "https://www.openstreetmap.org/copyright"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Ortsteil Gewerbegebiet"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} Allemagne"
+        ],
+        "nl": [
+          "{locality} {vehicle_term} Duitsland"
+        ]
+      },
+      "notes": "Partition municipalities and Ortsteile, retaining rural and island strata. Consider licensed local OSM POIs as leads including Kfz-Werkstatt with sales, not a complete business census. Systematic public Nominatim enumeration is prohibited.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "de_regional_innungen",
+      "family": "trade_directory",
+      "evidence_group": "de_zdk_innungen",
+      "priority": 90,
+      "access_mode": "public_web",
+      "source_type": "unknown",
+      "source_ids": [
+        "zdk"
+      ],
+      "seed_urls": [
+        "https://www.kfzgewerbe.de/verband/wir-ueber-uns/verbandsstruktur/landesverbaende/innungen"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Innungsbetrieb",
+          "{locality} Kfz Innung Mitglieder"
+        ]
+      },
+      "notes": "Traverse the federation-to-regional-innung structure with finite approved link boundaries. Regional member directories may reveal small independent garages. Each child domain and export needs admission; members are not all sellers.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "de_dchv_motorhomes",
+      "family": "trade_directory",
+      "evidence_group": "de_dchv",
+      "priority": 90,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "dchv"
+      ],
+      "seed_urls": [
+        "https://dchv.de/karte-aller-mitglieder/"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} DCHV Fachhändler"
+        ]
+      },
+      "notes": "Review the embedded member map's ownership and access before any collection. Include motorhome dealers, filter caravans/accessory-only shops, and retain independent nonmembers as an explicit gap.",
+      "vehicle_classes": [
+        "motorhome"
+      ]
+    },
+    {
+      "id": "de_vw_car_network",
+      "family": "manufacturer_network",
+      "evidence_group": "oem_vw",
+      "priority": 80,
+      "access_mode": "public_web",
+      "source_type": "manufacturer_inventory",
+      "source_ids": [
+        "vw"
+      ],
+      "seed_urls": [
+        "https://www.volkswagen.de/de/haendlersuche.html"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} Volkswagen Händler Gebrauchtwagen"
+        ]
+      },
+      "notes": "Seed one official car network by municipality, then distinguish group, branch and owned inventory pages. This car surface does not establish LCV/motorcycle/camper coverage; add separately verified brand surfaces later.",
+      "vehicle_classes": [
+        "car"
+      ]
+    },
+    {
+      "id": "de_mobile_verticals",
+      "family": "marketplace",
+      "evidence_group": "de_mobile",
+      "priority": 85,
+      "access_mode": "manual_review",
+      "source_type": "marketplace",
+      "source_ids": [
+        "mobile",
+        "mobile_api_limits"
+      ],
+      "seed_urls": [
+        "https://www.mobile.de/"
+      ],
+      "query_templates": {
+        "de": [
+          "site:mobile.de {locality} {vehicle_term} Händler"
+        ],
+        "fr": [
+          "site:mobile.de {locality} {vehicle_term} professionnel"
+        ],
+        "nl": [
+          "site:mobile.de {locality} {vehicle_term} autobedrijf"
+        ]
+      },
+      "notes": "Professional-account referrals across four classes; validate precise category routes when admitted. Preserve API cap/authentication debt, cross-border exporters and duplicates across accounts. Free browsing is not an API licence.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "de_kleinanzeigen_tail",
+      "family": "marketplace",
+      "evidence_group": "de_kleinanzeigen",
+      "priority": 75,
+      "access_mode": "manual_review",
+      "source_type": "classifieds",
+      "source_ids": [
+        "kleinanzeigen"
+      ],
+      "seed_urls": [
+        "https://www.kleinanzeigen.de/"
+      ],
+      "query_templates": {
+        "de": [
+          "site:kleinanzeigen.de {locality} {vehicle_term} gewerblich"
+        ]
+      },
+      "notes": "Long-tail professional claims may be sparse; keep private publisher accounts distinct. Retain tiny stock, and distinguish complete damaged vehicles from Ersatzteile or non-powered caravans.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "de_local_directories",
+      "family": "local_search",
+      "evidence_group": "de_gelbeseiten",
+      "priority": 85,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "gelbeseiten"
+      ],
+      "seed_urls": [
+        "https://www.gelbeseiten.de/"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Autohandel",
+          "{locality} Unfallfahrzeuge komplett Verkauf"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} garage Allemagne"
+        ],
+        "nl": [
+          "{locality} {vehicle_term} garage Duitsland"
+        ]
+      },
+      "notes": "Search local names and district aliases, including Kfz-Werkstätten, Gebrauchtwagenhandel and dismantlers only as whole-vehicle leads. Avoid minimum rating, employee or stock filters.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "de_web_index",
+      "family": "web_index",
+      "evidence_group": "commoncrawl",
+      "priority": 85,
+      "access_mode": "manual_review",
+      "source_type": "dealer_owned",
+      "source_ids": [
+        "commoncrawl"
+      ],
+      "seed_urls": [
+        "https://index.commoncrawl.org/"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Fahrzeugbestand",
+          "{locality} {vehicle_term} Fahrzeugangebote"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} stock Allemagne"
+        ],
+        "nl": [
+          "{locality} {vehicle_term} voorraad Duitsland"
+        ]
+      },
+      "notes": "Find independent hosted inventories and inspect candidate-domain archive URLs only as historical leads. Common Crawl does not execute these full-text query templates. Do not require a .de domain or equate shared DMS with shared seller.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "de_social_public",
+      "family": "social_public",
+      "evidence_group": "meta_public",
+      "priority": 55,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "meta_policy"
+      ],
+      "seed_urls": [
+        "https://about.fb.com/news/2021/04/how-we-combat-scraping/"
+      ],
+      "query_templates": {
+        "de": [
+          "site:facebook.com {locality} {vehicle_term} Autohandel",
+          "site:instagram.com {locality} {vehicle_term}"
+        ]
+      },
+      "notes": "Manual public business referrals may reveal workshop sellers with a single vehicle. Login-only groups/pages and automation restrictions remain blocked, with explicit discovery debt.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    }
+  ],
+  "vocabulary": {
+    "de": {
+      "car": [
+        "Gebrauchtwagen",
+        "Autohandel",
+        "Autohaus"
+      ],
+      "lcv": [
+        "Transporter gebraucht",
+        "leichte Nutzfahrzeuge"
+      ],
+      "motorcycle": [
+        "Motorräder gebraucht",
+        "Motorroller"
+      ],
+      "motorhome": [
+        "Wohnmobile gebraucht",
+        "Reisemobile",
+        "Camper"
+      ]
+    },
+    "fr": {
+      "car": [
+        "voitures d'occasion",
+        "garage automobile",
+        "négociant automobile"
+      ],
+      "lcv": [
+        "utilitaires d'occasion",
+        "fourgonnettes"
+      ],
+      "motorcycle": [
+        "motos d'occasion",
+        "scooters"
+      ],
+      "motorhome": [
+        "camping-cars d'occasion",
+        "fourgons aménagés",
+        "vans aménagés"
+      ]
+    },
+    "nl": {
+      "car": [
+        "occasions",
+        "autobedrijf",
+        "tweedehands auto's"
+      ],
+      "lcv": [
+        "bestelwagens",
+        "bedrijfswagens tot 3500 kg"
+      ],
+      "motorcycle": [
+        "motorfietsen",
+        "motoroccasions",
+        "scooters"
+      ],
+      "motorhome": [
+        "campers",
+        "kampeerauto's"
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "gvisys",
+      "url": "https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html",
+      "title": "Destatis: Gemeindeverzeichnis GV-ISys",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official AGS/ARS geography with dated files and free individual queries. Contains municipal administration data, not all local businesses or Ortsteile."
+    },
+    {
+      "id": "base_register_limits",
+      "url": "https://www.destatis.de/Verwaltungsregister/DE/Basisregister/_FAQ/faq-Liste.html?nn=612182",
+      "title": "Destatis: Basisregister für Unternehmen FAQ",
+      "checked_at": "2026-09-07",
+      "access_notes": "Explicitly not a public register; data are supplied only to legally entitled public bodies. Not a free dealer feed."
+    },
+    {
+      "id": "statistical_register",
+      "url": "https://www.destatis.de/DE/Themen/Branchen-Unternehmen/Unternehmen/Unternehmensregister/_inhalt.html",
+      "title": "Destatis: statistical business register",
+      "checked_at": "2026-09-07",
+      "access_notes": "Statistical results provide contextual strata; do not treat published aggregate statistics as an accessible list of establishments."
+    },
+    {
+      "id": "zdk",
+      "url": "https://www.kfzgewerbe.de/verband/wir-ueber-uns/verbandsstruktur/landesverbaende/innungen",
+      "title": "ZDK: Landesverbände and Innungen",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official association route to regional chambers/innungs websites. Membership, directory presence and stock are separate."
+    },
+    {
+      "id": "dchv",
+      "url": "https://dchv.de/karte-aller-mitglieder/",
+      "title": "DCHV: member map",
+      "checked_at": "2026-09-07",
+      "access_notes": "Association's member map observed as embedded interactive surface. Underlying host requires its own admission; no member export assumed."
+    },
+    {
+      "id": "vw",
+      "url": "https://www.volkswagen.de/de/haendlersuche.html",
+      "title": "Volkswagen Deutschland: Händlersuche",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official car locator; service and sales functions require evidence, and commercial-vehicle locators are distinct."
+    },
+    {
+      "id": "mobile",
+      "url": "https://www.mobile.de/",
+      "title": "mobile.de: public vehicle marketplace",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public portal observed; no contractual API access granted and professional account does not establish one legal entity/POS."
+    },
+    {
+      "id": "mobile_api_limits",
+      "url": "https://services.mobile.de/docs/search-api.html",
+      "title": "mobile.de: Search API documentation",
+      "checked_at": "2026-09-07",
+      "access_notes": "Published pagination and authentication/capability documentation is a research lead, not a free API licence. Keep inventory integration separate."
+    },
+    {
+      "id": "kleinanzeigen",
+      "url": "https://www.kleinanzeigen.de/",
+      "title": "Kleinanzeigen: public classifieds",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public category site observed. Mixed private/professional and parts/whole vehicles; no automated acquisition permission asserted."
+    },
+    {
+      "id": "gelbeseiten",
+      "url": "https://www.gelbeseiten.de/",
+      "title": "Gelbe Seiten: local business search",
+      "checked_at": "2026-09-07",
+      "access_notes": "Directory observed; placements, stale records and workshops without sales bias results. Reuse permission not established."
+    },
+    {
+      "id": "osm_license",
+      "url": "https://www.openstreetmap.org/copyright",
+      "title": "OpenStreetMap copyright and licence",
+      "checked_at": "2026-09-07",
+      "access_notes": "ODbL and attribution obligations must be assessed before use of a dated local extract; no country completeness claim."
+    },
+    {
+      "id": "nominatim_policy",
+      "url": "https://operations.osmfoundation.org/policies/nominatim/",
+      "title": "OSMF public Nominatim usage policy",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public Nominatim forbids systematic locality/grid/all-POI queries. It is not an exhaustive discovery backend."
+    },
+    {
+      "id": "commoncrawl",
+      "url": "https://index.commoncrawl.org/",
+      "title": "Common Crawl URL index",
+      "checked_at": "2026-09-07",
+      "access_notes": "Free URL archive index, not full-text search. Bound exact-domain lookups; bulk filtering belongs on local index data with resource budget. Archive results are historical leads."
+    },
+    {
+      "id": "meta_policy",
+      "url": "https://about.fb.com/news/2021/04/how-we-combat-scraping/",
+      "title": "Meta explanation of automated collection restrictions",
+      "checked_at": "2026-09-07",
+      "access_notes": "Prior permission is required for automated collection. This channel is manual public business-page lead review only, without account creation or login bypass."
+    }
+  ],
+  "blind_spots": [
+    "The administrative Basisregister is inaccessible to general third parties; there is no validated free comprehensive dealer register in this profile.",
+    "GV-ISys lists municipalities and administration addresses, not every Ortsteil, estate or dealer. Island and sparse rural locality rows must be supplied and versioned.",
+    "Regional Innungen and DCHV omit nonmembers; OEM locators omit independents, other marques and service-only/retail differences.",
+    "Export dealers near NL/BE/FR/CH borders can publish in several markets; legal domicile, POS and vehicle location stay separate.",
+    "Online-only, social-only, immigrant-language and one-vehicle sellers remain eligible even without registry or association evidence.",
+    "Search result caps, archive age and portal syndication invalidate independence and exhaustive-coverage claims; unknown stock is never an exclusion rule."
+  ],
+  "review_days": 90
+}

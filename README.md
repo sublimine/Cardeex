@@ -6,9 +6,9 @@ Cardeex es un proyecto nuevo e independiente para construir una API viva, histó
 
 ## Estado actual
 
-Base de arquitectura y contratos desarrollada por encargo de Elias el 7 de septiembre de 2026. Incluye inventario por dealer/POS, evidencia temporal, identidad reversible, reconciliación, API, operación, capacidad y puertas de construcción. Los verificadores comprueban esta especificación; todavía no existe producto desplegado ni inventario real.
+Base de arquitectura y contratos, más sistema local de descubrimiento implementado por encargo de Elias el 7 de septiembre de 2026. Incluye perfiles nacionales, planificación territorial extensible, evidencia, revisión, cola recuperable, acceso gobernado, replay y cobertura explícita. No hay producto desplegado, campañas nacionales certificadas ni inventario real adquirido.
 
-El próximo proyecto es la estrategia de descubrimiento de fuentes, dealers y puntos de venta. Después viene la estrategia de adquisición/scraping, y la construcción se ejecuta por componentes con sus pruebas. El mandato y los límites actuales están en los fundamentos.
+El próximo paso operativo es verificar geografía, evaluar canales gratuitos y ejecutar pilotos acotados de descubrimiento; el siguiente proyecto de estrategia es adquisición/scraping por superficie. El módulo local no sustituye el control productivo ni certifica el 100% del universo abierto.
 
 ## Punto de entrada
 
@@ -17,6 +17,7 @@ El próximo proyecto es la estrategia de descubrimiento de fuentes, dealers y pu
 - [Inventario y API](docs/architecture/02-inventory-and-api.md): vistas por dealer/POS, deltas, snapshots y eventos; [OpenAPI](contracts/openapi.yaml).
 - [Ejecución y operaciones](docs/architecture/03-runtime-and-operations.md): persistencia, recuperación, SLO, seguridad y capacidad.
 - [Verificación y construcción](docs/architecture/04-verification-and-build-order.md): tareas, casos adversariales, aceptación y siguiente paso.
+- [Sistema de descubrimiento](docs/architecture/05-discovery-system.md): software, estrategias nacionales, fuentes, operación y límites.
 - [Evaluación del alcance de vehículos](docs/research/vehicle-scope-2026-09-07.md): cifras, fuentes, cautelas metodológicas y razonamiento de prioridad.
 - [Inicio del vault](docs/knowledge/00-Cardeex-Home.md): navegación para Obsidian.
 - [Mapa visual](docs/knowledge/Cardeex-Foundation.canvas): canvas independiente de Cardeex.
@@ -33,9 +34,21 @@ Las dependencias se instalan en un entorno local aislado; el verificador posteri
 python -m venv .venv-verify
 .\.venv-verify\Scripts\python.exe -m pip install -r tools/requirements-verify.txt
 .\.venv-verify\Scripts\python.exe tools/verify_foundation.py
+.\.venv-verify\Scripts\python.exe -m unittest discover -s tests/discovery -p "test_*.py" -v
 git diff --check
 ```
 
 Los resultados validan contratos, ejemplos, modelos finitos y aritmética de planificación. La capacidad a escala, las fuentes reales y los SLO necesitan las pruebas de implementación descritas en el plan.
 
-La misma comprobación está preparada en [Verify foundation](.github/workflows/verify-foundation.yml) para pushes a `main` y pull requests, con permisos de solo lectura y acciones fijadas a commit. El historial de Git/CI conserva las ejecuciones; no se crean checkpoints ni informes de estado duplicados.
+La misma comprobación y la suite de descubrimiento están preparadas en [Verify foundation](.github/workflows/verify-foundation.yml) para pushes a `main` y pull requests, con permisos de solo lectura y acciones fijadas a commit. Git/CI conservan las ejecuciones; no se crean checkpoints ni informes de estado duplicados.
+
+## Usar el descubrimiento
+
+```powershell
+python -m discovery --help
+python -m discovery plan --countries ES,FR,DE,NL,BE,CH --epoch 2026-09 --limit 1000
+python -m discovery coverage
+python -m discovery doctor
+```
+
+Estos comandos no acceden a fuentes externas. Sin `--localities`, el plan contiene semillas nacionales y declara geografía pendiente. La red requiere `run --policy` con evaluación, hosts y presupuesto explícitos; no se incluyen permisos reales preaprobados. El estado local vive en `.cardeex-local/`, ignorado por Git y Graphify. Importación, revisión y exportación: [manual canónico](docs/architecture/05-discovery-system.md).

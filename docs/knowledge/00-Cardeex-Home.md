@@ -26,6 +26,7 @@ Este es el punto de entrada del vault **independiente** de Cardeex.
 - [[docs/architecture/02-inventory-and-api|P2 · Inventario por dealer/POS y API]]
 - [[docs/architecture/03-runtime-and-operations|P3 · Ejecución, operación y escala]]
 - [[docs/architecture/04-verification-and-build-order|P4 · Verificación y construcción]]
+- [[docs/architecture/05-discovery-system|Descubrimiento · Sistema, países y operación]]
 
 ## Decisión central
 
@@ -36,8 +37,8 @@ Este es el punto de entrada del vault **independiente** de Cardeex.
 - Misión: aprobada.
 - Base de arquitectura: desarrollada por encargo de Elias, con contratos verificables.
 - Clases de adquisición y jerarquía de certificación: definidas por separado.
-- Implementación de producto: no iniciada; los scripts verifican especificaciones.
-- Siguiente proyecto: estrategia de descubrimiento de fuentes, dealers y POS; después, estrategias de scraping.
+- Descubrimiento local: implementado, con seis perfiles nacionales y pruebas; sin campañas nacionales certificadas.
+- Siguiente paso operativo: geografía verificada, canales admitidos y pilotos de descubrimiento; siguiente estrategia: scraping por superficie.
 - Estado operativo real: no hay inventario, despliegue ni capacidad certificada todavía.
 
 ## Conceptos raíz
@@ -49,4 +50,4 @@ Este es el punto de entrada del vault **independiente** de Cardeex.
 - [[docs/CARDEEX_FOUNDATION#7. Alcance aprobado por fases|Orden de verticales]]
 - [[docs/CARDEEX_FOUNDATION#10. Estado y punto de continuación|Punto exacto de reanudación]]
 - [[docs/CARDEEX_FOUNDATION#12. Constitución de la fábrica|Mapa maestro e invariantes]]
-- [[docs/CARDEEX_FOUNDATION#14. Contrato para el próximo proyecto descubrimiento|Entrada del proyecto de descubrimiento]]
+- [[docs/CARDEEX_FOUNDATION#14. Descubrimiento contrato y sistema|Contrato del sistema de descubrimiento]]

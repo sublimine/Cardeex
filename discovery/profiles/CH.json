@@ -1,0 +1,595 @@
+{
+  "schema_version": "1.0.0",
+  "country": "CH",
+  "name": "Schweiz / Suisse / Svizzera / Svizra",
+  "languages": [
+    "de",
+    "fr",
+    "it",
+    "rm"
+  ],
+  "vehicle_classes": [
+    "car",
+    "lcv",
+    "motorcycle",
+    "motorhome"
+  ],
+  "geography": {
+    "code_system": "BFS municipality number",
+    "unit_name": "Gemeinde / commune / comune / vischnanca",
+    "catalogue_url": "https://www.bfs.admin.ch/bfs/de/home/grundlagen/agvch.html",
+    "notes": "Use dated BFS municipality numbers and canton relationships, preserve mergers and multilingual place aliases (e.g. Biel/Bienne). Alpine valleys, small rural Gemeinden, Ticino, Romandie and Romansh-speaking Graubünden need explicit strata. Border and enclave claims, including Liechtenstein appearing in trade networks, require actual POS/market evidence; CH does not follow .ch, German language or Swiss currency automatically."
+  },
+  "strategies": [
+    {
+      "id": "ch_zefix_open_subset",
+      "family": "official_registry",
+      "evidence_group": "ch_zefix",
+      "priority": 90,
+      "access_mode": "open_data",
+      "source_type": "unknown",
+      "source_ids": [
+        "zefix",
+        "zefix_announcement"
+      ],
+      "seed_urls": [
+        "https://opendata.swiss/en/dataset/zefix-zentraler-firmenindex/resource/0b0bf0ff-d8d4-4db9-bad7-d4381a282db7"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Firma Zefix"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} entreprise Zefix"
+        ],
+        "it": [
+          "{locality} {vehicle_term} impresa Zefix"
+        ],
+        "rm": [
+          "{locality} {vehicle_term} garage Zefix"
+        ]
+      },
+      "notes": "Evaluate bounded queries or an admitted local extract of the open LINDAS identification subset. Retain legal entity IDs and registered seat separately; active legal status is not active retail, a POS or digital stock. A free/open description does not remove local quotas and resource budgets.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "ch_zefix_other_api",
+      "family": "official_registry",
+      "evidence_group": "ch_zefix",
+      "priority": 20,
+      "access_mode": "permission_required",
+      "source_type": "unknown",
+      "source_ids": [
+        "zefix_api_limits"
+      ],
+      "seed_urls": [
+        "https://opendata.swiss/fr/faq"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Zefix API"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} Zefix API"
+        ],
+        "it": [
+          "{locality} {vehicle_term} Zefix API"
+        ]
+      },
+      "notes": "Other API access is a separately restricted surface requiring FCRO coordination. Do not inherit permission from the open subset or send requests for credentials; this route stays pending.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "ch_bfs_local_extract",
+      "family": "geo_directory",
+      "evidence_group": "osm",
+      "priority": 90,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "bfs",
+        "bfs_query",
+        "osm_license",
+        "nominatim_policy"
+      ],
+      "seed_urls": [
+        "https://www.agvchapp.bfs.admin.ch/de/communes/query"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Garage"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} garage"
+        ],
+        "it": [
+          "{locality} {vehicle_term} autorimessa"
+        ],
+        "rm": [
+          "{locality} {vehicle_term} garage"
+        ]
+      },
+      "notes": "Plan each supplied municipality plus valley/locality aliases; licensed local OSM POIs can provide independently recorded leads. No public Nominatim systematic lookup. Avoid interpreting an alpine locality with no result as a seller-free area.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "ch_upsa_cantons",
+      "family": "trade_directory",
+      "evidence_group": "ch_agvs_upsa",
+      "priority": 90,
+      "access_mode": "public_web",
+      "source_type": "unknown",
+      "source_ids": [
+        "upsa",
+        "upsa_sections"
+      ],
+      "seed_urls": [
+        "https://www.agvs-upsa.ch/it/unione/organizzazione-1/elenco-dei-membri/",
+        "https://www.agvs-upsa.ch/de/sektionen/"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} AGVS Garage"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} UPSA garage"
+        ],
+        "it": [
+          "{locality} {vehicle_term} UPSA garage"
+        ],
+        "rm": [
+          "{locality} {vehicle_term} AGVS garage"
+        ]
+      },
+      "notes": "Use canton/section routes and preserve the same membership identity across languages. Regional sections can cross CH/LI, so verify each outlet. Independent nonmembers and workshop-only members require separate evidence.",
+      "vehicle_classes": [
+        "car",
+        "lcv"
+      ]
+    },
+    {
+      "id": "ch_caravaning_members",
+      "family": "trade_directory",
+      "evidence_group": "ch_caravaningsuisse",
+      "priority": 90,
+      "access_mode": "public_web",
+      "source_type": "unknown",
+      "source_ids": [
+        "caravaning"
+      ],
+      "seed_urls": [
+        "https://m.caravaning-suisse.ch/cs/verband/mitglieder/index.php"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} caravaningsuisse"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} concessionnaire"
+        ],
+        "it": [
+          "{locality} {vehicle_term} rivenditore"
+        ],
+        "rm": [
+          "{locality} {vehicle_term} garage"
+        ]
+      },
+      "notes": "Inspect public postcode/member list links for motorised inventory. Keep importers, accessories, rental-only and caravan-only operators as distinct uncertain candidates; membership is not a retail-stock census.",
+      "vehicle_classes": [
+        "motorhome"
+      ]
+    },
+    {
+      "id": "ch_toyota_network",
+      "family": "manufacturer_network",
+      "evidence_group": "oem_toyota",
+      "priority": 80,
+      "access_mode": "public_web",
+      "source_type": "manufacturer_inventory",
+      "source_ids": [
+        "toyota"
+      ],
+      "seed_urls": [
+        "https://fr.toyota.ch/contact/dealers"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} Toyota Händler Occasionen"
+        ],
+        "fr": [
+          "{locality} Toyota concessionnaire occasions"
+        ],
+        "it": [
+          "{locality} Toyota concessionario occasioni"
+        ]
+      },
+      "notes": "Resolve dealer and service outlets across national language routes. Toyota is one starter network; do not attribute another vehicle class or marque without a verified surface.",
+      "vehicle_classes": [
+        "car"
+      ]
+    },
+    {
+      "id": "ch_autoscout",
+      "family": "marketplace",
+      "evidence_group": "ch_scout24",
+      "priority": 85,
+      "access_mode": "manual_review",
+      "source_type": "marketplace",
+      "source_ids": [
+        "autoscout"
+      ],
+      "seed_urls": [
+        "https://www.autoscout24.ch/"
+      ],
+      "query_templates": {
+        "de": [
+          "site:autoscout24.ch {locality} {vehicle_term} Händler"
+        ],
+        "fr": [
+          "site:autoscout24.ch {locality} {vehicle_term} garage"
+        ],
+        "it": [
+          "site:autoscout24.ch {locality} {vehicle_term} concessionario"
+        ]
+      },
+      "notes": "Record multilingual seller referrals and branch candidates with evidence. AutoScout24 and MotoScout24 share an evidence group; distinct accounts or locales are not independent legal identities or population samples.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "ch_motoscout",
+      "family": "marketplace",
+      "evidence_group": "ch_scout24",
+      "priority": 85,
+      "access_mode": "manual_review",
+      "source_type": "marketplace",
+      "source_ids": [
+        "motoscout"
+      ],
+      "seed_urls": [
+        "https://www.motoscout24.ch/"
+      ],
+      "query_templates": {
+        "de": [
+          "site:motoscout24.ch {locality} {vehicle_term} Händler"
+        ],
+        "fr": [
+          "site:motoscout24.ch {locality} {vehicle_term} professionnel"
+        ],
+        "it": [
+          "site:motoscout24.ch {locality} {vehicle_term} rivenditore"
+        ]
+      },
+      "notes": "Motorcycle-specific portal retained independently of automobile category parsing. Exclude out-of-scope category-L assets only after evidence; professional accounts do not automatically create physical POS.",
+      "vehicle_classes": [
+        "motorcycle"
+      ]
+    },
+    {
+      "id": "ch_local_multilingual",
+      "family": "local_search",
+      "evidence_group": "ch_local_directory",
+      "priority": 90,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "localch"
+      ],
+      "seed_urls": [
+        "https://www.local.ch/"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Garage",
+          "{locality} Unfallfahrzeuge komplett Verkauf"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} garage indépendant"
+        ],
+        "it": [
+          "{locality} {vehicle_term} vendita garage"
+        ],
+        "rm": [
+          "{locality} {vehicle_term} garage"
+        ]
+      },
+      "notes": "Rotate four language/locality spellings, including small Alpine and Ticino garages, with no rating/stock threshold. Public directory entries are leads; current selling activity and location require direct evidence.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "ch_web_index",
+      "family": "web_index",
+      "evidence_group": "commoncrawl",
+      "priority": 90,
+      "access_mode": "manual_review",
+      "source_type": "dealer_owned",
+      "source_ids": [
+        "commoncrawl"
+      ],
+      "seed_urls": [
+        "https://index.commoncrawl.org/"
+      ],
+      "query_templates": {
+        "de": [
+          "{locality} {vehicle_term} Occasionen Bestand"
+        ],
+        "fr": [
+          "{locality} {vehicle_term} notre stock"
+        ],
+        "it": [
+          "{locality} {vehicle_term} disponibili"
+        ],
+        "rm": [
+          "{locality} {vehicle_term} occasiun"
+        ]
+      },
+      "notes": "Authored queries find hosted stock and micro garages. Use historical URL index only for known candidate domains, without broad TLD harvesting or paid analytics. Swiss spelling and locality language variants do not identify market country.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "ch_social_public",
+      "family": "social_public",
+      "evidence_group": "meta_public",
+      "priority": 55,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "meta_policy"
+      ],
+      "seed_urls": [
+        "https://about.fb.com/news/2021/04/how-we-combat-scraping/"
+      ],
+      "query_templates": {
+        "de": [
+          "site:facebook.com {locality} {vehicle_term} Garage"
+        ],
+        "fr": [
+          "site:facebook.com {locality} {vehicle_term} garage"
+        ],
+        "it": [
+          "site:instagram.com {locality} {vehicle_term} garage"
+        ],
+        "rm": [
+          "site:facebook.com {locality} {vehicle_term} garage"
+        ]
+      },
+      "notes": "Manual public business-page referrals complement tiny and web-less sellers. No social scraping, account creation or login-wall bypass; suspected seller/location claims remain unverified.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    }
+  ],
+  "vocabulary": {
+    "de": {
+      "car": [
+        "Occasionen",
+        "Gebrauchtwagen",
+        "Garage"
+      ],
+      "lcv": [
+        "Lieferwagen Occasion",
+        "leichte Nutzfahrzeuge"
+      ],
+      "motorcycle": [
+        "Motorräder Occasion",
+        "Roller"
+      ],
+      "motorhome": [
+        "Wohnmobile Occasion",
+        "Reisemobile",
+        "Camper"
+      ]
+    },
+    "fr": {
+      "car": [
+        "voitures d'occasion",
+        "garage automobile",
+        "négociant automobile"
+      ],
+      "lcv": [
+        "utilitaires d'occasion",
+        "fourgonnettes"
+      ],
+      "motorcycle": [
+        "motos d'occasion",
+        "scooters"
+      ],
+      "motorhome": [
+        "camping-cars d'occasion",
+        "fourgons aménagés",
+        "vans aménagés"
+      ]
+    },
+    "it": {
+      "car": [
+        "auto d'occasione",
+        "automobili usate",
+        "garage"
+      ],
+      "lcv": [
+        "furgoni usati",
+        "veicoli commerciali leggeri"
+      ],
+      "motorcycle": [
+        "moto usate",
+        "scooter"
+      ],
+      "motorhome": [
+        "camper usati",
+        "autocaravan"
+      ]
+    },
+    "rm": {
+      "car": [
+        "autos d'occasiun",
+        "garage"
+      ],
+      "lcv": [
+        "vehichels utilitars",
+        "furgons"
+      ],
+      "motorcycle": [
+        "motocicletas",
+        "scooters"
+      ],
+      "motorhome": [
+        "campers",
+        "autos da campar"
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "bfs",
+      "url": "https://www.bfs.admin.ch/bfs/de/home/grundlagen/agvch.html",
+      "title": "BFS: official Swiss municipality directory",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official catalogue entry; preserve dated BFS municipality IDs and historical mergers. Research browser returned no text from this entry, so the linked official application supplies corroboration."
+    },
+    {
+      "id": "bfs_query",
+      "url": "https://www.agvchapp.bfs.admin.ch/de/communes/query",
+      "title": "BFS: official municipality query application",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official application exposes municipality BFS-number lookup. Geography is not a professional-seller or street-address census."
+    },
+    {
+      "id": "zefix",
+      "url": "https://opendata.swiss/en/dataset/zefix-zentraler-firmenindex/resource/0b0bf0ff-d8d4-4db9-bad7-d4381a282db7",
+      "title": "FCRO: Zefix identification data through LINDAS",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official catalogue describes free identification data for active registered legal entities. An open subset, not all commercial-register data or all sellers."
+    },
+    {
+      "id": "zefix_announcement",
+      "url": "https://www.bj.admin.ch/de/nsb?id=87866",
+      "title": "Federal Office of Justice: Zefix Linked Data announcement",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official explanation of the Linked Data subset and reference to active legal entities; legal presence is not inventory evidence."
+    },
+    {
+      "id": "zefix_api_limits",
+      "url": "https://opendata.swiss/fr/faq",
+      "title": "opendata.swiss FAQ: Zefix API and subset",
+      "checked_at": "2026-09-07",
+      "access_notes": "FAQ distinguishes the open subset from other API access requiring contact with FCRO. No API account requested or private data acquired."
+    },
+    {
+      "id": "upsa",
+      "url": "https://www.agvs-upsa.ch/it/unione/organizzazione-1/elenco-dei-membri/",
+      "title": "AGVS/UPSA: member directory",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official directory supports canton/section/postcode search and includes small/medium/large garages; membership is not selling or stock proof."
+    },
+    {
+      "id": "upsa_sections",
+      "url": "https://www.agvs-upsa.ch/de/sektionen/",
+      "title": "AGVS/UPSA: regional sections",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official section routes include regional multilingual territories and a section also referencing Liechtenstein; inspect country per outlet."
+    },
+    {
+      "id": "caravaning",
+      "url": "https://m.caravaning-suisse.ch/cs/verband/mitglieder/index.php",
+      "title": "caravaningsuisse: member list",
+      "checked_at": "2026-09-07",
+      "access_notes": "Association's public alphabetical/postcode member list observed. Includes importers and other businesses beyond motorhome retailers."
+    },
+    {
+      "id": "toyota",
+      "url": "https://fr.toyota.ch/contact/dealers",
+      "title": "Toyota Switzerland: dealer finder",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official locality finder observed; individual branch country, sales/repair role and vehicle classes need evidence."
+    },
+    {
+      "id": "autoscout",
+      "url": "https://www.autoscout24.ch/",
+      "title": "AutoScout24 Switzerland",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public site redirected to English locale; locale is not country/identity evidence. Automated access and reuse not granted."
+    },
+    {
+      "id": "motoscout",
+      "url": "https://www.motoscout24.ch/",
+      "title": "MotoScout24 Switzerland",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public motorcycle portal redirected to English locale; preserve portal-specific publisher accounts and permitted surface checks."
+    },
+    {
+      "id": "localch",
+      "url": "https://www.local.ch/",
+      "title": "local.ch: Swiss local businesses",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public directory observed with English locale. Multilingual listing aliases, placements and service-only firms bias discovery."
+    },
+    {
+      "id": "osm_license",
+      "url": "https://www.openstreetmap.org/copyright",
+      "title": "OpenStreetMap copyright and licence",
+      "checked_at": "2026-09-07",
+      "access_notes": "ODbL and attribution obligations must be assessed before use of a dated local extract; no country completeness claim."
+    },
+    {
+      "id": "nominatim_policy",
+      "url": "https://operations.osmfoundation.org/policies/nominatim/",
+      "title": "OSMF public Nominatim usage policy",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public Nominatim forbids systematic locality/grid/all-POI queries. It is not an exhaustive discovery backend."
+    },
+    {
+      "id": "commoncrawl",
+      "url": "https://index.commoncrawl.org/",
+      "title": "Common Crawl URL index",
+      "checked_at": "2026-09-07",
+      "access_notes": "Free URL archive index, not full-text search. Bound exact-domain lookups; bulk filtering belongs on local index data with resource budget. Archive results are historical leads."
+    },
+    {
+      "id": "meta_policy",
+      "url": "https://about.fb.com/news/2021/04/how-we-combat-scraping/",
+      "title": "Meta explanation of automated collection restrictions",
+      "checked_at": "2026-09-07",
+      "access_notes": "Prior permission is required for automated collection. This channel is manual public business-page lead review only, without account creation or login bypass."
+    }
+  ],
+  "blind_spots": [
+    "Zefix open identification data cover registered active legal entities, not all sole traders, selling establishments or digital stock; other API permissions stay separate.",
+    "BFS municipality history and multilingual aliases are necessary for merged communes, Alpine valleys and sparse localities.",
+    "Romansh query terms are an authored starter set requiring native review; Italian/Ticino and French/Romandie coverage cannot be inferred from German searches.",
+    "Swiss trade networks can include Liechtenstein or cross-border firms; verify each POS and claimed market rather than assuming national membership.",
+    "AutoScout24/MotoScout24 share correlated provider evidence; directories/OEMs/member networks omit nonmembers and online-only sellers.",
+    "One-vehicle, unknown-stock and home/appointment-only professional sellers stay eligible; lack of a directory row is not absence evidence."
+  ],
+  "review_days": 90
+}

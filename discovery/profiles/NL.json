@@ -1,0 +1,501 @@
+{
+  "schema_version": "1.0.0",
+  "country": "NL",
+  "name": "Nederland",
+  "languages": [
+    "nl",
+    "fy",
+    "de"
+  ],
+  "vehicle_classes": [
+    "car",
+    "lcv",
+    "motorcycle",
+    "motorhome"
+  ],
+  "geography": {
+    "code_system": "CBS gemeentecode / wijkcode / buurtcode",
+    "unit_name": "gemeente",
+    "catalogue_url": "https://www.cbs.nl/nl-nl/onze-diensten/methoden/classificaties/overig/gemeentelijke-indelingen-per-jaar/indeling-per-jaar/gemeentelijke-indeling-op-1-januari-2026",
+    "notes": "Use the dated CBS municipal table and preserve municipality, wijk and buurt code namespaces separately. Rotate woonplaatsen and Frisian/Dutch aliases within merged municipalities; Wadden islands, Zeeland and rural northern/eastern areas need explicit strata. Caribbean Netherlands is not silently counted as European coverage: keep its territorial scope unresolved until separately modelled. Market country is not the .nl suffix or language."
+  },
+  "strategies": [
+    {
+      "id": "nl_rdw_recognised",
+      "family": "official_registry",
+      "evidence_group": "nl_rdw",
+      "priority": 95,
+      "access_mode": "open_data",
+      "source_type": "unknown",
+      "source_ids": [
+        "rdw",
+        "rdw_manual",
+        "rdw_dataset"
+      ],
+      "seed_urls": [
+        "https://data.overheid.nl/en/dataset/11341-open-data-rdw--erkende-bedrijven"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} RDW erkend",
+          "{locality} bedrijfsvoorraad erkenning"
+        ]
+      },
+      "notes": "Filter and join only an admitted dated RDW business extract with documented recognition semantics. Bedrijfsvoorraad is a useful professional signal; APK/export recognition alone does not establish selling or stock. Include all sizes and do not omit dealers without these recognitions.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "nl_kvk_restricted",
+      "family": "official_registry",
+      "evidence_group": "nl_kvk",
+      "priority": 15,
+      "access_mode": "permission_required",
+      "source_type": "unknown",
+      "source_ids": [
+        "kvk",
+        "kvk_terms"
+      ],
+      "seed_urls": [
+        "https://www.kvk.nl/over-het-handelsregister/gebruikersvoorwaarden-handelsregistergegevens/"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} Handelsregister"
+        ]
+      },
+      "notes": "Cardeex policy keeps this route blocked pending independent review of current KVK terms, their suspension footnote, privacy obligations and any required permission; no automatic scraping or paid API/records in the free execution plan. This is not a claim that clause 5.4 is unconditionally enforced. A registry address may be a legal or home address, not a sales outlet.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "nl_cbs_local_extract",
+      "family": "geo_directory",
+      "evidence_group": "osm",
+      "priority": 85,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "cbs_geography",
+        "cbs_neighbourhoods",
+        "osm_license",
+        "nominatim_policy"
+      ],
+      "seed_urls": [
+        "https://www.cbs.nl/nl-nl/onze-diensten/methoden/classificaties/overig/gemeentelijke-indelingen-per-jaar/indeling-per-jaar/gemeentelijke-indeling-op-1-januari-2026",
+        "https://www.cbs.nl/nl-nl/dossier/nederland-regionaal/geografische-data/wijk-en-buurtkaart"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} autobedrijf bedrijventerrein"
+        ],
+        "fy": [
+          "{locality} {vehicle_term} autobedriuw"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Niederlande"
+        ]
+      },
+      "notes": "Plan municipalities with locality/Frisian aliases, then evaluate licensed local OSM retail/repair POIs. Preserve Wadden islands and sparse rural strata. Do not perform public Nominatim locality/grid/all-POI queries.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "nl_bovag_members",
+      "family": "trade_directory",
+      "evidence_group": "nl_bovag",
+      "priority": 90,
+      "access_mode": "public_web",
+      "source_type": "unknown",
+      "source_ids": [
+        "bovag"
+      ],
+      "seed_urls": [
+        "https://www.bovag.nl/zoek-bovag-bedrijf"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} BOVAG bedrijf"
+        ],
+        "fy": [
+          "{locality} {vehicle_term} BOVAG"
+        ]
+      },
+      "notes": "Use the company finder and its vehicle-category distinctions. Include motorcycle and camper members alongside general garages; exclude service-only conclusions without rejecting the lead. Nonmembers require separate discovery.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "nl_viabovag",
+      "family": "marketplace",
+      "evidence_group": "nl_bovag",
+      "priority": 75,
+      "access_mode": "manual_review",
+      "source_type": "marketplace",
+      "source_ids": [
+        "viabovag"
+      ],
+      "seed_urls": [
+        "https://site.viabovag.nl/over-viabovag"
+      ],
+      "query_templates": {
+        "nl": [
+          "site:viabovag.nl {locality} {vehicle_term}"
+        ]
+      },
+      "notes": "Follow seller references only when admitted. This shares the BOVAG evidence group with the member directory and is not independent corroboration of market completeness.",
+      "vehicle_classes": [
+        "car",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "nl_toyota_network",
+      "family": "manufacturer_network",
+      "evidence_group": "oem_toyota",
+      "priority": 80,
+      "access_mode": "public_web",
+      "source_type": "manufacturer_inventory",
+      "source_ids": [
+        "toyota"
+      ],
+      "seed_urls": [
+        "https://www.toyota.nl/contact/dealeroverzicht"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} Toyota dealer occasions"
+        ]
+      },
+      "notes": "Use official named locations and distinguish recognised repairers from dealers; group websites may host several POS. Inspect LCV capability independently before attributing commercial-vehicle coverage.",
+      "vehicle_classes": [
+        "car"
+      ]
+    },
+    {
+      "id": "nl_marktplaats_tail",
+      "family": "marketplace",
+      "evidence_group": "nl_marktplaats",
+      "priority": 80,
+      "access_mode": "manual_review",
+      "source_type": "classifieds",
+      "source_ids": [
+        "marktplaats"
+      ],
+      "seed_urls": [
+        "https://www.marktplaats.nl/"
+      ],
+      "query_templates": {
+        "nl": [
+          "site:marktplaats.nl {locality} {vehicle_term} bedrijf"
+        ],
+        "fy": [
+          "site:marktplaats.nl {locality} {vehicle_term}"
+        ]
+      },
+      "notes": "Broad classifieds route for small professional sellers; preserve private publisher accounts separately. Cross-border imports and export traders require market-country evidence; caravan accessories and non-powered caravans remain out of class.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "nl_local_directories",
+      "family": "local_search",
+      "evidence_group": "nl_telefoongids",
+      "priority": 65,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "telefoongids"
+      ],
+      "seed_urls": [
+        "https://www.detelefoongids.nl/"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} garage",
+          "{locality} schadevoertuigen compleet te koop"
+        ],
+        "fy": [
+          "{locality} {vehicle_term} garaazje"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Garage Niederlande"
+        ]
+      },
+      "notes": "Directory request failed during research; revisit manually with evidence and fall back to municipality-owned public business pages when discovered. Search woonplaats as well as merged-gemeente names, with no minimum stock or reviews.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "nl_web_index",
+      "family": "web_index",
+      "evidence_group": "commoncrawl",
+      "priority": 90,
+      "access_mode": "manual_review",
+      "source_type": "dealer_owned",
+      "source_ids": [
+        "commoncrawl"
+      ],
+      "seed_urls": [
+        "https://index.commoncrawl.org/"
+      ],
+      "query_templates": {
+        "nl": [
+          "{locality} {vehicle_term} voorraad",
+          "{locality} {vehicle_term} ons aanbod"
+        ],
+        "fy": [
+          "{locality} {vehicle_term} te keap"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Niederlande Bestand"
+        ]
+      },
+      "notes": "Search authored language variants for independent hosted stock and small camper builders. Candidate-domain URL archive checks are historical only; Common Crawl is not a full-text query service. Shared inventory software never proves same entity.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "nl_social_public",
+      "family": "social_public",
+      "evidence_group": "meta_public",
+      "priority": 55,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "meta_policy"
+      ],
+      "seed_urls": [
+        "https://about.fb.com/news/2021/04/how-we-combat-scraping/"
+      ],
+      "query_templates": {
+        "nl": [
+          "site:facebook.com {locality} {vehicle_term} autobedrijf",
+          "site:instagram.com {locality} {vehicle_term}"
+        ],
+        "fy": [
+          "site:facebook.com {locality} {vehicle_term}"
+        ]
+      },
+      "notes": "Manual review of public business referrals may find Frisian rural and appointment-only sellers; no scraping, private-profile collection, account signup or bypass.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    }
+  ],
+  "vocabulary": {
+    "nl": {
+      "car": [
+        "occasions",
+        "autobedrijf",
+        "tweedehands auto's"
+      ],
+      "lcv": [
+        "bestelwagens",
+        "bedrijfswagens tot 3500 kg"
+      ],
+      "motorcycle": [
+        "motorfietsen",
+        "motoroccasions",
+        "scooters"
+      ],
+      "motorhome": [
+        "campers",
+        "kampeerauto's"
+      ]
+    },
+    "fy": {
+      "car": [
+        "twaddehâns auto's",
+        "autobedriuw"
+      ],
+      "lcv": [
+        "bestelweinen",
+        "bedriuwsweinen"
+      ],
+      "motorcycle": [
+        "motorfytsen",
+        "scooters"
+      ],
+      "motorhome": [
+        "campers",
+        "kampearauto's"
+      ]
+    },
+    "de": {
+      "car": [
+        "Gebrauchtwagen",
+        "Autohandel",
+        "Autohaus"
+      ],
+      "lcv": [
+        "Transporter gebraucht",
+        "leichte Nutzfahrzeuge"
+      ],
+      "motorcycle": [
+        "Motorräder gebraucht",
+        "Motorroller"
+      ],
+      "motorhome": [
+        "Wohnmobile gebraucht",
+        "Reisemobile",
+        "Camper"
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "cbs_geography",
+      "url": "https://www.cbs.nl/nl-nl/onze-diensten/methoden/classificaties/overig/gemeentelijke-indelingen-per-jaar/indeling-per-jaar/gemeentelijke-indeling-op-1-januari-2026",
+      "title": "CBS: municipal classification 2026",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official names, municipality and province codes; use dated reference and retain historical aliases."
+    },
+    {
+      "id": "cbs_neighbourhoods",
+      "url": "https://www.cbs.nl/nl-nl/dossier/nederland-regionaal/geografische-data/wijk-en-buurtkaart",
+      "title": "CBS: wijk- en buurtkaart",
+      "checked_at": "2026-09-07",
+      "access_notes": "Municipality, wijk and buurt codes are distinct and change across vintages. Useful for rural/locality refinements, not seller counts."
+    },
+    {
+      "id": "rdw",
+      "url": "https://www.rdw.nl/over-rdw/dienstverlening/open-data/algemene-informatie",
+      "title": "RDW: open data and recognised businesses",
+      "checked_at": "2026-09-07",
+      "access_notes": "Recognition types include bedrijfsvoorraad, export and APK. Recognised status is not proof of digitally published inventory or every dealer."
+    },
+    {
+      "id": "rdw_manual",
+      "url": "https://www.rdw.nl/over-rdw/dienstverlening/open-data/handleidingen",
+      "title": "RDW: dataset manuals",
+      "checked_at": "2026-09-07",
+      "access_notes": "Metadata and manuals explain recognised-business datasets and joins; verify current fields/license for an admitted local extract."
+    },
+    {
+      "id": "rdw_dataset",
+      "url": "https://data.overheid.nl/en/dataset/11341-open-data-rdw--erkende-bedrijven",
+      "title": "Dutch government catalogue: RDW recognised businesses",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official discovery entry to RDW data; no bulk business records downloaded during implementation."
+    },
+    {
+      "id": "kvk",
+      "url": "https://www.kvk.nl/over-het-handelsregister/gebruikersvoorwaarden-handelsregistergegevens/",
+      "title": "KVK: Handelsregister user conditions",
+      "checked_at": "2026-09-07",
+      "access_notes": "Additional conditions apply to large-scale reuse and onward provision; not a universal open dealer dataset."
+    },
+    {
+      "id": "kvk_terms",
+      "url": "https://developers.kvk.nl/cms/api/uploads/Gebruiksvoorwaarden_Verstrekking_en_Gebruik_Handelsregistergegevens.pdf",
+      "title": "KVK: terms for provision and use of Handelsregister data",
+      "checked_at": "2026-09-07",
+      "access_notes": "Clause 5.4 states a scraping restriction, but the first-page footnote says operation/enforcement of clauses 5.2, 5.4 and 5.6 is suspended until the merits judgment, until further notice. The conditions page updated 17 June 2026 still links this footnoted text. This observation does not establish the present litigation outcome or grant access: independent review of applicability, other terms and privacy obligations remains required. Paid API or extracts are outside zero-external-cost execution."
+    },
+    {
+      "id": "bovag",
+      "url": "https://www.bovag.nl/zoek-bovag-bedrijf",
+      "title": "BOVAG: company finder",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public postcode/locality/member finder observed. Association coverage excludes nonmembers and can include service-only firms."
+    },
+    {
+      "id": "viabovag",
+      "url": "https://site.viabovag.nl/over-viabovag",
+      "title": "viaBOVAG: description of its marketplace",
+      "checked_at": "2026-09-07",
+      "access_notes": "BOVAG-owned showroom with BOVAG providers. Association and marketplace evidence are correlated, not independent population samples."
+    },
+    {
+      "id": "toyota",
+      "url": "https://www.toyota.nl/contact/dealeroverzicht",
+      "title": "Toyota Netherlands: dealers and recognised repairers",
+      "checked_at": "2026-09-07",
+      "access_notes": "Official list distinguishes dealer and recognised repairer; one brand, not the whole Dutch market."
+    },
+    {
+      "id": "marktplaats",
+      "url": "https://www.marktplaats.nl/",
+      "title": "Marktplaats: marketplace",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public category site observed; private/professional and asset classes need separate interpretation. Automated access not approved."
+    },
+    {
+      "id": "telefoongids",
+      "url": "https://www.detelefoongids.nl/",
+      "title": "De Telefoongids: local directory lead",
+      "checked_at": "2026-09-07",
+      "access_notes": "Research fetch failed; access and path must be rechecked manually, without bypass or assumption of current completeness."
+    },
+    {
+      "id": "osm_license",
+      "url": "https://www.openstreetmap.org/copyright",
+      "title": "OpenStreetMap copyright and licence",
+      "checked_at": "2026-09-07",
+      "access_notes": "ODbL and attribution obligations must be assessed before use of a dated local extract; no country completeness claim."
+    },
+    {
+      "id": "nominatim_policy",
+      "url": "https://operations.osmfoundation.org/policies/nominatim/",
+      "title": "OSMF public Nominatim usage policy",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public Nominatim forbids systematic locality/grid/all-POI queries. It is not an exhaustive discovery backend."
+    },
+    {
+      "id": "commoncrawl",
+      "url": "https://index.commoncrawl.org/",
+      "title": "Common Crawl URL index",
+      "checked_at": "2026-09-07",
+      "access_notes": "Free URL archive index, not full-text search. Bound exact-domain lookups; bulk filtering belongs on local index data with resource budget. Archive results are historical leads."
+    },
+    {
+      "id": "meta_policy",
+      "url": "https://about.fb.com/news/2021/04/how-we-combat-scraping/",
+      "title": "Meta explanation of automated collection restrictions",
+      "checked_at": "2026-09-07",
+      "access_notes": "Prior permission is required for automated collection. This channel is manual public business-page lead review only, without account creation or login bypass."
+    }
+  ],
+  "blind_spots": [
+    "RDW recognised-business data omit some sellers and include APK/export specialists without retail stock; recognition is not admission.",
+    "KVK terms include a suspension footnote for clauses 5.2, 5.4 and 5.6; their current applicability and other obligations require independent review, not an assumption of either an unconditional operative ban or free systematic access.",
+    "BOVAG member finder and viaBOVAG share a provider and membership bias; do not count them as independent source families for estimates.",
+    "Dutch/Frisian woonplaats aliases, Wadden islands, Zeeland and rural industrial estates can be missed by municipality-centre searches.",
+    "European Netherlands and Caribbean territorial coverage are separate unresolved scope strata when no corresponding locality catalogue is supplied.",
+    "Tiny, appointment-only and unknown-stock traders remain eligible; the multilingual vocabulary is an authored starting set requiring local refinement."
+  ],
+  "review_days": 90
+}
