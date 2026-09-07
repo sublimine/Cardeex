@@ -3,3 +3,5 @@
 graphify-out/
 .venv-verify/
 **/__pycache__/
+.worktrees/
+.cardeex-local/
