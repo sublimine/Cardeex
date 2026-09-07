@@ -138,7 +138,9 @@ def coverage_report(store, profiles, now):
         if (plan is not None and payload.get("parent_task_key") is None
                 and type(ordinal) is int and 0 <= ordinal < plan["total_tasks"]):
             tasks_by_plan[task["plan_id"]].add(ordinal)
-        human = task.get("kind") == "query" or task.get("access_mode") in {"manual_review", "permission_required"}
+        human = (task.get("access_mode") == "permission_required" or
+                 (not payload.get("channel") and
+                  (task.get("kind") == "query" or task.get("access_mode") == "manual_review")))
         if human and status not in TERMINAL_TASKS:
             counts["human_required"] += 1
         code, country = payload.get("locality_code"), task["country"]
@@ -180,9 +182,14 @@ def coverage_report(store, profiles, now):
             "inventory_metrics_available": False, "task_scope": dict(sorted(cell["tasks"].items())),
         })
     supplied_keys = set(supplied)
+    channel_results = store.channel_summary(now) if hasattr(store, "channel_summary") else {
+        "pages": 0, "coverage_ratio": None}
     return {
         "report_version": "1.0.0", "measured_at": now, "universe_version": version,
         "coverage_ratio": None, "denominator_kind": "open_universe",
+        "channel_results": channel_results,
+        "catalogue_sources": [{"plan_id": plan["plan_id"], **source}
+                              for plan in plans.values() for source in plan.get("catalogue_sources", [])],
         "registered_candidates": store.count_candidates(), "retained_evidence_candidates": len(retained_ids),
         "candidate_kinds": {kind: len(global_kinds[kind]) for kind in KINDS},
         "decisions": {decision: len(global_decisions[decision]) for decision in DECISIONS},

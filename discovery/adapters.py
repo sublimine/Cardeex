@@ -14,7 +14,7 @@ from urllib.parse import unquote, urlsplit
 
 from .transport import normalize_url
 
-PARSER_VERSION = "discovery-adapters/1"
+PARSER_VERSION = "discovery-adapters/2"
 MAX_DOCUMENT_BYTES = 2 * 1024 * 1024
 MAX_NODES = 10000
 MAX_CANDIDATES = 5000
@@ -25,6 +25,23 @@ _INVENTORY = re.compile(r"(?:^|[/\W_])(stock|inventory|inventario|vehiculos|véh
 _LISTING = re.compile(r"/(?:vehicle|vehicles|vehicule|voiture|car|cars|auto|motorrad|motorcycle|listing|annonce|anuncio|detail)/(?:[^/?]+)", re.I)
 _PARTS = re.compile(r"(?:^|[/\W_])(parts|pieces|pièces|recambios|repuestos|ersatzteile|onderdelen)(?:$|[/\W_])", re.I)
 _MEDIA_SUFFIXES = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".svg", ".ico", ".bmp", ".tif", ".tiff", ".mp4", ".webm", ".mov", ".mp3", ".woff", ".woff2", ".css", ".js")
+
+
+def discovery_exclusion(locator: str) -> str | None:
+    """One boundary for HTML, structured records, sitemaps and queued work.
+
+    Recognised details remain hints. Unrecognised routes are not certified as
+    inventory-free; a source-specific reviewed channel may further narrow them.
+    """
+    parts = urlsplit(locator)
+    paths = [unquote(parts.path), unquote(parts.fragment.split("?", 1)[0])]
+    if any(path.lower().endswith(_MEDIA_SUFFIXES) for path in paths):
+        return "media_or_asset"
+    if any(_PARTS.search(path) for path in paths):
+        return "parts_surface"
+    if any(_LISTING.search(path) for path in paths):
+        return "inventory_detail"
+    return None
 
 
 class ParserError(ValueError):
@@ -53,8 +70,18 @@ class _Collector:
             locator=normalize_url(locator,self.base)
         except ValueError:
             return
-        if unquote(urlsplit(locator).path).lower().endswith(_MEDIA_SUFFIXES):
+        exclusion = discovery_exclusion(locator)
+        if exclusion == "media_or_asset":
             return
+        signals = dict(signals or {})
+        if exclusion == "parts_surface":
+            signals.update(link_context="parts", exclusion_reason=exclusion, discovery_fetch_allowed=False)
+        if exclusion == "inventory_detail" and signals.get("link_context") != "parts":
+            signals.update(detail_link_hints=[locator] if len(locator) <= 1024 else [],
+                           detail_links_encountered=1, detail_hints_truncated=len(locator) > 1024,
+                           exclusion_reason=exclusion,
+                           discovery_fetch_allowed=False, claim_status="unverified")
+            locator, kind, relation = self.base, "source", "inventory_surface"
         if not isinstance(label,str):
             label=""
         label=" ".join(label.split())
@@ -74,6 +101,17 @@ class _Collector:
             # represented separately by the registry's source observation.
             if not existing["label"] and label:
                 existing["label"]=label
+            if "detail_link_hints" in evidence:
+                hints = existing["signals"].setdefault("detail_link_hints", [])
+                existing["signals"]["detail_links_encountered"] = existing["signals"].get("detail_links_encountered", 0) + 1
+                for hint in evidence["detail_link_hints"]:
+                    if hint not in hints:
+                        if len(hints) < 8 and sum(map(len, hints)) + len(hint) <= 4096:
+                            hints.append(hint)
+                        else:
+                            existing["signals"]["detail_hints_truncated"] = True
+                if evidence.get("detail_hints_truncated"):
+                    existing["signals"]["detail_hints_truncated"] = True
 
     def result(self):
         return list(self.rows.values())
@@ -139,11 +177,23 @@ def _row_node(node,collector,selector):
         shop=tags.get("shop")
         kind="professional_seller" if shop in ("car","motorcycle") else "unknown"
         signals={"osm_tags":{key:tags[key] for key in ("shop","craft","amenity","name","addr:street","addr:housenumber","addr:city","addr:postcode","addr:country") if isinstance(tags.get(key),str)},"claim_status":"unverified"}
-        if node.get("type") in ("node","way","relation") and type(node.get("id")) is int:
+        if node.get("type") in ("node","way","relation") and type(node.get("id")) is int and node["id"] > 0:
             signals["osm_element"]=f"{node['type']}/{node['id']}"
+        try:
+            locator = normalize_url(locator) if isinstance(locator, str) and locator else None
+        except ValueError:
+            locator = None
+            signals["website_status"] = "published_locator_rejected"
+        if not locator and signals.get("osm_element"):
+            locator = "https://www.openstreetmap.org/" + signals["osm_element"]
+            signals.setdefault("website_status", "not_published")
+            signals.update(locator_role="registry_record", discovery_fetch_allowed=False)
+        elif locator:
+            signals.update(website_status="published_unverified", locator_role="published_website")
         collector.add(locator,kind,"organization",tags.get("name",""),signals,selector,"osm_tags")
-        if kind=="professional_seller" and all(type(node.get(key)) in (int,float) for key in ("lat","lon")) and -90<=node["lat"]<=90 and -180<=node["lon"]<=180:
-            signals["published_coordinates"]={"latitude":node["lat"],"longitude":node["lon"]}
+        coordinates = node if "lat" in node and "lon" in node else node.get("center", {})
+        if kind=="professional_seller" and isinstance(coordinates, dict) and all(type(coordinates.get(key)) in (int,float) for key in ("lat","lon")) and -90<=coordinates["lat"]<=90 and -180<=coordinates["lon"]<=180:
+            signals["published_coordinates"]={"latitude":coordinates["lat"],"longitude":coordinates["lon"]}
             collector.add(locator,"point_of_sale","organization",tags.get("name",""),signals,selector,"osm_coordinates")
         return True
     locator=node.get("url") or node.get("website") or node.get("locator")

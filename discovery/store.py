@@ -42,6 +42,13 @@ CREATE TABLE IF NOT EXISTS artifacts (
 CREATE TABLE IF NOT EXISTS events (
  seq INTEGER PRIMARY KEY AUTOINCREMENT, event_id TEXT UNIQUE NOT NULL,
  kind TEXT NOT NULL, entity_id TEXT NOT NULL, recorded_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS channel_pages (
+ page_id TEXT PRIMARY KEY, observed_at TEXT NOT NULL, expires_at TEXT NOT NULL,
+ body_sha256 TEXT NOT NULL, payload TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS expired_channel_pages (page_id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS channel_resumptions (
+ receipt_id TEXT PRIMARY KEY, original_task_key TEXT UNIQUE NOT NULL,
+ task_key TEXT NOT NULL, binding_sha256 TEXT NOT NULL, payload TEXT NOT NULL);
 """
 
 
@@ -57,12 +64,14 @@ class Store(QueueMixin):
         self.db.execute("PRAGMA synchronous=FULL")
         self.db.execute("PRAGMA secure_delete=ON")
         current = self.db.execute("PRAGMA user_version").fetchone()[0]
-        if current not in (0, 1):
+        if current not in (0, 1, 2):
             self.db.close()
             raise Conflict("unsupported discovery database migration version")
         self.db.executescript(DDL)
         self._init_queue()
-        self.db.execute("PRAGMA user_version=1")
+        # v2 prevents v1 workers from treating admitted channel tasks as generic
+        # web fetches. Migration is additive and restartable; downgrade is not.
+        self.db.execute("PRAGMA user_version=2")
 
     def close(self):
         self.db.close()
@@ -99,6 +108,12 @@ class Store(QueueMixin):
     def _event(self, kind: str, entity_id: str, now: str):
         self.db.execute("INSERT INTO events(event_id,kind,entity_id,recorded_at) VALUES (?,?,?,?)",
                         (new_id(), kind, entity_id, now))
+
+    def check_replay_policy(self, policy_ref):
+        """Local-only assessments need not register a network policy; revoked ones cannot publish."""
+        row = self.db.execute("SELECT revoked FROM policies WHERE policy_ref=?", (policy_ref,)).fetchone()
+        if row and row[0]:
+            raise Conflict("revoked assessment cannot publish replay results")
 
     def ingest(self, observation: Observation) -> str:
         return self.ingest_batch([observation])[0]
@@ -310,6 +325,8 @@ class Store(QueueMixin):
                 self.db.execute("DELETE FROM evidence WHERE evidence_id=?", (row["evidence_id"],))
                 self._event("evidence_expired", row["candidate_id"], now)
             artifacts = self.db.execute("DELETE FROM artifacts WHERE julianday(expires_at)<=julianday(?)", (now,)).rowcount
+            self.db.execute("INSERT OR IGNORE INTO expired_channel_pages SELECT page_id FROM channel_pages WHERE julianday(expires_at)<=julianday(?)", (now,))
+            self.db.execute("DELETE FROM channel_pages WHERE julianday(expires_at)<=julianday(?)", (now,))
             self.db.execute("UPDATE candidates SET locator='' WHERE NOT EXISTS(SELECT 1 FROM evidence WHERE evidence.candidate_id=candidates.candidate_id)")
         return {"evidence_removed": len(expired), "artifacts_removed": artifacts}
 
@@ -325,6 +342,7 @@ class Store(QueueMixin):
                 if ev["claims"]["body_sha256"]:
                     self.db.execute("INSERT OR IGNORE INTO suppressed_artifacts VALUES (?,?)", (ev["claims"]["body_sha256"], now))
                     self.db.execute("DELETE FROM artifacts WHERE checksum=?", (ev["claims"]["body_sha256"],))
+                    self.db.execute("DELETE FROM channel_pages WHERE body_sha256=?", (ev["claims"]["body_sha256"],))
             self.db.execute("DELETE FROM evidence WHERE candidate_id=?", (candidate_id,))
             self.db.execute("DELETE FROM relations WHERE source_id=? OR target_id=?", (candidate_id, candidate_id))
             self.db.execute("DELETE FROM decisions WHERE candidate_id=?", (candidate_id,))
@@ -377,3 +395,46 @@ class Store(QueueMixin):
 
     def list_plans(self) -> list[dict]:
         return [json.loads(r[0]) for r in self.db.execute("SELECT payload FROM plans ORDER BY plan_id")]
+
+    def record_channel_page(self, task, origin, result, observed_at, checksum, *, expires_at, raw_retained=True):
+        """Persist empty/truncated outcomes too, with retention and immutable replay identity."""
+        from .channels import CHANNEL_VERSION, validate_binding
+        from .transport import normalize_url
+        binding = validate_binding(task["payload"]["channel"])
+        observed_at, expires_at = timestamp(observed_at), timestamp(expires_at)
+        if instant(expires_at) <= instant(observed_at) or instant(observed_at) > instant(timestamp()):
+            raise ValueError("invalid channel observation/retention window")
+        page_id = digest([task["task_key"], observed_at, checksum, digest(binding)])
+        payload = dict(task_key=task["task_key"], plan_id=task["plan_id"],
+            origin=normalize_url(origin), adapter=binding["adapter"], method_version=CHANNEL_VERSION,
+            channel_sha256=digest(binding), policy_ref=binding["assessment_ref"],
+            row_count=len(result["rows"]) if result["rows"] is not None else None,
+            complete=result["complete"], warnings=result["warnings"],
+            continuation_present=result["continuation"] is not None, raw_retained=raw_retained)
+        with self.transaction():
+            if self.db.execute("SELECT 1 FROM suppressed_artifacts WHERE checksum=?", (checksum,)).fetchone() or self.db.execute(
+                    "SELECT 1 FROM expired_channel_pages WHERE page_id=?", (page_id,)).fetchone():
+                raise Conflict("suppressed or expired channel outcome cannot be replayed")
+            old = self.db.execute("SELECT expires_at FROM channel_pages WHERE page_id=?", (page_id,)).fetchone()
+            if old:
+                expires_at = min(old[0], expires_at, key=instant)
+            self.db.execute("INSERT INTO channel_pages VALUES (?,?,?,?,?) ON CONFLICT(page_id) DO UPDATE SET expires_at=excluded.expires_at",
+                            (page_id, observed_at, expires_at, checksum, canonical_json(payload)))
+        return page_id
+
+    def channel_summary(self, now):
+        """Source-query outcomes are not market/inventory coverage certificates."""
+        from collections import Counter
+        counts, adapters, warnings = Counter(), Counter(), Counter()
+        for row in self.db.execute("SELECT payload FROM channel_pages WHERE julianday(observed_at)<=julianday(?) AND julianday(expires_at)>julianday(?)", (now, now)):
+            item = json.loads(row[0])
+            counts["pages"] += 1
+            counts["rows"] += item["row_count"] or 0
+            counts["rows_unknown_pages"] += item["row_count"] is None
+            counts["unknown_pages" if item["complete"] is None else "complete_query_pages" if item["complete"] else "incomplete_pages"] += 1
+            counts["pages_with_continuation"] += item["continuation_present"]
+            adapters[item["adapter"]] += 1
+            warnings.update(item["warnings"])
+        return {key: counts[key] for key in ("pages", "rows", "rows_unknown_pages", "unknown_pages", "complete_query_pages", "incomplete_pages", "pages_with_continuation")} | {
+            "adapters": dict(adapters), "warnings": dict(warnings), "coverage_ratio": None,
+            "unit": "retained_source_query_page_not_unique_entity"}

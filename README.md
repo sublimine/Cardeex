@@ -6,7 +6,7 @@ Cardeex es un proyecto nuevo e independiente para construir una API viva, histó
 
 ## Estado actual
 
-Base de arquitectura y contratos, más sistema local de descubrimiento implementado por encargo de Elias el 7 de septiembre de 2026. Incluye perfiles nacionales, planificación territorial extensible, evidencia, revisión, cola recuperable, acceso gobernado, replay y cobertura explícita. No hay producto desplegado, campañas nacionales certificadas ni inventario real adquirido.
+Base de arquitectura y contratos, más sistema local de descubrimiento implementado por encargo de Elias el 7 de septiembre de 2026. Incluye perfiles nacionales, canales específicos admitibles, catálogos/alias versionados, clasificación tecnológica, revisitas persistentes, evidencia, revisión, cola recuperable y estimación condicionada con desconocidos explícitos. No hay producto desplegado, campañas nacionales certificadas ni inventario real adquirido. Los formatos soportados y los límites se detallan en el manual: estrategias investigadas no equivalen a conectores certificados.
 
 El próximo paso operativo es verificar geografía, evaluar canales gratuitos y ejecutar pilotos acotados de descubrimiento; el siguiente proyecto de estrategia es adquisición/scraping por superficie. El módulo local no sustituye el control productivo ni certifica el 100% del universo abierto.
 

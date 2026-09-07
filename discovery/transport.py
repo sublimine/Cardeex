@@ -417,6 +417,7 @@ class SafeFetcher:
             raise ValueError("Aggregate deadline must be a finite monotonic clock value")
         self.policy=policy
         self._before_request=before_request
+        self.request_phase="document"
         self.deadline_at=deadline_at
         self.requests_made=0
         self.bytes_received=0
@@ -454,7 +455,7 @@ class SafeFetcher:
             raise PolicyError("Discovery policy has expired")
         return url
 
-    def _one(self,url: str) -> FetchResult:
+    def _one(self,url: str, *, purpose: str = "document") -> FetchResult:
         url=self._admit(url)
         parts=urlsplit(url)
         host=parts.hostname
@@ -474,6 +475,7 @@ class SafeFetcher:
         addresses=_resolve(host,443 if parts.scheme=="https" else 80,self._stage_timeout())
         self._admit(url)
         if self._before_request is not None:
+            self.request_phase=purpose
             self._before_request(url)
         self._admit(url)
         self.requests_made+=1
@@ -507,7 +509,7 @@ class SafeFetcher:
         target=origin+"/robots.txt"
         try:
             for hop in range(self.policy.max_redirects+1):
-                result=self._one(target)
+                result=self._one(target,purpose="robots")
                 if result.status in (301,302,303,307,308):
                     if hop==self.policy.max_redirects:
                         raise RobotsDenied("Robots redirect limit exceeded")

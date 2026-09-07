@@ -37,7 +37,7 @@ Este es el punto de entrada del vault **independiente** de Cardeex.
 - Misión: aprobada.
 - Base de arquitectura: desarrollada por encargo de Elias, con contratos verificables.
 - Clases de adquisición y jerarquía de certificación: definidas por separado.
-- Descubrimiento local: implementado, con seis perfiles nacionales y pruebas; sin campañas nacionales certificadas.
+- Descubrimiento local: núcleo y corrección de carencias con canales específicos, catálogos/alias, tecnología, revisitas y estimación condicionada; aceptación trazada en el plan canónico. Sin campañas nacionales certificadas.
 - Siguiente paso operativo: geografía verificada, canales admitidos y pilotos de descubrimiento; siguiente estrategia: scraping por superficie.
 - Estado operativo real: no hay inventario, despliegue ni capacidad certificada todavía.
 

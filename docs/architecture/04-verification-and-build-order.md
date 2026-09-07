@@ -277,3 +277,51 @@ Comando de cada ciclo: `python -m unittest discover -s tests/discovery -p 'test_
 El sistema de [descubrimiento](05-discovery-system.md) permite preparar y ejecutar pilotos locales gobernados. Próximo paso operativo: catálogos territoriales verificados, admisión de canales gratuitos, campañas acotadas y auditoría independiente de huecos. Próximo proyecto de estrategia: adquisición/scraping con el apartado 15 de los fundamentos. Después se promueven componentes y superficies por G3–G6, sin confundir trabajo planificado con inventarios ya obtenidos.
 
 Se actualizan esos contratos y este plan conforme se obtenga evidencia. No se añade una nueva base, un segundo mapa de decisiones ni una pila de checkpoints.
+
+## 10. Reapertura: completar las capacidades de descubrimiento
+
+Estado: **capacidades locales R1–R7 verificadas**, con revisión independiente de cumplimiento y calidad cerrada. La auditoría comparativa de código de Cardex/Cardeep detectó capacidades locales ausentes y dos defectos reproducibles en `6cd2f2d`; aquel cierre D1–D6 no acreditaba estas capacidades. Ningún resultado histórico, implementación, dato ni receta se importa: las referencias históricas justifican preguntas; las decisiones y el código nuevos son propios de Cardeex. Este cierre no certifica campañas, datos nacionales, acceso a todas las estrategias ni cobertura del universo abierto.
+
+**Objetivo:** cerrar los defectos de conservación/frontera y entregar canales ejecutables, geografía resoluble, clasificación técnica, revisitas y estimación explícita de desconocidos, integrados con evidencia, CLI, cola, permisos y recuperación.
+
+**Arquitectura:** parsers y análisis puros producen afirmaciones; el worker conserva autoridad exclusiva sobre red gobernada y confirmación transaccional. Los canales se vinculan explícitamente a estrategias y evaluaciones vigentes. Geografía y estimaciones conservan sus entradas/versiones y no atribuyen hechos desde una consulta. Las revisitas producen nuevas ejecuciones sin reiniciar presupuestos ni borrar resultados previos.
+
+**Tecnología:** Python 3.11+, SQLite local y dependencias de verificación existentes. Sin servicio de pago obligatorio. La ejecución real de cada fuente conserva sus puertas de admisión; la prueba de un parser o cliente no certifica disponibilidad externa ni cobertura nacional.
+
+### Responsabilidades y condiciones de cierre
+
+| ID / propietario | Archivos exclusivos | Resultado exigido y evidencia de aceptación |
+|---|---|---|
+| R1 / integración | `discovery/adapters.py`, `discovery/engine.py`, pruebas existentes afectadas | POI OSM sin web conserva identidad de registro, nombre y ubicación; ningún sitemap, JSON o enlace expansible puede introducir detalles/medios reconocidos en la cola. Casos negativos reproducidos antes del cambio y positivos después. |
+| R2 / canales | `discovery/channels.py`, `tests/discovery/test_channels.py` | Contratos ejecutables de petición y parseo para búsqueda admitida, OSM, directorios estructurados y registros abiertos seleccionados con documentación primaria. Paginación finita, marcadores de truncamiento, IDs de registro sin web, ausencia de permisos y formatos cambiados probados. No hay conectores nominales que devuelvan vacío por defecto. |
+| R3 / geografía y medición | `discovery/geography.py`, `discovery/estimation.py`, `tests/discovery/test_geography.py`, `tests/discovery/test_estimation.py` | Catálogo versionado, códigos con ceros iniciales, alias/localidades menores, ambigüedades y evidencia de origen; resolución no inventada. Estimación reproducible por estrato con grupos independientes declarados, intervalos y rechazo de datos insuficientes; ninguna estimación se publica como certificación. |
+| R4 / tecnología | `discovery/technology.py`, `tests/discovery/test_technology.py` | Inspección pura de HTML/cabeceras y URLs para CMS, proveedor de inventario y superficies posibles; señales/versiones, contradicciones, desconocido y páginas dinámicas explícitos. Nada se ejecuta ni se promueve a receta certificada por una firma. |
+| R5 / integración | `discovery/scheduling.py`, `tests/discovery/test_scheduling.py`, `discovery/store.py`, `discovery/queue.py` | Calendario persistente por estrategia/alcance, vencimiento, pausa, reanudación, idempotencia concurrente y revisitas con historia; fallos y presupuestos no se resetean. `tick` acotado y modo de inspección sin mutaciones. |
+| R6 / integración | `discovery/cli.py`, `discovery/planner.py`, `discovery/coverage.py`, `discovery/channel_runtime.py`, pruebas CLI/engine/coverage | Todo módulo tiene recorrido utilizable por operador. Canales admitidos resuelven consultas y semillas a peticiones reales a través del transporte existente; su configuración entra en la identidad/revisión. Importar catálogo, analizar tecnología, programar revisitas y estimar desconocidos produce salida trazable. |
+| R7 / revisión independiente | Documentos canónicos, CI y conjunto de cambios | Revisión de cumplimiento por requisito, después revisión de calidad/seguridad; suite completa, verificador fundacional y prueba CLI de punta a punta. Integración local preservando AGENTS/canvas del usuario. No se cierra una fila por existir su archivo o test. |
+
+### Operaciones y oráculos atómicos
+
+- [x] R1.1 Reproducir con un nodo OSM sintético con `type/id`, nombre y coordenadas, pero sin `website`; exigir candidato con localizador del registro y `website` desconocido. Mantener distintos `node/way/relation` y no deduplicarlos por el host OSM.
+- [x] R1.2 Reproducir sitemap con `/car/1`; aplicar una frontera común a todas las expansiones, incluidas rutas codificadas, dominios distintos, medios y SPA. Conservar la pista de superficie y el motivo de exclusión; no descargar detalles.
+- [x] R2.1 Definir bindings con adaptador, endpoint, países/clases, evaluación, parámetros y límite de páginas; validar campos, esquemas HTTPS, país y compatibilidad con estrategia antes de generar red.
+- [x] R2.2 Construir clientes/parsers desde formatos documentados primarios. Probar payload de éxito, negocio sin web, paginación, página vacía terminal, respuesta inesperada, exceso de registros y cursor repetido. El controlador recibe filas, continuación y deuda explícitas.
+- [x] R2.3 Probar que una consulta sin binding sigue bloqueada; una consulta admitida conserva el texto solo como procedencia de búsqueda. Un resultado nunca obtiene país, actividad o identidad porque coincidía con la consulta.
+- [x] R3.1 Importar catálogo con versión, URL de origen, fecha, checksum, país y unidades. Aceptar normalización y alias revisados; rechazar duplicados contradictorios y versiones incompatibles, conservar alias ambiguos sin resolverlos arbitrariamente y devolver unknown para nombres ajenos al catálogo.
+- [x] R3.2 Resolver municipio/núcleo y región conservando los valores originales, candidatos alternativos y regla aplicada; `unknown` y `ambiguous` nunca se convierten en coincidencia automática.
+- [x] R3.3 Probar estimación sobre una población sintética conocida y grupos de captura definidos: solapamiento, ninguna coincidencia, única fuente, fuentes dependientes y datos caducados. Reportar observados separados de estimados, supuestos y límites; mantener `coverage_ratio=null` para el universo abierto.
+- [x] R4.1 Probar firmas positivas y negativas, coincidencias múltiples, HTML genérico, código mostrado como texto, páginas de error y proveedores compartidos. Las pistas tienen selector, regla y versión.
+- [x] R4.2 Probar pistas de endpoints/rutas como referencias no autorizadas, sin acceso adicional ni fusión de dealers por proveedor; integrar señales en observaciones retenidas y exportables.
+- [x] R5.1 Probar calendario vencido/no vencido y reloj inválido; una generación se crea una vez aun con dos procesos y se conserva tras reinicio.
+- [x] R5.2 Probar pausa y revisión, límites por tick, fallo entre generación/confirmación, tareas antiguas en curso y deuda acumulada. La inspección del calendario no crea base, filas ni ejecuciones.
+- [x] R6.1 Ejecutar en base temporal el recorrido catálogo → plan/canal → worker con transporte simulado → candidato sin web → revisión → handoff; probar también revocación durante fetch y cambio de configuración.
+- [x] R6.2 Ejecutar en la misma base revisita tras reinicio y estimación explicable; comprobar observaciones antiguas/nuevas, separación de país/clase/POS y mantenimiento de supresiones.
+- [x] R6.3 Conservar resultados de canal vacíos/parciales, su retención y supresión; Sirene no retiene el raw con campos privados. La continuación revisada crea plan/tarea nuevos sin resetear presupuesto. Migración aditiva a base v2 impide interpretación incorrecta por workers antiguos; prueba física simulada cuenta robots/peticiones y bloquea redirección a inventario antes de descargar.
+- [x] R7.1 Revisar código y contraejemplos por agente distinto del autor; corregir hallazgos antes de la revisión de calidad posterior.
+- [x] R7.2 Ejecutar `python -m unittest discover -s tests/discovery -p 'test_*.py' -q`, `python tools/verify_foundation.py` y `git diff --check`; observar salidas y alcance antes de integrar.
+
+Evidencia de aceptación: suites `test_discovery_frontier`, `test_channels`, `test_geography`, `test_estimation`, `test_technology`, `test_scheduling`, `test_channel_engine`, `test_channel_operations`, `test_completion_workflow`, `test_completion_cli`, más regresiones existentes y verificador fundacional. La revisión independiente reprodujo y cerró límites de consultas incompatibles, cursores agotados, coordenadas gigantes, catálogo fuera de ámbito, reloj inválido, revocación en replay, redirección de canal, parseo sin diagnóstico y rutas técnicas ejecutadas antes de revisión. Las pruebas físicas simulan exclusivamente la red; ningún resultado se presenta como campaña real.
+
+### Límites que necesitan evidencia operativa propia
+
+Disponibilidad actual, permisos particulares, catálogos nacionales completos, calidad de fuentes reales, calibración de identidad y campañas nacionales no se acreditan con fixtures. Cada canal informa soporte técnico y estado de admisión por separado. Cualquier limitación de esos ámbitos queda visible en la salida y en su evaluación; no habilita un cierre ficticio de las capacidades locales anteriores.

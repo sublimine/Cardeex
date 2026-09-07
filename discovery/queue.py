@@ -108,7 +108,12 @@ class QueueMixin:
         if type(limit) is not int or not 1 <= limit <= 100000:
             raise ValueError("bounded frontier release required")
         with self.transaction():
-            rows = self.db.execute("SELECT * FROM deferred_frontier ORDER BY task_key LIMIT ?", (limit,)).fetchall()
+            # Page-window debt needs an audited resume, not a release which would
+            # silently exceed its immutable binding or strand a blocked task.
+            rows = self.db.execute("""SELECT * FROM deferred_frontier WHERE
+                COALESCE(json_extract(payload,'$.payload.channel_page'),0) <=
+                COALESCE(json_extract(payload,'$.payload.channel.max_pages'),0)
+                ORDER BY task_key LIMIT ?""", (limit,)).fetchall()
             for row in rows:
                 if not self.db.execute("SELECT 1 FROM tasks WHERE task_key=?", (row["task_key"],)).fetchone():
                     self.enqueue(json.loads(row["payload"]))

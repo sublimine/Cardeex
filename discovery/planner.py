@@ -11,11 +11,12 @@ from hashlib import sha256
 from itertools import chain, islice
 import json
 from string import Formatter
+from urllib.parse import urlsplit
 
 from .profiles import SOURCE_TYPES, validate_profile
 
 
-PLANNER_VERSION = "1.0.0"
+PLANNER_VERSION = "2.0.0"
 MAX_PAGE_TASKS = 100000
 
 
@@ -94,12 +95,12 @@ def _strategies(profile):
 
 
 def _task(plan_id, profile, strategy, kind, locator, classes, locality=None,
-          language=None, query_identity=None):
+          language=None, query_identity=None, channel=None):
     code = locality["code"] if locality else None
     identity = {"plan_id": plan_id, "country": profile["country"], "strategy": strategy["id"],
                 "kind": kind, "locator": locator, "classes": sorted(classes),
                 "locality_code": code, "language": language, "query_identity": query_identity}
-    return {
+    result = {
         "task_key": "task:" + _digest(identity), "plan_id": plan_id,
         "stratum": profile["country"] + ":" + _digest([code, strategy["id"]]),
         "country": profile["country"], "classes": sorted(classes), "strategy": strategy["id"],
@@ -114,14 +115,27 @@ def _task(plan_id, profile, strategy, kind, locator, classes, locality=None,
                     "requires_human_execution": kind == "query",
                     "scope_is_evidence": False},
     }
+    if channel is not None:
+        result["payload"].update(channel=channel, channel_checksum=_digest(channel), channel_page=1,
+            requires_human_execution=False,
+            profile_evidence_group=strategy["evidence_group"],
+            evidence_group="channel:" + channel["adapter"] + ":" + urlsplit(channel["endpoint"]).hostname)
+    return result
 
 
-def _seed_tasks(plan_id, profile, strategy, offset=0):
-    for url in islice(sorted(set(strategy["seed_urls"])), offset, None):
-        yield _task(plan_id, profile, strategy, "fetch", url, strategy["vehicle_classes"])
+def _seed_urls(strategy, channel=None):
+    if channel and channel["adapter"] != "searxng_json":
+        return [channel["endpoint"]]
+    return sorted(set(strategy["seed_urls"]))
 
 
-def _query_group(plan_id, profile, strategy, locality, language, template_index, template, vehicle_class, offset=0):
+def _seed_tasks(plan_id, profile, strategy, offset=0, channel=None):
+    binding = channel if channel and channel["adapter"] != "searxng_json" else None
+    for url in islice(_seed_urls(strategy, channel), offset, None):
+        yield _task(plan_id, profile, strategy, "fetch", url, strategy["vehicle_classes"], channel=binding)
+
+
+def _query_group(plan_id, profile, strategy, locality, language, template_index, template, vehicle_class, offset=0, channel=None):
     place = locality["name"]
     if locality.get("region"):
         place += ", " + locality["region"]
@@ -132,39 +146,44 @@ def _query_group(plan_id, profile, strategy, locality, language, template_index,
         term = terms[term_index]
         query = template.format(locality=place, vehicle_term=term)
         yield _task(plan_id, profile, strategy, "query", query, classes, locality,
-                    language, [template_index, term_index])
+                    language, [template_index, term_index], channel=channel)
 
 
 def _uses_vehicle_term(template):
     return any(field == "vehicle_term" for _, field, _, _ in Formatter().parse(template))
 
 
-def _local_queries(plan_id, profile, strategy, locality, offset=0):
+def _local_queries(plan_id, profile, strategy, locality, offset=0, channels=None):
     groups = []
+    binding = (channels or {}).get(strategy["id"])
+    if binding and binding["adapter"] != "searxng_json":
+        binding = None
     for language, templates in sorted(strategy["query_templates"].items()):
         for index, template in enumerate(templates):
             classes = sorted(strategy["vehicle_classes"]) if _uses_vehicle_term(template) else [None]
             for vehicle_class in classes:
                 count = len(profile["vocabulary"][language][vehicle_class]) if vehicle_class else 1
                 groups.append((count, partial(_query_group, plan_id, profile, strategy, locality,
-                                              language, index, template, vehicle_class)))
+                                              language, index, template, vehicle_class, channel=binding)))
     yield from _round_robin(groups, offset)
 
 
-def _locality_tasks(plan_id, profile, strategies, query_counts, locality, offset=0):
-    lanes = [(query_counts[strategy["id"]], partial(_local_queries, plan_id, profile, strategy, locality))
+def _locality_tasks(plan_id, profile, strategies, query_counts, locality, offset=0, channels=None):
+    lanes = [(query_counts[strategy["id"]], partial(_local_queries, plan_id, profile, strategy, locality, channels=channels))
              for strategy in strategies]
     yield from _round_robin(lanes, offset)
 
 
-def _country_tasks(plan_id, profile, localities, offset=0):
+def _country_tasks(plan_id, profile, localities, offset=0, channels=None):
+    channels = channels or {}
     strategies = _strategies(profile)
     query_counts = {strategy["id"]: _query_count(profile, strategy) for strategy in strategies}
-    seeds = [(len(set(strategy["seed_urls"])), partial(_seed_tasks, plan_id, profile, strategy))
+    seeds = [(len(_seed_urls(strategy, channels.get(strategy["id"]))),
+              partial(_seed_tasks, plan_id, profile, strategy, channel=channels.get(strategy["id"])))
              for strategy in strategies]
     lanes = [(sum(length for length, _ in seeds), partial(_round_robin, seeds))]
     locality_count = sum(query_counts.values())
-    lanes.extend((locality_count, partial(_locality_tasks, plan_id, profile, strategies, query_counts, locality))
+    lanes.extend((locality_count, partial(_locality_tasks, plan_id, profile, strategies, query_counts, locality, channels=channels))
                  for locality in localities)
     yield from _round_robin(lanes, offset)
 
@@ -178,13 +197,13 @@ def _query_count(profile, strategy):
     return count
 
 
-def build_plan(profiles, localities, epoch, max_tasks=10000, offset=0):
+def build_plan(profiles, localities, epoch, max_tasks=10000, offset=0, *, channels=None, catalogues=None):
     """Return a deterministic page plus the complete frontier's finite manifest.
 
     All supplied localities are a sample, including an empty list. Profile access
     modes describe proposed channels and do not approve any third-party access.
-    Query proposals require human execution; a future search provider needs its
-    own adapter and admission. Page limits are 1..100000. Count-aware seeks skip
+    Unbound query proposals require human execution; bindings need independent
+    admission. Page limits are 1..100000. Count-aware seeks skip
     completed rounds mathematically, constructing only tasks in the requested
     page. Work and memory depend on input profiles/geography and page size, not
     on the number of preceding tasks in the Cartesian frontier.
@@ -195,24 +214,61 @@ def build_plan(profiles, localities, epoch, max_tasks=10000, offset=0):
         validate_profile(value)
         if country != value["country"]:
             raise ValueError("profiles: key and country disagree")
+    from .channels import validate_binding, request_url
+    channels = {} if channels is None else channels
+    if not isinstance(channels, dict):
+        raise ValueError("channels: expected strategy-to-binding mapping")
+    strategies = {s["id"]: (country, s) for country, p in profiles.items() for s in p["strategies"]}
+    if set(channels) - set(strategies):
+        raise ValueError("channel binding references an unknown strategy")
+    channels = {key: validate_binding(value) for key, value in sorted(channels.items())}
+    for key, binding in channels.items():
+        country, strategy = strategies[key]
+        if country not in binding["countries"] or not set(strategy["vehicle_classes"]) <= set(binding["vehicle_classes"]):
+            raise ValueError("channel scope does not cover the strategy")
+        if strategy["access_mode"] == "permission_required":
+            raise ValueError("permission-required strategy needs its own admission before binding")
+        if binding["adapter"] == "sirene_csv":
+            raise ValueError("local CSV import is not a network plan")
+        if binding["adapter"] == "overpass_json":
+            request_url(binding, {})  # A reviewed geographic partition is mandatory.
     _text(epoch, "epoch")
     if type(max_tasks) is not int or not 1 <= max_tasks <= MAX_PAGE_TASKS:
         raise ValueError(f"max_tasks: expected integer in 1..{MAX_PAGE_TASKS}")
     if type(offset) is not int or offset < 0:
         raise ValueError("offset: expected a nonnegative integer")
+    catalogue_sources = []
+    if catalogues is not None:
+        from .geography import validate_catalogue, catalogue_localities
+        if localities or not isinstance(catalogues, list) or not 1 <= len(catalogues) <= len(profiles):
+            raise ValueError("catalogues must be an explicit alternative to supplied localities")
+        checked = [validate_catalogue(catalogue) for catalogue in catalogues]
+        if any(c["country"] not in profiles for c in checked):
+            raise ValueError("catalogue country is outside selected profiles")
+        if len({c["country"] for c in checked}) != len(checked):
+            raise ValueError("one catalogue revision per country and plan required")
+        localities = [place for catalogue in checked for place in catalogue_localities(catalogue)]
+        catalogue_sources = sorted([{key: catalogue[key] for key in (
+            "country", "version", "source_url", "observed_at", "body_sha256", "normalized_sha256")}
+            for catalogue in checked], key=lambda item: item["country"])
     places = _geography(profiles, localities)
     grouped = {country: [] for country in sorted(profiles)}
     for place in places:
         grouped[place["country"]].append(place)
     profile_hash, geography_hash = _digest(profiles), _digest(places)
-    plan_id = "plan:" + _digest([PLANNER_VERSION, profile_hash, geography_hash, epoch])
-    country_counts = {country: sum(len(set(strategy["seed_urls"])) + len(grouped[country]) * _query_count(value, strategy)
+    plan_identity = [PLANNER_VERSION, profile_hash, geography_hash, epoch]
+    if channels:
+        plan_identity.append(_digest(channels))
+    if catalogue_sources:
+        plan_identity.append(_digest(catalogue_sources))
+    plan_id = "plan:" + _digest(plan_identity)
+    country_counts = {country: sum(len(_seed_urls(strategy, channels.get(strategy["id"]))) + len(grouped[country]) * _query_count(value, strategy)
                                   for strategy in value["strategies"])
                       for country, value in profiles.items()}
     total = sum(country_counts.values())
     if offset > total:
         raise ValueError("offset: beyond the declared frontier")
-    lanes = [(country_counts[country], partial(_country_tasks, plan_id, profiles[country], grouped[country]))
+    lanes = [(country_counts[country], partial(_country_tasks, plan_id, profiles[country], grouped[country], channels=channels))
              for country in sorted(profiles)]
     tasks = list(islice(_round_robin(lanes, offset), max_tasks))
     for ordinal, task in enumerate(tasks, start=offset):
@@ -224,6 +280,8 @@ def build_plan(profiles, localities, epoch, max_tasks=10000, offset=0):
              for country, value in sorted(profiles.items()) for kind in sorted(value["vehicle_classes"])
              for source_type in sorted(SOURCE_TYPES)]
     return {"plan_id": plan_id, "planner_version": PLANNER_VERSION, "profile_sha256": profile_hash,
+            "channels": channels, "channels_sha256": _digest(channels),
+            "catalogue_sources": catalogue_sources,
             "geography_sha256": geography_hash, "epoch": epoch, "offset": offset,
             "next_offset": next_offset if next_offset < total else None, "total_tasks": total,
             "generation_complete": next_offset == total,

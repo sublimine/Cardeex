@@ -3,17 +3,23 @@
 import argparse
 from itertools import islice
 import json
+import math
 from pathlib import Path
 import sqlite3
 import sys
 
 from .coverage import coverage_report
+from .channels import validate_binding
 from .engine import inspect_document, run_worker
+from .estimation import estimate_stratum
+from . import geography
 from .handoff import handoff_records
 from .model import Conflict, Observation, canonical_json, timestamp
 from .planner import build_plan
 from .profiles import load_profiles
+from .scheduling import inspect_schedules, register_schedule, set_paused, tick
 from .store import Store
+from .technology import classify_technology
 from .transport import AccessPolicy
 
 
@@ -35,25 +41,70 @@ def strict_json(text: str):
         return result
     def constant(_):
         raise ValueError("non-finite JSON number")
-    return json.loads(text, object_pairs_hook=pairs, parse_constant=constant)
+    def finite_float(value):
+        parsed = float(value)
+        if not math.isfinite(parsed):
+            raise ValueError("non-finite JSON number")
+        return parsed
+    try:
+        return json.loads(text, object_pairs_hook=pairs, parse_constant=constant, parse_float=finite_float)
+    except RecursionError:
+        raise ValueError("JSON nesting exceeds parser limit") from None
 
 
 def read_json(path: str, limit: int = 8 * 1024 * 1024):
     return strict_json(read_bytes(path, limit).decode("utf-8-sig"))
 
 
+class _SafeArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        # argparse otherwise echoes unrecognized arguments, including credentials.
+        super().error("Invalid command or argument; use --help for the accepted interface.")
+
+
 def _parser():
-    parser = argparse.ArgumentParser(prog="python -m discovery", description=__doc__)
+    parser = _SafeArgumentParser(prog="python -m discovery", description=__doc__)
     parser.add_argument("--db", default=".cardeex-local/discovery.sqlite")
     parser.add_argument("--profiles-dir", help="Explicit reviewed additional-country profile directory")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("profiles", help="Inspect researched country strategies without network")
     plan = commands.add_parser("plan", help="Persist a finite page of a versioned discovery frontier")
     plan.add_argument("--countries", default="ES,FR,DE,NL,BE,CH")
-    plan.add_argument("--localities", help="Reviewed JSON list of country/code/name/region/rural places")
+    places = plan.add_mutually_exclusive_group()
+    places.add_argument("--localities", help="Reviewed JSON list of country/code/name/region/rural places")
+    places.add_argument("--catalogue", help="Normalized geo-import JSON catalogue, including its provenance")
+    plan.add_argument("--channels", help="Reviewed JSON mapping of strategy IDs to explicit channel bindings")
     plan.add_argument("--epoch", required=True, help="Explicit campaign/refresh window identity")
     plan.add_argument("--limit", type=int, default=1000)
     plan.add_argument("--offset", type=int, default=0)
+    geo_import = commands.add_parser("geo-import", help="Validate local original catalogue bytes; output JSON, no database")
+    geo_import.add_argument("--file", required=True)
+    geo_import.add_argument("--metadata", required=True, help="JSON provenance and explicit import options")
+    geo_import.add_argument("--format", choices=("json", "csv"), default="json")
+    geo_resolve = commands.add_parser("geo-resolve", help="Resolve exact catalogue names/aliases; no database")
+    geo_resolve.add_argument("--catalogue", required=True)
+    geo_resolve.add_argument("--name", required=True)
+    geo_resolve.add_argument("--region")
+    technology = commands.add_parser("technology", help="Analyze a local document for technology hypotheses; no database")
+    for name in ("file", "origin", "content-type"):
+        technology.add_argument("--" + name, required=True)
+    technology.add_argument("--headers", help="Inline JSON object of observed response headers, not a file path")
+    estimate = commands.add_parser("estimate", help="Calculate a conditional estimate from reviewed local evidence; no database")
+    estimate.add_argument("--file", required=True, help="JSON object containing records, independent_groups, stratum and now")
+    schedule = commands.add_parser("schedule", help="Manage a frozen local discovery calendar; never execute network requests")
+    schedule_commands = schedule.add_subparsers(dest="schedule_command", required=True)
+    register = schedule_commands.add_parser("register", help="Register an immutable reviewed schedule definition")
+    register.add_argument("--spec", required=True, help="JSON schedule with frozen profiles, geography and channel bindings")
+    register.add_argument("--actor", required=True)
+    schedule_commands.add_parser("show", help="Read calendar without creating a database or expiring evidence")
+    for action in ("pause", "resume"):
+        change = schedule_commands.add_parser(action)
+        for name in ("id", "actor", "reason"):
+            change.add_argument("--" + name, required=True)
+    schedule_tick = schedule_commands.add_parser("tick", help="Enqueue a bounded page of due work; no network")
+    schedule_tick.add_argument("--now")
+    schedule_tick.add_argument("--max-tasks", type=int, default=1000)
+    schedule_tick.add_argument("--max-schedules", type=int, default=20)
     coverage = commands.add_parser("coverage", help="Show unknowns, unplanned geography and work debt")
     coverage.add_argument("--countries", default="ES,FR,DE,NL,BE,CH")
     tasks = commands.add_parser("queue", help="Inspect work without executing any source")
@@ -70,6 +121,12 @@ def _parser():
     inspect.add_argument("--evidence-group", required=True)
     inspect.add_argument("--observed-at", required=True, help="Original source observation time, not replay time")
     inspect.add_argument("--expires-at", required=True, help="Approved retention expiry")
+    channel = commands.add_parser("inspect-channel", help="Replay a local channel response under its reviewed binding; no network")
+    for name in ("file", "binding", "origin", "content-type", "policy-ref", "observed-at", "expires-at"):
+        channel.add_argument("--" + name, required=True)
+    resume_channel = commands.add_parser("resume-channel", help="Resume preserved channel page-window debt after explicit review; no network")
+    for name in ("task", "binding", "actor", "reason"):
+        resume_channel.add_argument("--" + name, required=True)
     run = commands.add_parser("run", help="Execute bounded discovery using an explicit approved host policy")
     run.add_argument("--policy", required=True)
     run.add_argument("--max-tasks", type=int, default=20)
@@ -138,9 +195,25 @@ def _ingest(store, path: str, max_records: int):
 def _execute(args, store, profiles):
     if args.command == "plan":
         localities = read_json(args.localities) if args.localities else []
-        plan = build_plan(_selected(profiles, args.countries), localities, args.epoch, max_tasks=args.limit, offset=args.offset)
+        options = {}
+        if args.channels:
+            mapping = read_json(args.channels)
+            if not isinstance(mapping, dict):
+                raise ValueError("channels require a strategy-to-binding mapping")
+            options["channels"] = {key: validate_binding(value) for key, value in mapping.items()}
+        if args.catalogue:
+            options["catalogues"] = [geography.validate_catalogue(read_json(args.catalogue, geography.MAX_SERIALIZED_BYTES))]
+        plan = build_plan(_selected(profiles, args.countries), localities, args.epoch,
+                          max_tasks=args.limit, offset=args.offset, **options)
         store.save_plan(plan)
         return {**{k: v for k, v in plan.items() if k != "tasks"}, "tasks_enqueued": len(plan["tasks"]), "network_executed": False}
+    if args.command == "schedule":
+        if args.schedule_command == "register":
+            return register_schedule(store, read_json(args.spec), actor=args.actor)
+        if args.schedule_command in ("pause", "resume"):
+            return set_paused(store, args.id, args.schedule_command == "pause", actor=args.actor, reason=args.reason)
+        if args.schedule_command == "tick":
+            return tick(store, now=args.now, max_tasks=args.max_tasks, max_schedules=args.max_schedules)
     if args.command == "coverage":
         with store.transaction():
             result = coverage_report(store, _selected(profiles, args.countries), now=timestamp())
@@ -159,6 +232,14 @@ def _execute(args, store, profiles):
         expires = timestamp(args.expires_at)
         return inspect_document(store, read_bytes(args.file, 2 * 1024 * 1024), args.content_type, args.origin,
             policy_ref=args.policy_ref, evidence_group=args.evidence_group, observed_at=observed, expires_at=expires)
+    if args.command == "inspect-channel":
+        from .engine import inspect_channel
+        return inspect_channel(store, read_bytes(args.file, 2 * 1024 * 1024), args.content_type, args.origin,
+                               binding=args.binding_data, policy_ref=args.policy_ref,
+                               observed_at=timestamp(args.observed_at), expires_at=timestamp(args.expires_at))
+    if args.command == "resume-channel":
+        from .engine import resume_channel
+        return resume_channel(store, args.task, args.binding_data, actor=args.actor, reason=args.reason)
     if args.command == "run":
         policy = AccessPolicy(**read_json(args.policy, 64 * 1024))
         return run_worker(store, policy, max_tasks=args.max_tasks, max_seconds=args.max_seconds,
@@ -193,9 +274,41 @@ def _execute(args, store, profiles):
     raise ValueError("unsupported command")
 
 
+def _execute_pure(args):
+    if args.command == "geo-import":
+        return geography.load_catalogue(read_bytes(args.file, geography.MAX_BODY_BYTES),
+                                        read_json(args.metadata, 64 * 1024), args.format)
+    if args.command == "geo-resolve":
+        return geography.resolve_place(read_json(args.catalogue, geography.MAX_SERIALIZED_BYTES), args.name, args.region)
+    if args.command == "technology":
+        if args.headers is not None and len(args.headers.encode("utf-8")) > 64 * 1024:
+            raise ValueError("observed headers exceed byte limit")
+        headers = strict_json(args.headers) if args.headers is not None else None
+        if headers is not None and not isinstance(headers, dict):
+            raise ValueError("observed headers require a JSON object")
+        return classify_technology(read_bytes(args.file, 2 * 1024 * 1024), args.content_type, args.origin, headers)
+    if args.command == "estimate":
+        data = read_json(args.file, 64 * 1024 * 1024)
+        if not isinstance(data, dict) or set(data) != {"records", "independent_groups", "stratum", "now"}:
+            raise ValueError("estimate requires exactly records, independent_groups, stratum and now")
+        return estimate_stratum(data["records"], independent_groups=data["independent_groups"],
+                                stratum=data["stratum"], now=data["now"])
+    if args.command == "schedule" and args.schedule_command == "show":
+        return inspect_schedules(args.db)
+    raise ValueError("unsupported pure command")
+
+
 def main(argv=None) -> int:
     args = _parser().parse_args(argv)
     try:
+        if args.command in ("geo-import", "geo-resolve", "technology", "estimate") or (
+                args.command == "schedule" and args.schedule_command == "show"):
+            print(canonical_json(_execute_pure(args)))
+            return 0
+        if args.command in ("inspect-channel", "resume-channel"):
+            args.binding_data = validate_binding(read_json(args.binding, 64 * 1024))
+            if args.command == "inspect-channel" and args.binding_data["assessment_ref"] != args.policy_ref:
+                raise ValueError("binding assessment and replay policy must match")
         profiles = load_profiles(args.profiles_dir)
         if args.command == "profiles":
             print(canonical_json(profiles))

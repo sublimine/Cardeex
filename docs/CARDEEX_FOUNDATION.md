@@ -201,6 +201,8 @@ Elias encargó desarrollar autónomamente la base completa de arquitectura y pre
 
 No hay inventario adquirido, campañas nacionales certificadas, despliegue ni operación 24/7 demostrada. El siguiente trabajo operativo es **verificar catálogos geográficos, evaluar canales gratuitos y ejecutar pilotos acotados de descubrimiento**, con auditoría de huecos. El siguiente proyecto de estrategia es adquisición/scraping por superficie (apartado 15). Los perfiles no conceden permisos de terceros y las consultas manuales no son automatización ejecutada.
 
+Elias autorizó corregir las carencias verificadas mediante implementación independiente, con integración local y sin nuevas confirmaciones intermedias. El cierre de `6cd2f2d` quedó reabierto: sus pruebas no acreditaban completitud funcional. La corrección incorpora conservación OSM sin web, canales específicos con continuación, catálogos/alias verificables, señales tecnológicas, calendario y estimación exploratoria. El apartado 10 del plan es la matriz de aceptación; el manual distingue soporte implementado, admisión y validación de campo. No se copia código ni material de Cardex/Cardeep, que siguen exclusivamente como referencias históricas de auditoría.
+
 Los límites empíricos —carga real, distribución de anuncios, cuotas de proveedores, permisos por superficie, rendimiento y calibración de identidad— tienen puertas de aceptación y comportamiento seguro definidos. Se resuelven con evidencia antes de habilitar la capacidad correspondiente, sin impedir construir y probar el núcleo con datos sintéticos.
 
 ## 11. Evidencia cuantitativa

@@ -76,7 +76,7 @@ class EngineTests(unittest.TestCase):
     def test_expansion_limit_preserves_candidates_and_marks_debt(self):
         from discovery.engine import run_worker
         self.store.enqueue(self.task())
-        body = b'<a href="/stock">stock</a><a href="https://other.example/">partner</a>'
+        body = b'<a href="https://first.example/">partner one</a><a href="https://other.example/">partner two</a>'
         run_worker(self.store, self.policy(), max_tasks=1, max_children=1, fetcher=self.fetcher(body))
         self.assertEqual(next(t for t in self.store.iter_tasks() if t["task_key"] == "root")["status"], "partial")
         self.assertEqual(self.store.deferred_count(), 1)
