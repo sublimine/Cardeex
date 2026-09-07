@@ -1,0 +1,8 @@
+# Estado local de Obsidian
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache/
+.trash/
+
+# Artefactos regenerables de Graphify
+graphify-out/

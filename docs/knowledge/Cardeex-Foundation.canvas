@@ -1,0 +1,136 @@
+{
+  "nodes": [
+    {
+      "id": "cardeex",
+      "type": "text",
+      "text": "# Cardeex\nAPI viva, histórica y verificable del inventario digital observable",
+      "x": 0,
+      "y": 0,
+      "width": 420,
+      "height": 180,
+      "color": "4"
+    },
+    {
+      "id": "isolation",
+      "type": "text",
+      "text": "# Aislamiento absoluto\nCardeex ≠ Cardex ≠ Cardeep\nSin código, datos, recetas ni grafos compartidos",
+      "x": -620,
+      "y": -300,
+      "width": 400,
+      "height": 190,
+      "color": "1"
+    },
+    {
+      "id": "countries",
+      "type": "text",
+      "text": "# Países objetivo\nEspaña · Francia · Alemania\nPaíses Bajos · Bélgica · Suiza",
+      "x": -620,
+      "y": 0,
+      "width": 400,
+      "height": 170,
+      "color": "5"
+    },
+    {
+      "id": "observable",
+      "type": "text",
+      "text": "# Universo\nSolo inventario publicado digitalmente y observable\nGrandes plataformas + fuentes propias pequeñas",
+      "x": -620,
+      "y": 280,
+      "width": 400,
+      "height": 190,
+      "color": "5"
+    },
+    {
+      "id": "ontology",
+      "type": "text",
+      "text": "# Cadena conceptual\nsource/platform → publisher account → seller → legal entity → point of sale → listing → canonical vehicle → observations/history",
+      "x": 560,
+      "y": -360,
+      "width": 530,
+      "height": 230,
+      "color": "3"
+    },
+    {
+      "id": "evidence",
+      "type": "text",
+      "text": "# Evidencia e identidad\nUn vehículo, varios anuncios\nDeduplicación explicable y reversible\nHistorial y procedencia conservados",
+      "x": 560,
+      "y": -40,
+      "width": 430,
+      "height": 210,
+      "color": "3"
+    },
+    {
+      "id": "coverage",
+      "type": "text",
+      "text": "# Cobertura honesta\n100% medido por:\npaís × clase de vehículo × tipo de fuente",
+      "x": 560,
+      "y": 260,
+      "width": 430,
+      "height": 180,
+      "color": "2"
+    },
+    {
+      "id": "core",
+      "type": "text",
+      "text": "# Núcleo\n1. Turismos\n2. LCV/furgonetas ≤3,5 t con métrica separada",
+      "x": -420,
+      "y": 650,
+      "width": 390,
+      "height": 180,
+      "color": "4"
+    },
+    {
+      "id": "expansion",
+      "type": "text",
+      "text": "# Expansiones\n1. Motos y scooters\n2. Autocaravanas y campers\n3. Pesados como vertical B2B",
+      "x": 60,
+      "y": 650,
+      "width": 390,
+      "height": 200,
+      "color": "4"
+    },
+    {
+      "id": "later",
+      "type": "text",
+      "text": "# Después o fuera\nCaravanas/remolques separados\nBuses: baja prioridad\nAgrícola/construcción: otro producto",
+      "x": 540,
+      "y": 650,
+      "width": 400,
+      "height": 200,
+      "color": "6"
+    },
+    {
+      "id": "reliability",
+      "type": "text",
+      "text": "# Resultado operativo exigido\nDelta completo · recetas versionadas\nAlertas de origen exacto · autorreparación\nAislamiento de fallos · API siempre viva",
+      "x": 1100,
+      "y": 90,
+      "width": 430,
+      "height": 220,
+      "color": "2"
+    },
+    {
+      "id": "foundation_file",
+      "type": "file",
+      "file": "docs/CARDEEX_FOUNDATION.md",
+      "x": 1100,
+      "y": -300,
+      "width": 430,
+      "height": 240
+    }
+  ],
+  "edges": [
+    {"id": "e1", "fromNode": "isolation", "toNode": "cardeex", "fromSide": "right", "toSide": "left", "label": "protege identidad"},
+    {"id": "e2", "fromNode": "countries", "toNode": "cardeex", "fromSide": "right", "toSide": "left", "label": "delimita geografía"},
+    {"id": "e3", "fromNode": "observable", "toNode": "cardeex", "fromSide": "right", "toSide": "left", "label": "delimita universo"},
+    {"id": "e4", "fromNode": "cardeex", "toNode": "ontology", "fromSide": "right", "toSide": "left", "label": "se modela como"},
+    {"id": "e5", "fromNode": "ontology", "toNode": "evidence", "fromSide": "bottom", "toSide": "top", "label": "preserva"},
+    {"id": "e6", "fromNode": "evidence", "toNode": "coverage", "fromSide": "bottom", "toSide": "top", "label": "permite certificar"},
+    {"id": "e7", "fromNode": "coverage", "toNode": "core", "fromSide": "bottom", "toSide": "top", "label": "empieza por"},
+    {"id": "e8", "fromNode": "core", "toNode": "expansion", "fromSide": "right", "toSide": "left", "label": "después"},
+    {"id": "e9", "fromNode": "expansion", "toNode": "later", "fromSide": "right", "toSide": "left", "label": "más adelante"},
+    {"id": "e10", "fromNode": "cardeex", "toNode": "reliability", "fromSide": "right", "toSide": "left", "label": "debe operar con"},
+    {"id": "e11", "fromNode": "foundation_file", "toNode": "ontology", "fromSide": "left", "toSide": "right", "label": "fuente canónica"}
+  ]
+}
