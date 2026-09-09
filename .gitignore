@@ -10,3 +10,5 @@ graphify-out/
 .venv-verify/
 __pycache__/
 *.pyc
+.worktrees/
+.cardeex-local/

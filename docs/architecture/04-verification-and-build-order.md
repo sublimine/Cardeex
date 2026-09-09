@@ -2,7 +2,7 @@
 
 Estado: base de diseño por encargo de Elias, 2026-09-07. Este archivo es el plan canónico de entregas, pruebas y promoción; se actualiza en lugar de crear planes por sesión.
 
-Para quienes construyan: trabajar por componente con autor y revisión independiente, usando `subagent-driven-development` o `executing-plans` cuando proceda. La autorización actual desarrolla arquitectura y sus comprobaciones; las estrategias de descubrimiento y scraping son los próximos proyectos. Los paths de producto de este documento son destinos futuros, no archivos existentes ni código ya probado.
+Para quienes construyan: trabajar por componente con autor y revisión independiente, usando `subagent-driven-development` o `executing-plans` cuando proceda. El encargo posterior autoriza el sistema local de descubrimiento de §8, ahora implementado. Las rutas de producto P0–P4 fuera de ese módulo siguen siendo destinos futuros, no código ya probado.
 
 Objetivo: permitir construir un inventario vivo por dealer y POS que conserva evidencia, corrige identidad y escala por límites medidos sin perder trazabilidad.
 
@@ -38,7 +38,7 @@ Los resultados operativos viven en el sistema de evidencias de pruebas y CI cuan
 | Puerta | Entrada y condición de salida | Acción si falla | Estado de esta entrega |
 |---|---|---|---|
 | G0. Base coherente | Esquemas, referencias, ejemplos, aritmética y revisión cruzada sin defecto crítico abierto | Corregir contratos y repetir solo comprobaciones afectadas | Superada en el alcance estático/modelado el 2026-09-07; comando reproducible en §7, sin certificación de producto |
-| G1. Descubrimiento diseñado | Métodos finitos por celda, procedencia, resolución de candidatos y denominadores honestos | Mantener candidatos sin convertirlos en entidades certificadas | Siguiente proyecto |
+| G1. Descubrimiento diseñado | Métodos finitos por celda, procedencia, resolución de candidatos y denominadores honestos | Mantener candidatos sin convertirlos en entidades certificadas | Estrategia y sistema local implementados/probados; campañas, calibración y cobertura reales pendientes |
 | G2. Adquisición diseñada | Capacidad por superficie, permisos, enumeración, replay, límites y reconciliación defendibles | Mantener superficie bloqueada o solo positivos según capacidad | Proyecto posterior a G1 |
 | G3. Núcleo implementado | Pruebas unitarias/modelo/integración de contratos, privacidad y recuperación | No conectar fuentes reales | Construcción posterior |
 | G4. Fuente certificada | Piloto admitido, corpus real permitido, censos comparables, deriva y alarmas verificadas | Cuarentena por fuente/stream; serving marcado degradado | Requiere G2 y G3 |
@@ -255,8 +255,73 @@ La revisión independiente examina: invariantes cruzadas; clocks y finalización
 
 Las tablas de trazabilidad de P1/P2/P3 son el único mapa de sus invariantes hacia el catálogo: el verificador rechaza reglas sin mapa o casos inexistentes. Esa vinculación registra una obligación de aceptación, no una prueba de producto superada. La [comprobación CI](../../.github/workflows/verify-foundation.yml) ejecuta el mismo verificador sin acceso a fuentes de inventario; instalación de dependencias y checkout preceden a su aislamiento de red. El workflow no configura protección de rama ni demuestra por sí solo que GitHub lo haya ejecutado.
 
-## 8. Próximo trabajo exacto
+## 8. Construcción autorizada: descubrimiento
 
-Primero, estrategia de descubrimiento con el contrato del apartado 14 de los fundamentos: fuentes, dealers, puntos de venta, candidatos, evidencia, deduplicación de entidades, frontera geográfica y denominadores. Segundo, estrategias de adquisición/scraping con el apartado 15: capacidades comprobadas, particionado, capturas, cambios y límites. Después, ejecutar los paquetes de construcción con pruebas y puertas correspondientes.
+El encargo posterior de Elias autoriza construir el sistema de descubrimiento, con estrategias específicas para ES/FR/DE/NL/BE/CH, extensibilidad nacional y coste externo cero. No autoriza compras, cuentas, elusión de controles, campañas sin límites ni afirmar cobertura empírica inexistente. El diseño global y la personalización nacional fueron aceptados en conversación; las decisiones de implementación se delegaron al agente.
+
+Objetivo: software ejecutable de planificación, recepción/descubrimiento de candidatos, procedencia, cola recuperable, revisión, exportación contractual y auditoría de cobertura. Arquitectura: paquetes nacionales declarativos sobre un motor único; adaptadores de evidencia independientes; SQLite local para el área de trabajo de descubrimiento, no sustituto del PostgreSQL de control productivo de OPS-013. Python 3.11+, biblioteca estándar y validadores ya fijados; ninguna dependencia SaaS ni llamada LLM de pago.
+
+Plan de implementación (TDD y revisión independiente; este apartado sustituye cualquier plan de sesión):
+
+- [x] D1. `discovery/profiles/*.json`, `discovery/profiles.py`, `tests/discovery/test_profiles.py`: fuentes primarias, perfiles nacionales propios, validación acotada/segura y extensión probadas con revisión independiente.
+- [x] D2. `discovery/model.py`, `discovery/store.py`, `discovery/queue.py`, `tests/discovery/test_store.py`: transacciones/savepoints, evidencia, decisiones reversibles, contradicciones, retención, fencing, presupuestos y turnos persistentes probados.
+- [x] D3. `discovery/planner.py`, `discovery/coverage.py`, `tests/discovery/test_planner.py`, `tests/discovery/test_coverage.py`: frontera versionada y reanudación por conteos sin reconstruir prefijos; geografía explícita, universos desconocidos y deuda por celda probados.
+- [x] D4. `discovery/transport.py`, `discovery/adapters.py`, `tests/discovery/test_transport.py`, `tests/discovery/test_adapters.py`: normalización/SPA, DNS/TLS/SSRF, robots, límites, deadlines, acceso opt-in y parsers puros adversariales probados.
+- [x] D5. `discovery/cli.py`, `discovery/__main__.py`, `discovery/engine.py`, `discovery/handoff.py`, `tests/discovery/test_cli.py`, `tests/discovery/test_engine.py`, `tests/discovery/test_runtime_guards.py`: flujo completo local, revisión, exportación contractual, replay, cooldown tras reinicio y revocación/caducidad durante fetch probados.
+- [x] D6. `docs/architecture/05-discovery-system.md`, README, fundamentos, Home y CI: fuentes/decisiones/runbook integrados, pruebas adversariales y auditoría independiente cerradas; canvas del usuario preservado; verificación de toda la base y pruebas de descubrimiento exigida antes de integrar.
+
+Comando de cada ciclo: `python -m unittest discover -s tests/discovery -p 'test_*.py' -v`. Antes de implementar cada comportamiento, ejecutar su prueba y comprobar fallo por capacidad ausente; después comprobar verde y regresiones. Integración: `python tools/verify_foundation.py`, suite completa y `git diff --check`. Cierre exige inspección de artefactos, no solo el informe del autor. La campaña paneuropea y el scraping de inventarios se distinguen del software entregado; las barreras de acceso quedan explícitas.
+
+## 9. Próximo trabajo exacto
+
+El sistema de [descubrimiento](05-discovery-system.md) permite preparar y ejecutar pilotos locales gobernados. Próximo paso operativo: catálogos territoriales verificados, admisión de canales gratuitos, campañas acotadas y auditoría independiente de huecos. Próximo proyecto de estrategia: adquisición/scraping con el apartado 15 de los fundamentos. Después se promueven componentes y superficies por G3–G6, sin confundir trabajo planificado con inventarios ya obtenidos.
 
 Se actualizan esos contratos y este plan conforme se obtenga evidencia. No se añade una nueva base, un segundo mapa de decisiones ni una pila de checkpoints.
+
+## 10. Reapertura: completar las capacidades de descubrimiento
+
+Estado: **capacidades locales R1–R7 verificadas**, con revisión independiente de cumplimiento y calidad cerrada. La auditoría comparativa de código de Cardex/Cardeep detectó capacidades locales ausentes y dos defectos reproducibles en `6cd2f2d`; aquel cierre D1–D6 no acreditaba estas capacidades. Ningún resultado histórico, implementación, dato ni receta se importa: las referencias históricas justifican preguntas; las decisiones y el código nuevos son propios de Cardeex. Este cierre no certifica campañas, datos nacionales, acceso a todas las estrategias ni cobertura del universo abierto.
+
+**Objetivo:** cerrar los defectos de conservación/frontera y entregar canales ejecutables, geografía resoluble, clasificación técnica, revisitas y estimación explícita de desconocidos, integrados con evidencia, CLI, cola, permisos y recuperación.
+
+**Arquitectura:** parsers y análisis puros producen afirmaciones; el worker conserva autoridad exclusiva sobre red gobernada y confirmación transaccional. Los canales se vinculan explícitamente a estrategias y evaluaciones vigentes. Geografía y estimaciones conservan sus entradas/versiones y no atribuyen hechos desde una consulta. Las revisitas producen nuevas ejecuciones sin reiniciar presupuestos ni borrar resultados previos.
+
+**Tecnología:** Python 3.11+, SQLite local y dependencias de verificación existentes. Sin servicio de pago obligatorio. La ejecución real de cada fuente conserva sus puertas de admisión; la prueba de un parser o cliente no certifica disponibilidad externa ni cobertura nacional.
+
+### Responsabilidades y condiciones de cierre
+
+| ID / propietario | Archivos exclusivos | Resultado exigido y evidencia de aceptación |
+|---|---|---|
+| R1 / integración | `discovery/adapters.py`, `discovery/engine.py`, pruebas existentes afectadas | POI OSM sin web conserva identidad de registro, nombre y ubicación; ningún sitemap, JSON o enlace expansible puede introducir detalles/medios reconocidos en la cola. Casos negativos reproducidos antes del cambio y positivos después. |
+| R2 / canales | `discovery/channels.py`, `tests/discovery/test_channels.py` | Contratos ejecutables de petición y parseo para búsqueda admitida, OSM, directorios estructurados y registros abiertos seleccionados con documentación primaria. Paginación finita, marcadores de truncamiento, IDs de registro sin web, ausencia de permisos y formatos cambiados probados. No hay conectores nominales que devuelvan vacío por defecto. |
+| R3 / geografía y medición | `discovery/geography.py`, `discovery/estimation.py`, `tests/discovery/test_geography.py`, `tests/discovery/test_estimation.py` | Catálogo versionado, códigos con ceros iniciales, alias/localidades menores, ambigüedades y evidencia de origen; resolución no inventada. Estimación reproducible por estrato con grupos independientes declarados, intervalos y rechazo de datos insuficientes; ninguna estimación se publica como certificación. |
+| R4 / tecnología | `discovery/technology.py`, `tests/discovery/test_technology.py` | Inspección pura de HTML/cabeceras y URLs para CMS, proveedor de inventario y superficies posibles; señales/versiones, contradicciones, desconocido y páginas dinámicas explícitos. Nada se ejecuta ni se promueve a receta certificada por una firma. |
+| R5 / integración | `discovery/scheduling.py`, `tests/discovery/test_scheduling.py`, `discovery/store.py`, `discovery/queue.py` | Calendario persistente por estrategia/alcance, vencimiento, pausa, reanudación, idempotencia concurrente y revisitas con historia; fallos y presupuestos no se resetean. `tick` acotado y modo de inspección sin mutaciones. |
+| R6 / integración | `discovery/cli.py`, `discovery/planner.py`, `discovery/coverage.py`, `discovery/channel_runtime.py`, pruebas CLI/engine/coverage | Todo módulo tiene recorrido utilizable por operador. Canales admitidos resuelven consultas y semillas a peticiones reales a través del transporte existente; su configuración entra en la identidad/revisión. Importar catálogo, analizar tecnología, programar revisitas y estimar desconocidos produce salida trazable. |
+| R7 / revisión independiente | Documentos canónicos, CI y conjunto de cambios | Revisión de cumplimiento por requisito, después revisión de calidad/seguridad; suite completa, verificador fundacional y prueba CLI de punta a punta. Integración local preservando AGENTS/canvas del usuario. No se cierra una fila por existir su archivo o test. |
+
+### Operaciones y oráculos atómicos
+
+- [x] R1.1 Reproducir con un nodo OSM sintético con `type/id`, nombre y coordenadas, pero sin `website`; exigir candidato con localizador del registro y `website` desconocido. Mantener distintos `node/way/relation` y no deduplicarlos por el host OSM.
+- [x] R1.2 Reproducir sitemap con `/car/1`; aplicar una frontera común a todas las expansiones, incluidas rutas codificadas, dominios distintos, medios y SPA. Conservar la pista de superficie y el motivo de exclusión; no descargar detalles.
+- [x] R2.1 Definir bindings con adaptador, endpoint, países/clases, evaluación, parámetros y límite de páginas; validar campos, esquemas HTTPS, país y compatibilidad con estrategia antes de generar red.
+- [x] R2.2 Construir clientes/parsers desde formatos documentados primarios. Probar payload de éxito, negocio sin web, paginación, página vacía terminal, respuesta inesperada, exceso de registros y cursor repetido. El controlador recibe filas, continuación y deuda explícitas.
+- [x] R2.3 Probar que una consulta sin binding sigue bloqueada; una consulta admitida conserva el texto solo como procedencia de búsqueda. Un resultado nunca obtiene país, actividad o identidad porque coincidía con la consulta.
+- [x] R3.1 Importar catálogo con versión, URL de origen, fecha, checksum, país y unidades. Aceptar normalización y alias revisados; rechazar duplicados contradictorios y versiones incompatibles, conservar alias ambiguos sin resolverlos arbitrariamente y devolver unknown para nombres ajenos al catálogo.
+- [x] R3.2 Resolver municipio/núcleo y región conservando los valores originales, candidatos alternativos y regla aplicada; `unknown` y `ambiguous` nunca se convierten en coincidencia automática.
+- [x] R3.3 Probar estimación sobre una población sintética conocida y grupos de captura definidos: solapamiento, ninguna coincidencia, única fuente, fuentes dependientes y datos caducados. Reportar observados separados de estimados, supuestos y límites; mantener `coverage_ratio=null` para el universo abierto.
+- [x] R4.1 Probar firmas positivas y negativas, coincidencias múltiples, HTML genérico, código mostrado como texto, páginas de error y proveedores compartidos. Las pistas tienen selector, regla y versión.
+- [x] R4.2 Probar pistas de endpoints/rutas como referencias no autorizadas, sin acceso adicional ni fusión de dealers por proveedor; integrar señales en observaciones retenidas y exportables.
+- [x] R5.1 Probar calendario vencido/no vencido y reloj inválido; una generación se crea una vez aun con dos procesos y se conserva tras reinicio.
+- [x] R5.2 Probar pausa y revisión, límites por tick, fallo entre generación/confirmación, tareas antiguas en curso y deuda acumulada. La inspección del calendario no crea base, filas ni ejecuciones.
+- [x] R6.1 Ejecutar en base temporal el recorrido catálogo → plan/canal → worker con transporte simulado → candidato sin web → revisión → handoff; probar también revocación durante fetch y cambio de configuración.
+- [x] R6.2 Ejecutar en la misma base revisita tras reinicio y estimación explicable; comprobar observaciones antiguas/nuevas, separación de país/clase/POS y mantenimiento de supresiones.
+- [x] R6.3 Conservar resultados de canal vacíos/parciales, su retención y supresión; Sirene no retiene el raw con campos privados. La continuación revisada crea plan/tarea nuevos sin resetear presupuesto. Migración aditiva a base v2 impide interpretación incorrecta por workers antiguos; prueba física simulada cuenta robots/peticiones y bloquea redirección a inventario antes de descargar.
+- [x] R7.1 Revisar código y contraejemplos por agente distinto del autor; corregir hallazgos antes de la revisión de calidad posterior.
+- [x] R7.2 Ejecutar `python -m unittest discover -s tests/discovery -p 'test_*.py' -q`, `python tools/verify_foundation.py` y `git diff --check`; observar salidas y alcance antes de integrar.
+
+Evidencia de aceptación: suites `test_discovery_frontier`, `test_channels`, `test_geography`, `test_estimation`, `test_technology`, `test_scheduling`, `test_channel_engine`, `test_channel_operations`, `test_completion_workflow`, `test_completion_cli`, más regresiones existentes y verificador fundacional. La revisión independiente reprodujo y cerró límites de consultas incompatibles, cursores agotados, coordenadas gigantes, catálogo fuera de ámbito, reloj inválido, revocación en replay, redirección de canal, parseo sin diagnóstico y rutas técnicas ejecutadas antes de revisión. Las pruebas físicas simulan exclusivamente la red; ningún resultado se presenta como campaña real.
+
+### Límites que necesitan evidencia operativa propia
+
+Disponibilidad actual, permisos particulares, catálogos nacionales completos, calidad de fuentes reales, calibración de identidad y campañas nacionales no se acreditan con fixtures. Cada canal informa soporte técnico y estado de admisión por separado. Cualquier limitación de esos ámbitos queda visible en la salida y en su evaluación; no habilita un cierre ficticio de las capacidades locales anteriores.

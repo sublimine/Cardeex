@@ -12,7 +12,7 @@ capacity_contract: ../../contracts/capacity-model.json
 
 ## 1. Estado, alcance y lenguaje normativo
 
-Este documento fija por mandato la base de diseño del runtime de Cardeex. No describe un sistema ya desplegado, no contiene resultados de carga y no autoriza adquisición desde ninguna fuente. Las estrategias de descubrimiento, navegación y scraping se decidirán después. Las decisiones arquitectónicas son baseline; sus objetivos operativos siguen sin probar hasta superar los gates declarados.
+Este documento fija por mandato la base de diseño del runtime de Cardeex. No describe un sistema ya desplegado, no contiene resultados de carga y no autoriza adquisición desde ninguna fuente. Las estrategias y el software local de descubrimiento están en [05-discovery-system.md](05-discovery-system.md); las recetas de navegación y adquisición/scraping de inventarios se decidirán después. Las decisiones arquitectónicas son baseline; sus objetivos operativos siguen sin probar hasta superar los gates declarados.
 
 Las palabras **DEBE**, **NO DEBE**, **DEBERÍA** y **PUEDE** son normativas. Un incumplimiento de un DEBE impide declarar conforme el componente o perfil afectado.
 
@@ -88,7 +88,7 @@ El mismo vector DEBE producir idénticos bytes y digest en todas las implementac
 
 ### 3.1 Control plane
 
-- **OPS-013 — Autoridad de control.** PostgreSQL, en una versión soportada, DEBE ser la autoridad de SourceRegistration, Surface, Stream, revisiones, políticas, runs, particiones, leases, cursors, barriers, outbox, routing epochs y deletion ledger. No almacena el historial masivo ni un row por cada observación a escala.
+- **OPS-013 — Autoridad de control.** PostgreSQL, en una versión soportada, DEBE ser la autoridad de SourceRegistration, Surface, Stream, revisiones, políticas, runs, particiones, leases, cursors, barriers, outbox, routing epochs y deletion ledger. No almacena el historial masivo ni un row por cada observación a escala. El [descubrimiento local](05-discovery-system.md) usa SQLite como área previa al handoff; no sustituye esta autoridad productiva ni comparte sus garantías de escala/recuperación.
 - **OPS-014 — Transacciones locales.** Creación de trabajo, cambio de estado y su outbox DEBEN ocurrir en la misma transacción PostgreSQL. Los conflictos serializables se reintentan desde el principio; SKIP LOCKED solo se utiliza para colas, porque ofrece una vista inconsistente para consultas generales [1].
 - **OPS-015 — Secretos por referencia.** PostgreSQL solo guarda secret_ref y metadatos. El secreto vive en un gestor de secretos con cifrado, rotación y auditoría.
 - **OPS-016 — Alta disponibilidad.** El control plane DEBE tener failover probado, PITR y backup lógico verificable. Una réplica no probada no cuenta como recuperación.

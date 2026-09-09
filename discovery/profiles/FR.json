@@ -1,0 +1,441 @@
+{
+  "schema_version": "1.0.0",
+  "country": "FR",
+  "name": "France",
+  "languages": [
+    "fr",
+    "de"
+  ],
+  "vehicle_classes": [
+    "car",
+    "lcv",
+    "motorcycle",
+    "motorhome"
+  ],
+  "geography": {
+    "code_system": "INSEE COG COM",
+    "unit_name": "commune",
+    "catalogue_url": "https://www.insee.fr/fr/information/8740222",
+    "notes": "Use the dated COG, retaining COM as a string (Corsican 2A/2B and overseas forms) and TYPECOM/COMPARENT relationships. Metropolitan rural communes, Corsica and overseas territories form explicit strata; overseas market/territory assignment must be declared, never silently dropped or folded into metropolitan coverage. Alsace and border areas get German alias queries; no .fr, language or SIREN-to-POS inference."
+  },
+  "strategies": [
+    {
+      "id": "fr_sirene_establishments",
+      "family": "official_registry",
+      "evidence_group": "fr_insee_sirene",
+      "priority": 95,
+      "access_mode": "open_data",
+      "source_type": "unknown",
+      "source_ids": [
+        "sirene",
+        "sirene_privacy"
+      ],
+      "seed_urls": [
+        "https://www.insee.fr/fr/information/3591226"
+      ],
+      "query_templates": {
+        "fr": [
+          "{locality} {vehicle_term} établissement Sirene",
+          "{locality} commerce réparation véhicules établissement"
+        ]
+      },
+      "notes": "After field/privacy admission, filter a dated local extract at establishment (SIRET) level and preserve SIREN as a separate legal unit. Activity codes are candidate signals; include secondary retail activities and small repair shops. Check code-version changes rather than hardcoding a timeless NAF definition. Open_data describes a possible route; no data downloaded here.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "fr_cog_local_extract",
+      "family": "geo_directory",
+      "evidence_group": "osm",
+      "priority": 85,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "cog",
+        "osm_license",
+        "nominatim_policy"
+      ],
+      "seed_urls": [
+        "https://www.insee.fr/fr/information/8740222",
+        "https://www.openstreetmap.org/copyright"
+      ],
+      "query_templates": {
+        "fr": [
+          "{locality} {vehicle_term} garage vente"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Garage Frankreich"
+        ]
+      },
+      "notes": "Plan commune and rural hamlet aliases with service/retail POIs from an admitted dated local OSM extract. Do not use public Nominatim for exhaustive queries. A COG geography denominator is not a business denominator.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "fr_mobilians_metiers",
+      "family": "trade_directory",
+      "evidence_group": "fr_mobilians",
+      "priority": 85,
+      "access_mode": "public_web",
+      "source_type": "unknown",
+      "source_ids": [
+        "mobilians"
+      ],
+      "seed_urls": [
+        "https://www.mobilians.fr/annuaire/"
+      ],
+      "query_templates": {
+        "fr": [
+          "{locality} {vehicle_term} Mobilians",
+          "{locality} négociant garage recycleur véhicules complets"
+        ]
+      },
+      "notes": "Explore professions and departmental localities, especially independent repairers, used dealers and motorcycle specialists. Recyclers require saleable/reparable whole-vehicle evidence; parts inventory alone is excluded.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "fr_motorhome_professionals",
+      "family": "trade_directory",
+      "evidence_group": "fr_camping_magazine",
+      "priority": 85,
+      "access_mode": "public_web",
+      "source_type": "unknown",
+      "source_ids": [
+        "camping_directory"
+      ],
+      "seed_urls": [
+        "https://www.camping-car.com/occasion/annuaire-des-professionnels/reseaux-de-distribution"
+      ],
+      "query_templates": {
+        "fr": [
+          "{locality} {vehicle_term} concessionnaire"
+        ]
+      },
+      "notes": "Motorhome-specific distribution directory reaches specialists missed by generic garages. Distinguish powered campers from caravans and rental-only operators; non-listed micro converters remain candidates.",
+      "vehicle_classes": [
+        "motorhome"
+      ]
+    },
+    {
+      "id": "fr_renault_agents",
+      "family": "manufacturer_network",
+      "evidence_group": "oem_renault",
+      "priority": 85,
+      "access_mode": "public_web",
+      "source_type": "manufacturer_inventory",
+      "source_ids": [
+        "renault"
+      ],
+      "seed_urls": [
+        "https://www.renault.fr/trouver-un-etablissement.html?currentPageIndex=0"
+      ],
+      "query_templates": {
+        "fr": [
+          "{locality} concessionnaire agent Renault véhicules occasion"
+        ]
+      },
+      "notes": "Trace concessionnaires and agents, including rural service branches, with POS evidence. Renault does not cover independent dealers or other marques; observed service status is not proof of inventory.",
+      "vehicle_classes": [
+        "car",
+        "lcv"
+      ]
+    },
+    {
+      "id": "fr_leboncoin_verticals",
+      "family": "marketplace",
+      "evidence_group": "fr_leboncoin",
+      "priority": 80,
+      "access_mode": "manual_review",
+      "source_type": "classifieds",
+      "source_ids": [
+        "leboncoin"
+      ],
+      "seed_urls": [
+        "https://www.leboncoin.fr/"
+      ],
+      "query_templates": {
+        "fr": [
+          "site:leboncoin.fr {locality} {vehicle_term} professionnel"
+        ]
+      },
+      "notes": "Keep four category paths separate when later admitted, preserving private publishers and professional-account claims without auto-creating dealers. Caravaning includes non-powered assets that need filtering. No free API assumed.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "fr_lacentrale",
+      "family": "marketplace",
+      "evidence_group": "fr_lacentrale",
+      "priority": 75,
+      "access_mode": "manual_review",
+      "source_type": "marketplace",
+      "source_ids": [
+        "lacentrale"
+      ],
+      "seed_urls": [
+        "https://www.lacentrale.fr/"
+      ],
+      "query_templates": {
+        "fr": [
+          "site:lacentrale.fr {locality} {vehicle_term} professionnel"
+        ]
+      },
+      "notes": "Independent portal evidence may overlap other portals and syndication; retain publisher provenance and compare owned websites. No inventory enumeration or bulk permission established.",
+      "vehicle_classes": [
+        "car",
+        "lcv"
+      ]
+    },
+    {
+      "id": "fr_local_garages",
+      "family": "local_search",
+      "evidence_group": "fr_solocal",
+      "priority": 80,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "pagesjaunes"
+      ],
+      "seed_urls": [
+        "https://www.pagesjaunes.fr/"
+      ],
+      "query_templates": {
+        "fr": [
+          "{locality} {vehicle_term} garage indépendant",
+          "{locality} véhicules accidentés complets vente"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Garage Elsass"
+        ]
+      },
+      "notes": "Combine rural locality names, anciens noms and border-language queries. Include one-vehicle and unknown-stock workshops; local listings require activity evidence.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "fr_web_index",
+      "family": "web_index",
+      "evidence_group": "commoncrawl",
+      "priority": 80,
+      "access_mode": "manual_review",
+      "source_type": "dealer_owned",
+      "source_ids": [
+        "commoncrawl"
+      ],
+      "seed_urls": [
+        "https://index.commoncrawl.org/"
+      ],
+      "query_templates": {
+        "fr": [
+          "{locality} {vehicle_term} notre stock",
+          "{locality} {vehicle_term} petits prix garage"
+        ],
+        "de": [
+          "{locality} {vehicle_term} Frankreich Bestand"
+        ]
+      },
+      "notes": "Authored search recipes seek owned sites and hosted inventory. Use the archive URL index only after candidate domain discovery, never send full-text queries as CDX requests. Check current evidence before considering archive businesses active.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    },
+    {
+      "id": "fr_social_public",
+      "family": "social_public",
+      "evidence_group": "meta_public",
+      "priority": 55,
+      "access_mode": "manual_review",
+      "source_type": "unknown",
+      "source_ids": [
+        "meta_policy"
+      ],
+      "seed_urls": [
+        "https://about.fb.com/news/2021/04/how-we-combat-scraping/"
+      ],
+      "query_templates": {
+        "fr": [
+          "site:facebook.com {locality} {vehicle_term} garage",
+          "site:instagram.com {locality} {vehicle_term}"
+        ],
+        "de": [
+          "site:facebook.com {locality} {vehicle_term} Garage"
+        ]
+      },
+      "notes": "Review public professional referrals without login bypass. Overseas and rural web-less sellers remain visible as discovery debt; content access and reuse need independent admission.",
+      "vehicle_classes": [
+        "car",
+        "lcv",
+        "motorcycle",
+        "motorhome"
+      ]
+    }
+  ],
+  "vocabulary": {
+    "fr": {
+      "car": [
+        "voitures d'occasion",
+        "garage automobile",
+        "négociant automobile"
+      ],
+      "lcv": [
+        "utilitaires d'occasion",
+        "fourgonnettes"
+      ],
+      "motorcycle": [
+        "motos d'occasion",
+        "scooters"
+      ],
+      "motorhome": [
+        "camping-cars d'occasion",
+        "fourgons aménagés",
+        "vans aménagés"
+      ]
+    },
+    "de": {
+      "car": [
+        "Gebrauchtwagen",
+        "Autohandel",
+        "Autohaus"
+      ],
+      "lcv": [
+        "Transporter gebraucht",
+        "leichte Nutzfahrzeuge"
+      ],
+      "motorcycle": [
+        "Motorräder gebraucht",
+        "Motorroller"
+      ],
+      "motorhome": [
+        "Wohnmobile gebraucht",
+        "Reisemobile",
+        "Camper"
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "cog",
+      "url": "https://www.insee.fr/fr/information/8740222",
+      "title": "Insee: Code officiel géographique 2026",
+      "checked_at": "2026-09-07",
+      "access_notes": "Versioned commune catalogue with parent-commune links; distinguish current communes, delegated communes and municipal arrondissements."
+    },
+    {
+      "id": "sirene",
+      "url": "https://www.insee.fr/fr/information/3591226",
+      "title": "Insee: consulter et télécharger Sirene",
+      "checked_at": "2026-09-07",
+      "access_notes": "Free establishment and legal-unit identity channels; stock files, API and Annuaire have distinct surfaces and limits."
+    },
+    {
+      "id": "sirene_privacy",
+      "url": "https://www.data.gouv.fr/dataservices/api-sirene-open-data",
+      "title": "data.gouv.fr: API Sirene and diffusion restrictions",
+      "checked_at": "2026-09-07",
+      "access_notes": "Partially disseminated personal information must not be fully republished or used for prospecting. Preserve diffusion status and admit only needed fields."
+    },
+    {
+      "id": "mobilians",
+      "url": "https://www.mobilians.fr/annuaire/",
+      "title": "Mobilians: annuaire professionnel",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public profession and locality directory. Workshops, recyclers and association membership are not stock or full-market proof."
+    },
+    {
+      "id": "camping_directory",
+      "url": "https://www.camping-car.com/occasion/annuaire-des-professionnels/reseaux-de-distribution",
+      "title": "Camping-car Magazine: professional distribution directory",
+      "checked_at": "2026-09-07",
+      "access_notes": "Publisher's own directory for motorhome professionals, distinct from the automotive registry. Public access does not establish reuse permission."
+    },
+    {
+      "id": "renault",
+      "url": "https://www.renault.fr/trouver-un-etablissement.html?currentPageIndex=0",
+      "title": "Renault France: trouver un établissement",
+      "checked_at": "2026-09-07",
+      "access_notes": "Manufacturer locator includes distribution and service establishments; identify each branch and observed capability."
+    },
+    {
+      "id": "leboncoin",
+      "url": "https://www.leboncoin.fr/",
+      "title": "leboncoin: public categories and professional referrals",
+      "checked_at": "2026-09-07",
+      "access_notes": "Observed separate voitures, motos, caravaning and utilitaires categories; private and professional advertisers coexist. No automated access granted."
+    },
+    {
+      "id": "lacentrale",
+      "url": "https://www.lacentrale.fr/",
+      "title": "La Centrale: vehicle marketplace",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public website observed; seller identities and market/vehicle location need their own evidence, permissions and surface checks."
+    },
+    {
+      "id": "pagesjaunes",
+      "url": "https://www.pagesjaunes.fr/",
+      "title": "PagesJaunes: professional locality directory",
+      "checked_at": "2026-09-07",
+      "access_notes": "Local directory observed; membership, paid placement and service-only firms bias results. Automated extraction remains unapproved."
+    },
+    {
+      "id": "osm_license",
+      "url": "https://www.openstreetmap.org/copyright",
+      "title": "OpenStreetMap copyright and licence",
+      "checked_at": "2026-09-07",
+      "access_notes": "ODbL and attribution obligations must be assessed before use of a dated local extract; no country completeness claim."
+    },
+    {
+      "id": "nominatim_policy",
+      "url": "https://operations.osmfoundation.org/policies/nominatim/",
+      "title": "OSMF public Nominatim usage policy",
+      "checked_at": "2026-09-07",
+      "access_notes": "Public Nominatim forbids systematic locality/grid/all-POI queries. It is not an exhaustive discovery backend."
+    },
+    {
+      "id": "commoncrawl",
+      "url": "https://index.commoncrawl.org/",
+      "title": "Common Crawl URL index",
+      "checked_at": "2026-09-07",
+      "access_notes": "Free URL archive index, not full-text search. Bound exact-domain lookups; bulk filtering belongs on local index data with resource budget. Archive results are historical leads."
+    },
+    {
+      "id": "meta_policy",
+      "url": "https://about.fb.com/news/2021/04/how-we-combat-scraping/",
+      "title": "Meta explanation of automated collection restrictions",
+      "checked_at": "2026-09-07",
+      "access_notes": "Prior permission is required for automated collection. This channel is manual public business-page lead review only, without account creation or login bypass."
+    }
+  ],
+  "blind_spots": [
+    "SIREN identifies a legal unit; SIRET an establishment, neither proves that digital vehicle inventory is published.",
+    "Diffusion restrictions and activity misclassification create legitimate unknowns; do not recover hidden personal fields from another source.",
+    "Rural hamlets, merged/delegated communes and suburban industrial estates need alias mapping to the dated COG.",
+    "Corsica, overseas territories and border-language coverage must be reported separately when locality files or access are missing.",
+    "Manufacturer agents and association members omit independent sellers; portal results omit sellers publishing only on their own pages.",
+    "One-vehicle/unknown-stock sellers stay in scope. Vocabulary is an authored search aid; regional-language/creole refinements remain open."
+  ],
+  "review_days": 90
+}

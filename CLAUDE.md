@@ -21,7 +21,9 @@ No conviertas una nota de sesión, un artefacto generado por Graphify o una infe
 
 A fecha de 2026-09-07 Elias encargó desarrollar autónomamente la base completa de arquitectura, contratos, organización y verificación. El mapa maestro anterior fue aceptado y el encargo autoriza concretar las decisiones de diseño y revisar sus contradicciones sin pedir aprobación por cada subapartado.
 
-La entrega incluye documentación canónica, esquemas, OpenAPI, modelos de capacidad y verificadores de especificaciones. Eso no equivale a implementar o desplegar el producto. El siguiente proyecto es diseñar descubrimiento a gran escala de fuentes/dealers/POS; después, estrategias de adquisición/scraping. No se infiere permiso de acceso a terceros, gasto, compra de datos ni despliegue.
+Un encargo posterior de Elias el mismo día autorizó construir descubrimiento sobre el diseño global/nacional aprobado, con coste externo cero y decisiones de implementación delegadas. Está implementado el módulo local `discovery/`, perfiles ES/FR/DE/NL/BE/CH y pruebas. Lee [su contrato operativo](docs/architecture/05-discovery-system.md) para continuar. SQLite es su área local de trabajo, no el control PostgreSQL del producto final.
+
+La entrega no equivale a campañas nacionales realizadas, inventario adquirido ni despliegue. El siguiente paso operativo es geografía verificada, admisión de canales y pilotos acotados; después, estrategias de adquisición/scraping. No se infiere permiso contractual de terceros, gasto, compra de datos, nuevas cuentas ni despliegue. No conviertas estrategias investigadas en extractores certificados.
 
 Recupera el estado desde el apartado 10 de los fundamentos y el plan canónico `docs/architecture/04-verification-and-build-order.md`. Las pruebas de contrato o modelos finitos no se describen como certificación de capacidad, exactitud, disponibilidad o cobertura reales.
 

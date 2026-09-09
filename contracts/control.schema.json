@@ -453,7 +453,7 @@
         "observed_locator": {
           "type": "string",
           "format": "uri",
-          "pattern": "^https://[^/?#@\\s]+(?:[/?#].*)?$"
+          "pattern": "^https?://[^/?#@\\s]+(?:[/?#].*)?$"
         },
         "discovered_at": {
           "$ref": "#/$defs/Timestamp"

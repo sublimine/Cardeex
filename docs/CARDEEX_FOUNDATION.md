@@ -1,7 +1,7 @@
 ---
 title: Fundamentos de Cardeex
 type: canonical-project-context
-status: design-baseline
+status: design-and-discovery-baseline
 last_updated: 2026-09-07
 owner: Elias
 aliases:
@@ -197,9 +197,11 @@ Las frecuencias y prestaciones se expresan como objetivos con denominador, venta
 
 ## 10. Estado y punto de continuación
 
-Elias encargó desarrollar autónomamente la base completa de arquitectura y preparación: inventario vivo por dealer, escala de miles de millones, deduplicación reversible, divergencias, expansión y verificación. Esta base concreta ese encargo. Los únicos programas de este paquete verifican especificaciones; no hay producto, scrapers, infraestructura desplegada ni inventario real.
+Elias encargó desarrollar autónomamente la base completa de arquitectura y preparación: inventario vivo por dealer, escala de miles de millones, deduplicación reversible, divergencias, expansión y verificación. Después aprobó núcleo global y estrategias nacionales y encargó **construir descubrimiento**, extensible, personalizado y sin gasto externo. Está implementado en `discovery/`: perfiles, planificador, candidatos/evidencia, decisiones, cola, acceso gobernado, replay, cobertura y handoff. Su [contrato operativo](architecture/05-discovery-system.md) y `tests/discovery/` forman parte de esta base.
 
-El siguiente trabajo es **diseñar la estrategia de descubrimiento a gran escala de fuentes, profesionales y puntos de venta**, usando el contrato de entrada del apartado 14. Después se diseña la estrategia de adquisición y scraping por superficie usando el apartado 15. No se han ejecutado esas campañas ni se han concedido permisos de acceso a terceros.
+No hay inventario adquirido, campañas nacionales certificadas, despliegue ni operación 24/7 demostrada. El siguiente trabajo operativo es **verificar catálogos geográficos, evaluar canales gratuitos y ejecutar pilotos acotados de descubrimiento**, con auditoría de huecos. El siguiente proyecto de estrategia es adquisición/scraping por superficie (apartado 15). Los perfiles no conceden permisos de terceros y las consultas manuales no son automatización ejecutada.
+
+Elias autorizó corregir las carencias verificadas mediante implementación independiente, con integración local y sin nuevas confirmaciones intermedias. El cierre de `6cd2f2d` quedó reabierto: sus pruebas no acreditaban completitud funcional. La corrección incorpora conservación OSM sin web, canales específicos con continuación, catálogos/alias verificables, señales tecnológicas, calendario y estimación exploratoria. El apartado 10 del plan es la matriz de aceptación; el manual distingue soporte implementado, admisión y validación de campo. No se copia código ni material de Cardex/Cardeep, que siguen exclusivamente como referencias históricas de auditoría.
 
 Los límites empíricos —carga real, distribución de anuncios, cuotas de proveedores, permisos por superficie, rendimiento y calibración de identidad— tienen puertas de aceptación y comportamiento seguro definidos. Se resuelven con evidencia antes de habilitar la capacidad correspondiente, sin impedir construir y probar el núcleo con datos sintéticos.
 
@@ -314,11 +316,11 @@ La barrera de adquisición falla cerrada: exige admisión `approved` vigente y s
 
 Para promoción `onboarding → monitored` se exige: namespace verificado; manifiesto de capacidades; esquema; corpus de prueba; límites; salida incremental definida; reconciliación definida; política de cambios y rollbacks; métricas por alcance; alertas comprobadas y evidencia de admisión vigente. Si la superficie no ofrece borrados ni enumeración completa, puede monitorizar positivos con `negative_evidence_capability=none`; no certifica ausencias.
 
-## 14. Contrato para el próximo proyecto: descubrimiento
+## 14. Descubrimiento: contrato y sistema
 
 ### 14.1 Entrada, salida y fronteras
 
-El próximo proyecto elegirá las estrategias de búsqueda, combinaciones de fuentes y orden geográfico. La base le entrega un esquema de `DiscoveryCandidate`, estado de admisión y definición de cobertura. No presupone listas de dealers, motores de búsqueda, proveedores de directorios ni heurísticas específicas de scraping.
+El [sistema de descubrimiento](architecture/05-discovery-system.md) concreta estrategias, fuentes, orden geográfico y ejecución local. Se integra mediante `DiscoveryCandidate`, un companion ledger de afirmaciones/relaciones y el estado de admisión. No hereda listas, recetas ni datos de otros proyectos. Una estrategia no presupone permisos, cobertura ni una receta de adquisición de inventario.
 
 Cada candidato entrega obligatoriamente:
 
@@ -331,9 +333,11 @@ Cada candidato entrega obligatoriamente:
 
 Un candidato duplicado puede apuntar a otro candidato o a una entidad existente con evidencia; no se convierte en dealer duplicado ni se elimina la huella de su descubrimiento. La aceptación de un candidato permite incorporarlo al registro, no iniciar adquisición de inventario automáticamente.
 
-### 14.2 Requisitos de la estrategia que deberá diseñarse
+### 14.2 Estrategia implementada y límites empíricos
 
-El resultado del siguiente proyecto incluirá un plan finito por país/clase/tipo de fuente, tratamiento de largas colas, generación y normalización de candidatos, evidencia de pertenencia profesional y POS, comprobación de actividad, detección de duplicados de entidad, muestreo independiente, revisión periódica y presupuesto por entidad válida encontrada. Deberá mostrar dónde no sabe medir exhaustividad.
+El módulo incluye planes finitos por país/clase/tipo, largas colas, normalización de candidatos, señales de pertenencia profesional/POS, revisión de actividad, posibles duplicados y presupuestos. Resolver entidades y calibrar recall requiere evidencia independiente real; no existen corpus nacionales etiquetados ni muestras de cobertura ya ejecutadas. El informe conserva desconocidos y trabajo pendiente.
+
+Los perfiles iniciales cubren seis países y cuatro clases con fuentes/idiomas propios. Otro país se planifica sin cambiar el motor; su handoff requiere ampliar antes el contrato de control. El localizador de candidato admite HTTP además de HTTPS para conservar webs antiguas; fetch HTTP es opt-in y no cambia la seguridad de la API. Las señales de búsqueda no se convierten en hechos. `locality_country` y `locality_code` identifican geografía reclamada separada del país de mercado.
 
 Las facetas pueden producir espacios de URL prácticamente ilimitados. Por ello cada método deberá definir frontera, política de URL, clave de visita, presupuesto y condición de parada verificable. Es una exigencia de diseño, no una receta de rastreo ya escogida. [Google, navegación por facetas](https://developers.google.com/crawling/docs/faceted-navigation).
 
@@ -384,4 +388,4 @@ Cada proyecto P0–P4 tiene tareas y puertas en P4. Cada entrega identifica entr
 
 Automatización autorizable: reintentos dentro de presupuesto, replay determinista, aislamiento de un stream, rollback a receta aprobada y generación de propuestas. Cambiar derechos, pagar un proveedor, alterar alcance de producto, publicar una afirmación de cobertura o desplegar una receta no certificada requiere la autoridad correspondiente; un texto de una web no puede concederla.
 
-Se mantienen este documento, cuatro contratos de arquitectura por responsabilidad y sus artefactos verificables. No se crean resúmenes de sesión, copias de decisiones ni checkpoints permanentes. Git conserva la evolución. Una investigación solo permanece separada si sostiene una decisión próxima con fuentes reproducibles. La interfaz de Obsidian no forma parte de la documentación operativa.
+Se mantienen este documento, cuatro contratos de arquitectura fundacional, el contrato operativo de descubrimiento y sus artefactos verificables. El plan se actualiza en P4 y las fuentes nacionales viven junto a sus perfiles. No se crean resúmenes de sesión, decisiones duplicadas ni checkpoints permanentes. Git conserva la evolución. Una investigación separada solo se conserva si sostiene decisiones próximas. La interfaz de Obsidian no forma parte de la documentación operativa.
