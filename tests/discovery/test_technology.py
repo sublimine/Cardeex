@@ -240,6 +240,18 @@ class TechnologyTests(unittest.TestCase):
         self.assertTrue(result["conflicts"])
         self.assertTrue(all(item["confidence"] == "tentative" for item in result["detections"]))
 
+    def test_marked_declarations_have_runtime_independent_boundaries(self):
+        valid = self.classify('<meta name="generator" content="WordPress"><![CDATA[x]]>')
+        self.assertEqual(valid["status"], "analyzed")
+        self.assertEqual([item["name"] for item in valid["detections"]], ["WordPress"])
+
+        for declaration in ('<![invalid]>', '<![invalid>', '<![invalid', '<![ CDATA[x]]>'):
+            with self.subTest(declaration=declaration):
+                invalid = self.classify(declaration + '<meta name="generator" content="WordPress">')
+                self.assertEqual(invalid["status"], "partial")
+                self.assertEqual(invalid["detections"], [])
+                self.assertIn("invalid_or_ambiguous_html", invalid["limitations"])
+
 
 if __name__ == "__main__":
     unittest.main()

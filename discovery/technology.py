@@ -54,6 +54,8 @@ _ASSET_SUFFIXES = (".js", ".css", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".pd
 _VOID = frozenset({"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"})
 _INERT = frozenset({"script", "style", "template", "textarea", "pre", "code", "noscript", "title", "iframe",
                     "xmp", "noembed", "noframes", "plaintext"})
+_MARKED_SECTION_NAME = re.compile(r"([a-z][-.a-z0-9_]*)", re.I)
+_MARKED_SECTION_NAMES = frozenset({"temp", "cdata", "ignore", "include", "rcdata", "if", "else", "endif"})
 
 
 def _result():
@@ -286,6 +288,17 @@ class _TechnologyHTML(HTMLParser):
 
     def handle_pi(self, data):
         self.count_event()
+
+    def parse_html_declaration(self, index):
+        if self.rawdata.startswith("<![", index):
+            match = _MARKED_SECTION_NAME.match(self.rawdata, index + 3)
+            status = match[1].lower() if match else ""
+            if status not in _MARKED_SECTION_NAMES:
+                # Python 3.12 turns some malformed marked declarations into
+                # bogus comments and continues. Stop at the same boundary as
+                # the stricter runtime so later detections cannot be invented.
+                raise ValueError("unsupported marked declaration")
+        return super().parse_html_declaration(index)
 
     def unknown_decl(self, data):
         self.count_event()
