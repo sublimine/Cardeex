@@ -38,7 +38,7 @@ Recupera el estado desde el apartado 10 de los fundamentos y el plan canónico `
 
 ## Obsidian y Graphify
 
-La raíz de este repositorio es el vault independiente de Cardeex. El grafo de Obsidian y cualquier grafo de Graphify deben contener solo archivos y nodos de `C:\Users\elias\Cardeex`. Nunca se unen con otro vault o grafo salvo orden explícita de Elias.
+La raíz de este repositorio es el vault independiente de Cardeex. En estas instrucciones, `<CARDEEX_ROOT>` representa el checkout actual (por ejemplo, `%USERPROFILE%\Cardeex` en Windows o `$HOME/projects/Cardeex` en la VPS). El grafo de Obsidian y cualquier grafo de Graphify deben contener solo archivos y nodos de `<CARDEEX_ROOT>`. Nunca se unen con otro vault o grafo salvo orden explícita de Elias.
 
 Para regenerar el grafo local desde la raíz de Cardeex:
 
@@ -49,7 +49,7 @@ graphify update .
 Para consultarlo:
 
 ```powershell
-graphify query "<pregunta sobre Cardeex>" --graph .\graphify-out\graph.json
+graphify query "<pregunta sobre Cardeex>" --graph ./graphify-out/graph.json
 ```
 
 `graphify-out/` es derivado y está ignorado por Git. El grafo de Cardeex debe permanecer local al repositorio: no se registra en el grafo global ni se fusiona con ningún otro proyecto.

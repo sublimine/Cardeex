@@ -12,7 +12,7 @@ tags:
 
 Este es el punto de entrada del vault **independiente** de Cardeex.
 
-> La raíz del vault es `C:\Users\elias\Cardeex`; sus archivos y grafos son independientes. La verdad canónica está versionada en `sublimine/Cardeex`. Las menciones históricas a otros proyectos son procedencia de auditoría, no archivos incorporados al vault.
+> `<CARDEEX_ROOT>` es el checkout actual del repositorio (por ejemplo, `%USERPROFILE%\Cardeex` en Windows o `$HOME/projects/Cardeex` en la VPS) y también la raíz del vault; sus archivos y grafos son independientes. La verdad canónica está versionada en `sublimine/Cardeex`. Las menciones históricas a otros proyectos son procedencia de auditoría, no archivos incorporados al vault.
 
 ## Leer primero
 
